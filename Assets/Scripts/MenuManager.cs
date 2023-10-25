@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -10,8 +11,11 @@ using UnityEngine.UI;
 public class MenuManager : MonoBehaviour
 {
     public GameObject statsMenu;
-    public PlayableCharacter playerInfo;
-    public PlayableCharacter player2Info;
+    public GameObject player1;
+    public GameObject player2;
+
+    private PlayableCharacter playerInfo;
+    private PlayableCharacter player2Info;
     public static event Action OnInvOpened;
 
     public List<TextMeshProUGUI> player1Stats;
@@ -21,12 +25,13 @@ public class MenuManager : MonoBehaviour
     public Image player1Armor;
     public Image player2Armor;
     private PauseGame pauseGame;
-    [HideInInspector]
     public bool menuScreenActive;
     public Inventory invManager;
     private void Start()
     {
         pauseGame = gameObject.GetComponent<PauseGame>();
+        playerInfo = player1.GetComponent<PlayableCharacter>();
+        player2Info = player2.GetComponent<PlayableCharacter>();
     }
 
 
@@ -160,7 +165,10 @@ public class MenuManager : MonoBehaviour
 
     public void OnLevelWasLoaded(int level)
     {
-        Debug.Log("LEVEL LOADED");
+        if(level == 0)
+        {
+            player1.transform.position = player1.GetComponent<PlayerCollision>().beforeBattlePos;
+        }
     }
 
     private void OnDisable()

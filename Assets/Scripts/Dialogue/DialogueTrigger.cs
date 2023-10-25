@@ -6,7 +6,7 @@ public class DialogueTrigger : MonoBehaviour
 {
 
     public Dialogue dialogue;
-    public DialogueManager manager;
+    private DialogueManager manager;
     public bool isTalking;
 
     private void Start()
@@ -14,7 +14,10 @@ public class DialogueTrigger : MonoBehaviour
         isTalking = false;
     }
 
-
+    private void Awake()
+    {
+        manager = FindAnyObjectByType<DialogueManager>();
+    }
     private void OnTriggerStay(Collider other)
     {
         if (other.tag == "Player")

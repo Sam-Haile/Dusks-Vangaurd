@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class EnemyAI : MonoBehaviour
 {
+    // Serialized fields for enemy attributes
     [SerializeField] private float viewAngle;
     [SerializeField] private float viewDistance;
     [SerializeField] private LayerMask playerLayer;
@@ -12,65 +13,78 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private float speed = 3.0f;
     [SerializeField] private float rotationSpeed = 100.0f;
     [SerializeField] private float wanderRadius = 10.0f;  // Radius within which to stay
-    public MMFeedbacks alertFeedback;
 
+    // Private variables for enemy behavior
     private Transform player;
     private Vector3 directionToPlayer;
-    private Vector3 homePosition;  // The center of the wander area
+    private Vector3 homePosition;  
     private Coroutine wanderCoroutine;
+    private Coroutine chaseCoroutine;
     private bool canChase = false;
 
-    private bool isWandering = false;
+    // Flags for enemy states
     private bool isRotatingLeft = false;
     private bool isRotatingRight = false;
-    private bool isWalking = false;
+    [HideInInspector] public bool isTurning;
+    [HideInInspector] public bool isRunning;
+    [HideInInspector] public bool isWalking = false;
+
+    private void Awake()
+    {
+        // Find the player in the scene
+        player = FindObjectOfType<PlayerCollision>()?.transform;
+    }
 
     private void Start()
     {
-        player = FindObjectOfType<PlayableCharacter>().transform;
-        homePosition = transform.position;  // Set the home position to the initial position
+        // Initialize the home position
+        homePosition = transform.position;
     }
 
     private void Update()
     {
+        // Update enemy behavior every frame
         UpdateChaseCondition();
         UpdateDirectionToPlayer();
-        HandleWandering();
         HandleRotation();
         HandleWalking();
+
         // If the enemy is not chasing the player and not already wandering, start wandering
         if (!canChase && wanderCoroutine == null)
         {
             wanderCoroutine = StartCoroutine(Wander());
         }
         // If the enemy can chase the player, start the HandleChasing coroutine
-        if (canChase)
+        if (canChase && chaseCoroutine == null)
         {
-            StartCoroutine(HandleChasing());
+            chaseCoroutine = StartCoroutine(HandleChasing());
         }
     }
 
-
+    /// <summary>
+    /// Checks if player is within a certain distance of the enemys spawn position,
+    /// if the player is too far away, the enemy will not chase them anymore
+    /// </summary>
     private void UpdateChaseCondition()
     {
         // Check distance between player and enemies spawn
-        canChase = Vector3.Distance(player.position, homePosition) < wanderRadius;
+        if (player != null)
+            canChase = Vector3.Distance(player.position, homePosition) < wanderRadius;
+        else
+            canChase = false;
     }
 
+    /// <summary>
+    /// Updates the direction towards the player.
+    /// </summary>
     private void UpdateDirectionToPlayer()
     {
         directionToPlayer = (player.position - transform.position).normalized;
     }
 
-    private void HandleWandering()
-    {
-        if (wanderCoroutine == null)
-        {
-            // If the player is within the field of vision
-            wanderCoroutine = StartCoroutine(Wander());
-        }
-    }
-
+    /// <summary>
+    /// Handles enemy rotation based on flags.
+    /// </summary>
     private void HandleRotation()
     {
         if (isRotatingRight)
@@ -84,6 +98,9 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Handles enemy walking behavior.
+    /// </summary>
     private void HandleWalking()
     {
         if (isWalking)
@@ -99,6 +116,9 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Coroutine for chasing the player.
+    /// </summary>
     private IEnumerator HandleChasing()
     {
         if (Vector3.Angle(transform.forward, directionToPlayer) < viewAngle / 2)
@@ -109,8 +129,6 @@ public class EnemyAI : MonoBehaviour
                 // If the player is detected, start chasing
                 if (hit.collider.transform == player && canChase)
                 {
-
-                    alertFeedback.PlayFeedbacks();
                     // Pause for a second
                     yield return new WaitForSeconds(1f);
 
@@ -122,41 +140,59 @@ public class EnemyAI : MonoBehaviour
                     // Stop rotating due to wandering
                     isRotatingRight = false;
                     isRotatingLeft = false;
+                    isRunning = true;
                     ChasePlayer();
                 }
+                else
+                    isRunning = false;
             }
+            else
+                isRunning = false;
         }
+        else
+            isRunning = false;
+
+        chaseCoroutine = null;
     }
 
+    /// <summary>
+    /// Handles the logic for the enemy chasing the player.
+    /// </summary>
     private void ChasePlayer()
     {
-        // Calculate the direction and velocity
-        Vector3 direction = player.position - transform.position;
-        direction.Normalize();
-        Vector3 velocity = direction * chaseSpeed * Time.deltaTime;
+        // Normalize the direction to get a unit vector
+        Vector3 direction = (player.position - transform.position).normalized;
 
-        // Move and face towards the player
-        transform.position += velocity;
-        if (direction != Vector3.zero)
-        {
-            direction.y = 0;
-            Quaternion toRotation = Quaternion.LookRotation(direction, Vector3.up);
-            transform.rotation = Quaternion.Lerp(transform.rotation, toRotation, chaseSpeed * Time.deltaTime);
-        }
+        // Move the enemy towards the player
+        transform.position += direction * chaseSpeed * Time.deltaTime;
+
+        Vector3 flatDirection = new Vector3(direction.x, 0, direction.z).normalized;
+        // Make the enemy face the player
+        Quaternion lookRotation = Quaternion.LookRotation(flatDirection);
+        transform.rotation = Quaternion.Euler(0, lookRotation.eulerAngles.y, 0);
     }
 
+    /// <summary>
+    /// Coroutine for wandering behavior.
+    /// </summary>
     private IEnumerator Wander()
     {
+
+        if (chaseCoroutine != null)
+        {
+            StopCoroutine(chaseCoroutine);
+            chaseCoroutine = null;
+        }
+
         int rotTime = Random.Range(1, 3);
         int rotateWait = Random.Range(1, 4);
         int rotateLorR = Random.Range(1, 2);
         int walkWait = Random.Range(1, 4);
         int walkTime = Random.Range(1, 2);
 
-        isWandering = true;
 
-        yield return new WaitForSeconds(walkWait);
         isWalking = true;
+        yield return new WaitForSeconds(walkWait);
         yield return new WaitForSeconds(walkTime);
         isWalking = false;
         yield return new WaitForSeconds(rotateWait);
@@ -164,21 +200,43 @@ public class EnemyAI : MonoBehaviour
         if (rotateLorR == 1)
         {
             isRotatingRight = true;
+            isTurning = true;
             yield return new WaitForSeconds(rotTime);
             isRotatingRight = false;
+            isTurning = false;
         }
 
         if (rotateLorR == 2)
         {
             isRotatingLeft = true;
+            isTurning = true;
             yield return new WaitForSeconds(rotTime);
             isRotatingLeft = false;
+            isTurning = false;
         }
 
-        isWandering = false;
         wanderCoroutine = null;
     }
 
+    /// <summary>
+    /// Converts an angle to a direction vector.
+    /// </summary>
+    private Vector3 DirFromAngle(float angleInDegrees, bool angleIsGlobal)
+    {
+        if (!angleIsGlobal)
+        {
+            angleInDegrees += transform.eulerAngles.y;
+        }
+        return new Vector3(Mathf.Sin(angleInDegrees * Mathf.Deg2Rad), 0, Mathf.Cos(angleInDegrees * Mathf.Deg2Rad));
+    }
+
+    private void OnDisable()
+    {
+        // Ensure all coroutines are stopped when the script is disabled
+        StopAllCoroutines();
+    }
+
+#if UNITY_EDITOR 
     private void OnDrawGizmos()
     {
         // Draw the field of view
@@ -194,13 +252,5 @@ public class EnemyAI : MonoBehaviour
 
         Gizmos.DrawWireSphere(homePosition, wanderRadius);
     }
-
-    private Vector3 DirFromAngle(float angleInDegrees, bool angleIsGlobal)
-    {
-        if (!angleIsGlobal)
-        {
-            angleInDegrees += transform.eulerAngles.y;
-        }
-        return new Vector3(Mathf.Sin(angleInDegrees * Mathf.Deg2Rad), 0, Mathf.Cos(angleInDegrees * Mathf.Deg2Rad));
-    }
+#endif
 }

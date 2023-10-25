@@ -9,6 +9,7 @@ TagManager:
   - SteamSentinel
   - ItemSlot
   - Puck
+  - Zombie
   layers:
   - Default
   - TransparentFX
@@ -20,7 +21,7 @@ TagManager:
   - Puck
   - Enemy
   - PostProcessing
-  - 
+  - NoPostProcessing
   - 
   - 
   - 

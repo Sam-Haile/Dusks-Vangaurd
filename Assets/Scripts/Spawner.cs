@@ -8,7 +8,6 @@ public class Spawner : MonoBehaviour
     public int enemyPrefabMin;
     public int enemyPrefabMax;
 
-    private int prefabIndex;
 
     public List<GameObject> listOfEnemyPrefabs;
 
@@ -23,6 +22,7 @@ public class Spawner : MonoBehaviour
     {
         Vector2 randomPosition = Random.insideUnitCircle.normalized * spawnRadius;
         Vector3 spawnPosition = transform.position + new Vector3(randomPosition.x, 1f, randomPosition.y);
+        
 
         string enemyId = System.Guid.NewGuid().ToString();
 

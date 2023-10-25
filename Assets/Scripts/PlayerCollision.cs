@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
 public class PlayerCollision : MonoBehaviour
 {
@@ -13,13 +14,20 @@ public class PlayerCollision : MonoBehaviour
     // When player collides with an enemy
     private void OnCollisionEnter(UnityEngine.Collision collision)
     {
-        if (collision.gameObject.GetComponent<Unit>() != null && collision.gameObject.tag != "Puck")
+        if (collision.gameObject.GetComponent<Unit>())
         {
-            beforeBattlePos = this.transform.position;
+            beforeBattlePos = new Vector3(transform.position.x, transform.position.y + 1, transform.position.z);
             enemyTag = collision.gameObject.tag;
             SceneManager.LoadScene(1);
         }
     }
 
+    public void OnLevelWasLoaded(int level)
+    {
+        if (level == 0)
+        {
+            this.transform.position = beforeBattlePos;
+        }
+    }
 
 }

@@ -38,7 +38,6 @@ public class ObjectRotate : MonoBehaviour
         }
         else
         {
-            Debug.Log("Going Back");
             Quaternion targetRotation = Quaternion.Euler(57, 225, 0);
             float rotationSpeed = 1f; // Adjust this value to change the speed of rotation
             this.transform.localRotation = Quaternion.Slerp(this.transform.localRotation, targetRotation, Time.deltaTime * rotationSpeed);

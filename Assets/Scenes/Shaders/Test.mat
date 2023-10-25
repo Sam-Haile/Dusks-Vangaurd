@@ -24,7 +24,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _Albedo:
-        m_Texture: {fileID: 2800000, guid: 5675f058600b91b42b3434da2b325ae5, type: 3}
+        m_Texture: {fileID: 2800000, guid: 6d4161997b09ca441a2fc56d5b6f131e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseMap:
@@ -52,7 +52,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Height_Map:
-        m_Texture: {fileID: 2800000, guid: 2663c5d6031e4964f832ae86bf3c0138, type: 3}
+        m_Texture: {fileID: 2800000, guid: f2304e311c916064db8812d0862af59b, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:

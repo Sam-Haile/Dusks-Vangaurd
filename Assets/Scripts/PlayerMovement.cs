@@ -6,7 +6,6 @@ public class PlayerMovement : MonoBehaviour
 {
 
     private CharacterController character;
-    private Vector3 movement;
 
     [HideInInspector] public float walkSpeed = 2f;
     public float moveSpeed;  // Adjust this to control the player's movement speed
@@ -29,6 +28,7 @@ public class PlayerMovement : MonoBehaviour
     public float num;
 
     public Animator playerAnimator;
+    public Animator player2Animatior;
 
     void Start()
     {
@@ -75,13 +75,14 @@ public class PlayerMovement : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
-            playerAnimator.SetBool("isSprinting", true);
-            isSprinting = true;
             moveSpeed = walkSpeed * sprintMultiplier;
+
+            if(destination.x != 0 && destination.z != 0)
+                isSprinting = true;
+
         }
         else
         {
-            playerAnimator.SetBool("isSprinting", false);
             isSprinting = false;
             moveSpeed = walkSpeed;
         }
@@ -107,15 +108,9 @@ public class PlayerMovement : MonoBehaviour
     private void HandleAnimations()
     {
         if (destination.x != 0 && destination.z != 0)
-        {
-            playerAnimator.SetBool("isMoving", true);
             isMoving = true;
-        }
         else
-        {
-            playerAnimator.SetBool("isMoving", false);
             isMoving = false;
-        }
     }
 
     private void OnDrawGizmos()

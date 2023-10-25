@@ -10,6 +10,7 @@ public enum BattleState { START, PLAYERTURN, SECONDPLAYERTURN, ENEMYTURN, WON, G
 
 public class BattleSystem : MonoBehaviour
 {
+
     #region Fields
     // Highlight/Selection fields
     private RaycastHit raycastHit;
@@ -34,11 +35,11 @@ public class BattleSystem : MonoBehaviour
     PlayableCharacter playerUnit;
     private int initialDefenseP1;
     private bool isPlayerDead;
+    public Transform playerPos;
 
     // Player2 Instantiation fields
     public Transform player2BattleStation;
     public BattleHUD player2HUD;
-    private Vector3 beforeBattlePosP2;
     PlayableCharacter player2Unit;
     private int initialDefenseP2;
     private bool isPlayer2Dead;
@@ -60,6 +61,9 @@ public class BattleSystem : MonoBehaviour
 
     private void Awake()
     {
+        playerPos = FindObjectOfType<PlayerMovement>().transform;
+        playerUnit = FindObjectOfType<PlayerMovement>().GetComponent<PlayableCharacter>();
+
         foreach (GameObject enemy in enemyPrefabList)
         {
             enemyDictionary.Add(enemy.tag, enemy);
@@ -98,17 +102,17 @@ public class BattleSystem : MonoBehaviour
     {
         SetButtonsActive(false);
 
-        playerUnit = Player.instance;
-        playerUnit.gameObject.transform.position = playerBattleStation.transform.position;
+        playerPos.position = playerBattleStation.position;
+
+        //Stop animation and movement
+        playerUnit.GetComponent<PlayerMovement>().isMoving = false;
         playerUnit.GetComponent<PlayerMovement>().enabled = false;
-        playerUnit.GetComponent<Rigidbody>().isKinematic = true;
         playerUnit.transform.rotation = Quaternion.Euler(0, 0, 0);
         initialDefenseP1 = playerUnit.baseDefense;
 
         player2Unit = Puck.instance;
-        beforeBattlePosP2 = player2Unit.transform.position;
+        player2Unit.GetComponent<Follow>().follow = false;
         player2Unit.gameObject.transform.position = player2BattleStation.transform.position;
-        player2Unit.GetComponent<Rigidbody>().isKinematic = true;
         player2Unit.transform.rotation = Quaternion.Euler(0, 0, 0);
         initialDefenseP2 = player2Unit.baseDefense;
 
@@ -118,33 +122,43 @@ public class BattleSystem : MonoBehaviour
 
         if (num == 1)
         {
-            GameObject enemyGO = Instantiate(enemyDictionary[enemyTag], enemyBattleStations[1]);
-            enemyUnit = enemyGO.GetComponent<Unit>();
+            GameObject enemyGameObj = Instantiate(enemyDictionary[enemyTag], enemyBattleStations[1]);
+            enemyUnit = enemyGameObj.GetComponent<Unit>();
+            enemyUnit.GetComponent<EnemyAI>().enabled = false;
             activeEnemies.Add(enemyUnit);
+
+            enemyBattleStations[2].gameObject.SetActive(false);
+            enemyBattleStations[0].gameObject.SetActive(false);
         }
         else if (num == 2)
         {
-            GameObject enemyGO1 = Instantiate(enemyDictionary[keys[Random.Range(0, keys.Count)]], enemyBattleStations[0]);
-            enemyUnit = enemyGO1.GetComponent<Unit>();
+            GameObject enemyGameObj1 = Instantiate(enemyDictionary[keys[Random.Range(0, keys.Count)]], enemyBattleStations[0]);
+            enemyUnit = enemyGameObj1.GetComponent<Unit>();
+            enemyUnit.GetComponent<EnemyAI>().enabled = false;
             activeEnemies.Add(enemyUnit);
 
-            GameObject enemyGO2 = Instantiate(enemyDictionary[enemyTag], enemyBattleStations[1]);
-            enemyUnit = enemyGO2.GetComponent<Unit>();
+            GameObject enemyGameObj2 = Instantiate(enemyDictionary[enemyTag], enemyBattleStations[1]);
+            enemyUnit = enemyGameObj2.GetComponent<Unit>();
+            enemyUnit.GetComponent<EnemyAI>().enabled = false;
             activeEnemies.Add(enemyUnit);
 
+            enemyBattleStations[2].gameObject.SetActive(false);
         }
         else if (num == 3)
         {
-            GameObject enemyGO1 = Instantiate(enemyDictionary[keys[Random.Range(0, keys.Count)]], enemyBattleStations[0]);
-            enemyUnit = enemyGO1.GetComponent<Unit>();
+            GameObject enemyGameObj1 = Instantiate(enemyDictionary[keys[Random.Range(0, keys.Count)]], enemyBattleStations[0]);
+            enemyUnit = enemyGameObj1.GetComponent<Unit>();
+            enemyUnit.GetComponent<EnemyAI>().enabled = false;
             activeEnemies.Add(enemyUnit);
 
-            GameObject enemyGO2 = Instantiate(enemyDictionary[enemyTag], enemyBattleStations[1]);
-            enemyUnit = enemyGO2.GetComponent<Unit>();
+            GameObject enemyGameObj2 = Instantiate(enemyDictionary[enemyTag], enemyBattleStations[1]);
+            enemyUnit = enemyGameObj2.GetComponent<Unit>();
+            enemyUnit.GetComponent<EnemyAI>().enabled = false;
             activeEnemies.Add(enemyUnit);
 
-            GameObject enemyGO3 = Instantiate(enemyDictionary[keys[Random.Range(0, keys.Count)]], enemyBattleStations[2]);
-            enemyUnit = enemyGO3.GetComponent<Unit>();
+            GameObject enemyGameObj3 = Instantiate(enemyDictionary[keys[Random.Range(0, keys.Count)]], enemyBattleStations[2]);
+            enemyUnit = enemyGameObj3.GetComponent<Unit>();
+            enemyUnit.GetComponent<EnemyAI>().enabled = false;
             activeEnemies.Add(enemyUnit);
 
         }
@@ -154,11 +168,11 @@ public class BattleSystem : MonoBehaviour
         playerHUD.SetHUD(playerUnit);
         player2HUD.SetHUD(player2Unit);
 
-        for (int i = 0; i < activeEnemies.Count; i++)
-        {
-            enemyHUD[i].gameObject.SetActive(true);
-            enemyHUD[i].SetHUD(enemyUnit);
-        }
+        //for (int i = 0; i < activeEnemies.Count; i++)
+        //{
+        //    enemyHUD[i].gameObject.SetActive(true);
+        //    enemyHUD[i].SetHUD(enemyUnit);
+        //}
 
         yield return new WaitForSeconds(2f);
 
@@ -279,6 +293,7 @@ public class BattleSystem : MonoBehaviour
         SetButtonsActive(false);
         backButtons[0].gameObject.SetActive(false);
         backButtons[1].gameObject.SetActive(false);
+        
         if (state == BattleState.PLAYERTURN)
         {
             damage = DetermineDamage(damageStat, selectedEnemy, playerUnit.equippedWeapon);
@@ -435,7 +450,6 @@ public class BattleSystem : MonoBehaviour
         else if (state == BattleState.SECONDPLAYERTURN)
         {
             player2Unit.baseDefense *= 2;
-            dialogueText.text = "AR27 braces itself";
             SetButtonsActive(false);
             yield return new WaitForSeconds(2f);
             state = BattleState.ENEMYTURN;
@@ -590,12 +604,7 @@ public class BattleSystem : MonoBehaviour
     /// <returns></returns>
     IEnumerator LoadWorld(int sceneIndex)
     {
-        Debug.Log("Loading World");
-        Vector3 pos = playerUnit.GetComponent<PlayerCollision>().beforeBattlePos;
-        playerUnit.transform.position = new Vector3(pos.x, pos.y, pos.z);
-        player2Unit.transform.position = beforeBattlePosP2;
         playerUnit.GetComponent<PlayerMovement>().enabled = true;
-        player2Unit.GetComponent<Rigidbody>().isKinematic = false;
         yield return new WaitForSeconds(2f);
         SceneManager.LoadScene(sceneIndex);
     }
@@ -667,6 +676,7 @@ public class BattleSystem : MonoBehaviour
     /// </summary>
     void Update()
     {
+
         if (canSelect)
         {
             // Highlight
@@ -679,17 +689,20 @@ public class BattleSystem : MonoBehaviour
             if (!EventSystem.current.IsPointerOverGameObject() && Physics.Raycast(ray, out raycastHit))
             {
                 highlight = raycastHit.transform;
-                if (highlight.gameObject.GetComponent<Unit>() != null && highlight != selection)
+                if (highlight.gameObject.GetComponent<EnemyAI>() != null && highlight != selection)
                 {
                     Outline outline;
+
                     if (highlight.gameObject.GetComponent<Outline>() != null)
                     {
                         outline = highlight.gameObject.GetComponent<Outline>();
+                        outline.OutlineWidth = 30f;
                         outline.enabled = true;
                     }
                     else
                     {
                         outline = highlight.gameObject.AddComponent<Outline>();
+                        outline.OutlineWidth = 30f;
                         outline.enabled = true;
                     }
                 }
@@ -724,7 +737,6 @@ public class BattleSystem : MonoBehaviour
 
         }
 
-
     }
 
     private int DetermineDamage(int givingDmgStat, Unit recievingDmg, Weapon playersWeapon)
@@ -734,7 +746,7 @@ public class BattleSystem : MonoBehaviour
             weapon = playersWeapon.GetComponent<Weapon>();
         // Determine the defensive stat of the unit
         int armorDefense = (recievingDmg.equippedArmor != null) ? recievingDmg.equippedArmor.defense : 0;
-        Debug.Log(recievingDmg + "Defense: " + armorDefense);
+        //Debug.Log(recievingDmg + "Defense: " + armorDefense);
         int damage = Mathf.Max(1, givingDmgStat - recievingDmg.baseDefense - armorDefense);
         if (weapon != null)
             damage += weapon.attack;
@@ -748,7 +760,7 @@ public class BattleSystem : MonoBehaviour
             weapon = playersWeapon.GetComponent<Weapon>();
         // Determine the special defensive stat of the unit
         int armorSpecDefense = (recievingDmg.equippedArmor != null) ? recievingDmg.equippedArmor.specialDefense : 0;
-        Debug.Log(recievingDmg + "Special Defense: " + armorSpecDefense);
+        //Debug.Log(recievingDmg + "Special Defense: " + armorSpecDefense);
         int damage = Mathf.Max(1, givingDmgStat - recievingDmg.baseDefense - armorSpecDefense);
         if (weapon != null)
             damage += weapon.arcane;
@@ -820,6 +832,6 @@ public class BattleSystem : MonoBehaviour
             StartCoroutine(LoadWorld(0));
         }
     }
-
     #endregion
+
 }
