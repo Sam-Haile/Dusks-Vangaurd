@@ -15,17 +15,24 @@ public class AnimController : MonoBehaviour
 
     private float timeIdle = 0;
     private bool playIdleAnim = false;
-    
-    private void Start()
+
+
+    public GameObject swordBack;
+    public GameObject swordHand;
+
+    private void Awake()
     {
-        playerMovement = player1.GetComponent<PlayerMovement>();
         playerAnimator = player1.GetComponent<Animator>();
         player2Animatior = player2.GetComponent<Animator>();
     }
 
+    private void Start()
+    {
+        playerMovement = player1.GetComponent<PlayerMovement>();
+    }
+
     private void Update()
     {
-
         if (playerMovement.isMoving)
         {
             SetBool("isMoving", true);
@@ -59,7 +66,38 @@ public class AnimController : MonoBehaviour
     }
 
 
+    private void OnLevelWasLoaded(int level)
+    {
+        // If it's a battle, swtich the animation controllers
+        if(level == 2)
+        {
+            swordBack.SetActive(false);
+            swordHand.SetActive(true);
+            playerAnimator.SetTrigger("battle");
+        }
+        else if(level == 1){
+            playerAnimator.SetTrigger("battleEnd");
+            swordBack.SetActive(true);
+            swordHand.SetActive(false);
+        }
+    }
 
 
+    private void OnEnable()
+    {
+        BattleSystem.OnBattleAction += HandleBattleAction;
+    }
+
+    private void OnDisable()
+    {
+        BattleSystem.OnBattleAction -= HandleBattleAction;
+    }
+
+    private void HandleBattleAction()
+    {
+        // Do something, like triggering a different animation
+        Debug.Log("Attacking Animation");
+        playerAnimator.SetTrigger("attack");
+    }
 
 }

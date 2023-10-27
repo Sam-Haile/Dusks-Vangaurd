@@ -28,7 +28,6 @@ public class BattleSystem : MonoBehaviour
     public List<BattleHUD> enemyHUD;
     Unit enemyUnit;
 
-
     // Player1 Instantiation fields
     public Transform playerBattleStation;
     public BattleHUD playerHUD;
@@ -55,6 +54,12 @@ public class BattleSystem : MonoBehaviour
     public GameObject levelScreen;
     public UnityEvent levelUpEvent;
     private int totalMoney = 0;
+
+
+    // Event for handling battle animations
+    public delegate void BattleActionHandler();
+    public static event BattleActionHandler OnBattleAction;
+
     #endregion
 
     #region Battle Setup
@@ -62,7 +67,7 @@ public class BattleSystem : MonoBehaviour
     private void Awake()
     {
         playerPos = FindObjectOfType<PlayerMovement>().transform;
-        playerUnit = FindObjectOfType<PlayerMovement>().GetComponent<PlayableCharacter>();
+        playerUnit = playerPos.GetComponent<PlayableCharacter>();
 
         foreach (GameObject enemy in enemyPrefabList)
         {
@@ -111,7 +116,7 @@ public class BattleSystem : MonoBehaviour
         initialDefenseP1 = playerUnit.baseDefense;
 
         player2Unit = Puck.instance;
-        player2Unit.GetComponent<Follow>().follow = false;
+        player2Unit.GetComponent<Follow>().enabled = false;
         player2Unit.gameObject.transform.position = player2BattleStation.transform.position;
         player2Unit.transform.rotation = Quaternion.Euler(0, 0, 0);
         initialDefenseP2 = player2Unit.baseDefense;
@@ -288,6 +293,10 @@ public class BattleSystem : MonoBehaviour
     /// <returns>Deals damage to selected enemy</returns>
     IEnumerator PlayerAttack(Unit selectedEnemy, int damageStat)
     {
+        
+        // Call the event to cue an animation
+        OnBattleAction?.Invoke();
+
         bool isDead = false;
         int damage;
         SetButtonsActive(false);
@@ -400,8 +409,6 @@ public class BattleSystem : MonoBehaviour
             else
             {
                 state = BattleState.ENEMYTURN;
-
-
                 StartCoroutine(EnemyTurn());
             }
         }
@@ -528,6 +535,7 @@ public class BattleSystem : MonoBehaviour
 
         foreach (Unit enemy in activeEnemies)
         {
+            // Enemies randomly decide wether to use arcane or physical attacks
             int attackType = Random.Range(0, 1);
             dialogueText.text = enemyUnit.unitName + " attacks!";
             yield return new WaitForSeconds(1f);
@@ -547,7 +555,7 @@ public class BattleSystem : MonoBehaviour
             else                                                        //If none of the above cases apply, choose randomly
                 target = Random.Range(0, 2) == 0 ? playerUnit : player2Unit;
 
-            // Use a formula to determine the amounf of damage to deal
+            // Use a formula to determine the amount of damage to deal
             Debug.Log(attackType);
             if (attackType == 0)
             {
@@ -604,7 +612,6 @@ public class BattleSystem : MonoBehaviour
     /// <returns></returns>
     IEnumerator LoadWorld(int sceneIndex)
     {
-        playerUnit.GetComponent<PlayerMovement>().enabled = true;
         yield return new WaitForSeconds(2f);
         SceneManager.LoadScene(sceneIndex);
     }
@@ -820,7 +827,7 @@ public class BattleSystem : MonoBehaviour
         else if (state == BattleState.FLEE)
         {
             dialogueText.text = "You fled the battle!";
-            StartCoroutine(LoadWorld(0));
+            StartCoroutine(LoadWorld(1));
         }
         else if (state == BattleState.LOST)
         {
@@ -829,7 +836,7 @@ public class BattleSystem : MonoBehaviour
         }
         else if (state == BattleState.GAINEXP)
         {
-            StartCoroutine(LoadWorld(0));
+            StartCoroutine(LoadWorld(1));
         }
     }
     #endregion

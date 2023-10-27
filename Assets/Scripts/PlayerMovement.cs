@@ -27,9 +27,6 @@ public class PlayerMovement : MonoBehaviour
 
     public float num;
 
-    public Animator playerAnimator;
-    public Animator player2Animatior;
-
     void Start()
     {
         character = GetComponent<CharacterController>();
@@ -79,7 +76,6 @@ public class PlayerMovement : MonoBehaviour
 
             if(destination.x != 0 && destination.z != 0)
                 isSprinting = true;
-
         }
         else
         {

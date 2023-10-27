@@ -17,7 +17,7 @@ public class EnemyAI : MonoBehaviour
     // Private variables for enemy behavior
     private Transform player;
     private Vector3 directionToPlayer;
-    private Vector3 homePosition;  
+    private Vector3 homePosition;
     private Coroutine wanderCoroutine;
     private Coroutine chaseCoroutine;
     private bool canChase = false;
@@ -46,6 +46,7 @@ public class EnemyAI : MonoBehaviour
         // Update enemy behavior every frame
         UpdateChaseCondition();
         UpdateDirectionToPlayer();
+        HandleWandering();
         HandleRotation();
         HandleWalking();
 
@@ -61,40 +62,14 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Checks if player is within a certain distance of the enemys spawn position,
-    /// if the player is too far away, the enemy will not chase them anymore
-    /// </summary>
-    private void UpdateChaseCondition()
-    {
-        // Check distance between player and enemies spawn
-        if (player != null)
-            canChase = Vector3.Distance(player.position, homePosition) < wanderRadius;
-        else
-            canChase = false;
-    }
 
-    /// <summary>
-    /// Updates the direction towards the player.
-    /// </summary>
-    private void UpdateDirectionToPlayer()
+    #region Wander Code
+    private void HandleWandering()
     {
-        directionToPlayer = (player.position - transform.position).normalized;
-    }
-
-    /// <summary>
-    /// Handles enemy rotation based on flags.
-    /// </summary>
-    private void HandleRotation()
-    {
-        if (isRotatingRight)
+        if (wanderCoroutine == null)
         {
-            transform.Rotate(transform.up * Time.deltaTime * rotationSpeed);
-        }
-
-        if (isRotatingLeft)
-        {
-            transform.Rotate(transform.up * Time.deltaTime * -rotationSpeed);
+            // If the player is within the field of vision
+            wanderCoroutine = StartCoroutine(Wander());
         }
     }
 
@@ -114,6 +89,69 @@ public class EnemyAI : MonoBehaviour
 
             transform.position += transform.forward * speed * Time.deltaTime;
         }
+    }
+
+    /// <summary>
+    /// Coroutine for wandering behavior.
+    /// </summary>
+    private IEnumerator Wander()
+    {
+
+        if (chaseCoroutine != null)
+        {
+            StopCoroutine(chaseCoroutine);
+            chaseCoroutine = null;
+        }
+
+        int rotTime = Random.Range(1, 3);
+        int rotateWait = Random.Range(1, 4);
+        int rotateLorR = Random.Range(1, 2);
+        int walkWait = Random.Range(1, 4);
+        int walkTime = Random.Range(1, 2);
+
+
+        isWalking = true;
+        yield return new WaitForSeconds(walkWait);
+        yield return new WaitForSeconds(walkTime);
+        isWalking = false;
+        yield return new WaitForSeconds(rotateWait);
+
+        if (rotateLorR == 1)
+        {
+            isRotatingRight = true;
+            isTurning = true;
+            yield return new WaitForSeconds(rotTime);
+            isRotatingRight = false;
+            isTurning = false;
+        }
+
+        if (rotateLorR == 2)
+        {
+            isRotatingLeft = true;
+            isTurning = true;
+            yield return new WaitForSeconds(rotTime);
+            isRotatingLeft = false;
+            isTurning = false;
+        }
+
+        wanderCoroutine = null;
+    }
+
+
+    #endregion
+
+    #region Chase Code
+    /// <summary>
+    /// Checks if player is within a certain distance of the enemys spawn position,
+    /// if the player is too far away, the enemy will not chase them anymore
+    /// </summary>
+    private void UpdateChaseCondition()
+    {
+        // Check distance between player and enemies spawn
+        if (player != null)
+            canChase = Vector3.Distance(player.position, homePosition) < wanderRadius;
+        else
+            canChase = false;
     }
 
     /// <summary>
@@ -172,51 +210,33 @@ public class EnemyAI : MonoBehaviour
         transform.rotation = Quaternion.Euler(0, lookRotation.eulerAngles.y, 0);
     }
 
+    #endregion
+
+    #region Rotation Code
     /// <summary>
-    /// Coroutine for wandering behavior.
+    /// Updates the direction towards the player.
     /// </summary>
-    private IEnumerator Wander()
+    private void UpdateDirectionToPlayer()
     {
-
-        if (chaseCoroutine != null)
-        {
-            StopCoroutine(chaseCoroutine);
-            chaseCoroutine = null;
-        }
-
-        int rotTime = Random.Range(1, 3);
-        int rotateWait = Random.Range(1, 4);
-        int rotateLorR = Random.Range(1, 2);
-        int walkWait = Random.Range(1, 4);
-        int walkTime = Random.Range(1, 2);
-
-
-        isWalking = true;
-        yield return new WaitForSeconds(walkWait);
-        yield return new WaitForSeconds(walkTime);
-        isWalking = false;
-        yield return new WaitForSeconds(rotateWait);
-
-        if (rotateLorR == 1)
-        {
-            isRotatingRight = true;
-            isTurning = true;
-            yield return new WaitForSeconds(rotTime);
-            isRotatingRight = false;
-            isTurning = false;
-        }
-
-        if (rotateLorR == 2)
-        {
-            isRotatingLeft = true;
-            isTurning = true;
-            yield return new WaitForSeconds(rotTime);
-            isRotatingLeft = false;
-            isTurning = false;
-        }
-
-        wanderCoroutine = null;
+        directionToPlayer = (player.position - transform.position).normalized;
     }
+
+    /// <summary>
+    /// Handles enemy rotation based on flags.
+    /// </summary>
+    private void HandleRotation()
+    {
+        if (isRotatingRight)
+        {
+            transform.Rotate(transform.up * Time.deltaTime * rotationSpeed);
+        }
+
+        if (isRotatingLeft)
+        {
+            transform.Rotate(transform.up * Time.deltaTime * -rotationSpeed);
+        }
+    }
+
 
     /// <summary>
     /// Converts an angle to a direction vector.
@@ -229,6 +249,9 @@ public class EnemyAI : MonoBehaviour
         }
         return new Vector3(Mathf.Sin(angleInDegrees * Mathf.Deg2Rad), 0, Mathf.Cos(angleInDegrees * Mathf.Deg2Rad));
     }
+
+    #endregion
+
 
     private void OnDisable()
     {

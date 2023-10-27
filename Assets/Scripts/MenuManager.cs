@@ -27,6 +27,19 @@ public class MenuManager : MonoBehaviour
     private PauseGame pauseGame;
     public bool menuScreenActive;
     public Inventory invManager;
+
+    public GameObject uiCanvas;
+    public BattleHUD battleHud1;
+    public BattleHUD battleHud2;
+
+    private void Awake()
+    {
+        // Locate the player 1/2 game objects
+        player1 = FindObjectOfType<PlayerMovement>().gameObject;
+        player2 = FindObjectOfType<Follow>().gameObject;
+    }
+
+
     private void Start()
     {
         pauseGame = gameObject.GetComponent<PauseGame>();
@@ -60,7 +73,7 @@ public class MenuManager : MonoBehaviour
         player1Stats[6].text = "Def: " + playerInfo.baseDefense.ToString() + (playerInfo.equippedArmor != null ?
                        " + (" + playerInfo.equippedArmor.defense + ")" : " + (0)");
         player1Stats[7].text = "Spc Def: " + playerInfo.specialDefense.ToString();
-        player1Stats[8].text = "Money: " + playerInfo.money.ToString();
+        player1Stats[8].text = playerInfo.money.ToString();
         if (playerInfo.equippedWeapon != null)
         {
             player1Stats[9].text = "Weapon: " + playerInfo.equippedWeapon.itemName;
@@ -165,9 +178,24 @@ public class MenuManager : MonoBehaviour
 
     public void OnLevelWasLoaded(int level)
     {
-        if(level == 0)
+        Vector3 beforeBattlePos = player1.GetComponent<PlayerCollision>().beforeBattlePos;
+
+        if (level == 1)
         {
-            player1.transform.position = player1.GetComponent<PlayerCollision>().beforeBattlePos;
+            player1.transform.position = beforeBattlePos;
+            player2.transform.position = beforeBattlePos;
+
+            player1.GetComponent<PlayerMovement>().enabled = true;
+            player2.GetComponent<Follow>().enabled = true;
+            uiCanvas.SetActive(true);
+
+
+            battleHud1.SetHUD(player1.GetComponent<Unit>());
+            battleHud2.SetHUD(player2.GetComponent<Unit>());
+        }
+
+        if(level == 2) {
+            uiCanvas.SetActive(false);
         }
     }
 
