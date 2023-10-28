@@ -32,6 +32,8 @@ public class BattleSystem : MonoBehaviour
     public Transform playerBattleStation;
     public BattleHUD playerHUD;
     PlayableCharacter playerUnit;
+    CharacterController playerController;
+    PlayerMovement playerMovement;
     private int initialDefenseP1;
     private bool isPlayerDead;
     public Transform playerPos;
@@ -40,6 +42,7 @@ public class BattleSystem : MonoBehaviour
     public Transform player2BattleStation;
     public BattleHUD player2HUD;
     PlayableCharacter player2Unit;
+    Follow player2FollowScript;
     private int initialDefenseP2;
     private bool isPlayer2Dead;
 
@@ -76,8 +79,16 @@ public class BattleSystem : MonoBehaviour
 
     private void Awake()
     {
-        playerPos = FindObjectOfType<PlayerMovement>().transform;
+
+        playerPos = FindObjectOfType<Player>().transform;
+        playerPos.position = playerBattleStation.position;
+
         playerUnit = playerPos.GetComponent<PlayableCharacter>();
+        playerMovement = playerPos.GetComponent<PlayerMovement>();
+        playerController = playerPos.GetComponent<CharacterController>();
+
+        player2Unit = Puck.instance;
+        player2FollowScript = player2Unit.GetComponent<Follow>();
 
         foreach (GameObject enemy in enemyPrefabList)
         {
@@ -113,31 +124,28 @@ public class BattleSystem : MonoBehaviour
             return 1;//15% Chance
     }
 
-
-    private void SetupPlayer1()
+    private void SetupPlayers()
     {
-        playerPos.position = playerBattleStation.position;
-        playerUnit.GetComponent<PlayerMovement>().isMoving = false;
-        playerUnit.GetComponent<PlayerMovement>().enabled = false;
-        playerUnit.transform.rotation = Quaternion.Euler(0, 0, 0);
+        playerController.enabled= false;
+        playerMovement.isMoving = false;
+        playerMovement.enabled = false;
+        playerPos.rotation = Quaternion.Euler(0, 0, 0);
         initialDefenseP1 = playerUnit.baseDefense;
-    }
 
-    private void SetupPlayer2()
-    {
-        player2Unit = Puck.instance;
-        player2Unit.GetComponent<Follow>().enabled = false;
+        player2FollowScript.fairyDust.enabled = false;
+        player2FollowScript.enabled = false;
         player2Unit.gameObject.transform.position = player2BattleStation.transform.position;
         player2Unit.transform.rotation = Quaternion.Euler(0, 0, 0);
+        player2Unit.transform.localScale = new Vector3(5,5,5);
         initialDefenseP2 = player2Unit.baseDefense;
     }
+
 
     IEnumerator SetupBattle()
     {
         SetButtonsActive(false);
 
-        SetupPlayer1();
-        SetupPlayer2();
+        SetupPlayers();
 
         List<string> keys = new List<string>(enemyDictionary.Keys);
 
@@ -183,7 +191,6 @@ public class BattleSystem : MonoBehaviour
             enemyUnit = enemyGameObj3.GetComponent<Unit>();
             enemyUnit.GetComponent<EnemyAI>().enabled = false;
             activeEnemies.Add(enemyUnit);
-
         }
 
 
@@ -293,7 +300,7 @@ public class BattleSystem : MonoBehaviour
         }
         else
         {
-            dialogueText.text = "Could not flee!.";
+            dialogueText.text = "Could not flee!";
             yield return new WaitForSeconds(2f);
             state = BattleState.ENEMYTURN;
 
@@ -306,7 +313,7 @@ public class BattleSystem : MonoBehaviour
 
     IEnumerator PlayerAction(Unit selectedEnemy, int damageStat, DamageCalculationDelegate damageCalculation)
     {
-        bool isDead = false;
+        bool isDead;
         int damage;
         SetButtonsActive(false);
         backButtons[0].gameObject.SetActive(false);
@@ -316,11 +323,13 @@ public class BattleSystem : MonoBehaviour
         {
             damage = damageCalculation(damageStat, selectedEnemy, playerUnit.equippedWeapon);
             isDead = selectedUnit.TakeDamage(damage);
+            OnBattleAction(BattleActionType.Attack, 1);
         }
         else
         {
             damage = damageCalculation(damageStat, selectedEnemy, player2Unit.equippedWeapon);
             isDead = selectedUnit.TakeDamage(damage);
+            OnBattleAction(BattleActionType.Attack, 2);
         }
 
         enemyHUD[activeEnemies.IndexOf(selectedEnemy)].SetHP(selectedEnemy.currentHP);
@@ -378,10 +387,11 @@ public class BattleSystem : MonoBehaviour
     {
         if (state == BattleState.PLAYERTURN)
         {
+            OnBattleAction(BattleActionType.Gaurd, 1);
             playerUnit.baseDefense *= 2;
             dialogueText.text = "You brace yourself";
-
             SetButtonsActive(false);
+
 
             yield return new WaitForSeconds(2f);
 
@@ -399,8 +409,11 @@ public class BattleSystem : MonoBehaviour
         }
         else if (state == BattleState.SECONDPLAYERTURN)
         {
+            OnBattleAction(BattleActionType.Gaurd, 2);
             player2Unit.baseDefense *= 2;
             SetButtonsActive(false);
+            dialogueText.text = "Puck braces himself";
+
             yield return new WaitForSeconds(2f);
             state = BattleState.ENEMYTURN;
             StartCoroutine(EnemyTurn());
@@ -479,9 +492,9 @@ public class BattleSystem : MonoBehaviour
         foreach (Unit enemy in activeEnemies)
         {
             // Enemies randomly decide wether to use arcane or physical attacks
+            yield return new WaitForSeconds(1.5f);
             int attackType = Random.Range(0, 1);
             dialogueText.text = enemyUnit.unitName + " attacks!";
-            yield return new WaitForSeconds(1f);
 
             int dmg;
             Unit target;   //The target the enemy will attack
@@ -556,6 +569,7 @@ public class BattleSystem : MonoBehaviour
     IEnumerator LoadWorld(int sceneIndex)
     {
         yield return new WaitForSeconds(2f);
+        player2Unit.transform.localScale = new Vector3(2, 2, 2);
         SceneManager.LoadScene(sceneIndex);
     }
 

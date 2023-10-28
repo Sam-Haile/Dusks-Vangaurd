@@ -75,9 +75,11 @@ public class AnimController : MonoBehaviour
             swordBack.SetActive(false);
             swordHand.SetActive(true);
             playerAnimator.SetTrigger("battle");
+            player2Animator.SetTrigger("battle");
         }
         else if(level == 1){
             playerAnimator.SetTrigger("battleEnd");
+            player2Animator.SetTrigger("battleEnd");
             swordBack.SetActive(true);
             swordHand.SetActive(false);
         }

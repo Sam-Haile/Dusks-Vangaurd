@@ -4073,8 +4073,8 @@ MonoBehaviour:
   unitLevel: 10
   maxHP: 75
   currentHP: 75
-  baseAttack: 0
-  baseArcane: 5
+  baseAttack: 80
+  baseArcane: 50
   baseDefense: 0
   specialDefense: 10
   experience: 50

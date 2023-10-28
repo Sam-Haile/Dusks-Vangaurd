@@ -59,7 +59,6 @@ public class EnemyAI : MonoBehaviour
         // If the enemy can chase the player, start the HandleChasing coroutine
         if (canChase && chaseCoroutine == null)
         {
-            Debug.Log("Starting Chase Coroutine");
             chaseCoroutine = StartCoroutine(HandleChasing());
         }
     }
