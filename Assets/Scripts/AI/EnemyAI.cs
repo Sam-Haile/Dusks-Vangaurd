@@ -10,7 +10,7 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private float viewDistance;
     [SerializeField] private LayerMask playerLayer;
     [SerializeField] private float chaseSpeed;
-    [SerializeField] private float speed = 3.0f;
+    [SerializeField] private float speed;
     [SerializeField] private float rotationSpeed = 100.0f;
     [SerializeField] private float wanderRadius = 10.0f;  // Radius within which to stay
 
@@ -53,11 +53,13 @@ public class EnemyAI : MonoBehaviour
         // If the enemy is not chasing the player and not already wandering, start wandering
         if (!canChase && wanderCoroutine == null)
         {
+            isRunning = false;
             wanderCoroutine = StartCoroutine(Wander());
         }
         // If the enemy can chase the player, start the HandleChasing coroutine
         if (canChase && chaseCoroutine == null)
         {
+            Debug.Log("Starting Chase Coroutine");
             chaseCoroutine = StartCoroutine(HandleChasing());
         }
     }
@@ -66,7 +68,7 @@ public class EnemyAI : MonoBehaviour
     #region Wander Code
     private void HandleWandering()
     {
-        if (wanderCoroutine == null)
+        if (wanderCoroutine == null && !isRunning)
         {
             // If the player is within the field of vision
             wanderCoroutine = StartCoroutine(Wander());
@@ -168,7 +170,7 @@ public class EnemyAI : MonoBehaviour
                 if (hit.collider.transform == player && canChase)
                 {
                     // Pause for a second
-                    yield return new WaitForSeconds(1f);
+                    yield return new WaitForSeconds(.5f);
 
                     if (wanderCoroutine != null)
                     {

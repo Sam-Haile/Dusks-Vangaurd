@@ -56,8 +56,18 @@ public class BattleSystem : MonoBehaviour
     private int totalMoney = 0;
 
 
+    public enum BattleActionType
+    {
+        Attack,
+        Gaurd,
+        Arcane,
+        TakeDamage,
+        Run,
+        Die
+    }
+
     // Event for handling battle animations
-    public delegate void BattleActionHandler();
+    public delegate void BattleActionHandler(BattleActionType actionType, int playerNumber);
     public static event BattleActionHandler OnBattleAction;
 
     #endregion
@@ -103,23 +113,31 @@ public class BattleSystem : MonoBehaviour
             return 1;//15% Chance
     }
 
-    IEnumerator SetupBattle()
+
+    private void SetupPlayer1()
     {
-        SetButtonsActive(false);
-
         playerPos.position = playerBattleStation.position;
-
-        //Stop animation and movement
         playerUnit.GetComponent<PlayerMovement>().isMoving = false;
         playerUnit.GetComponent<PlayerMovement>().enabled = false;
         playerUnit.transform.rotation = Quaternion.Euler(0, 0, 0);
         initialDefenseP1 = playerUnit.baseDefense;
+    }
 
+    private void SetupPlayer2()
+    {
         player2Unit = Puck.instance;
         player2Unit.GetComponent<Follow>().enabled = false;
         player2Unit.gameObject.transform.position = player2BattleStation.transform.position;
         player2Unit.transform.rotation = Quaternion.Euler(0, 0, 0);
         initialDefenseP2 = player2Unit.baseDefense;
+    }
+
+    IEnumerator SetupBattle()
+    {
+        SetButtonsActive(false);
+
+        SetupPlayer1();
+        SetupPlayer2();
 
         List<string> keys = new List<string>(enemyDictionary.Keys);
 
@@ -168,6 +186,7 @@ public class BattleSystem : MonoBehaviour
 
         }
 
+
         dialogueText.text = "A wild " + enemyUnit.unitName + " approaches...";
 
         playerHUD.SetHUD(playerUnit);
@@ -184,7 +203,6 @@ public class BattleSystem : MonoBehaviour
         state = BattleState.PLAYERTURN;
         PlayerTurn();
     }
-
     #endregion
 
     #region Player Options
@@ -209,7 +227,6 @@ public class BattleSystem : MonoBehaviour
             StartCoroutine(WaitForAttackSelection(playerUnit.baseAttack));
         else
             StartCoroutine(WaitForAttackSelection(player2Unit.baseAttack));
-
     }
 
     /// <summary>
@@ -284,84 +301,10 @@ public class BattleSystem : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Players may attack any selected enemy
-    /// depends on attack stat and that of weapon
-    /// </summary>
-    /// <param name="selectedEnemy"></param>
-    /// <param name="damageStat"></param>
-    /// <returns>Deals damage to selected enemy</returns>
-    IEnumerator PlayerAttack(Unit selectedEnemy, int damageStat)
-    {
-        
-        // Call the event to cue an animation
-        OnBattleAction?.Invoke();
 
-        bool isDead = false;
-        int damage;
-        SetButtonsActive(false);
-        backButtons[0].gameObject.SetActive(false);
-        backButtons[1].gameObject.SetActive(false);
-        
-        if (state == BattleState.PLAYERTURN)
-        {
-            damage = DetermineDamage(damageStat, selectedEnemy, playerUnit.equippedWeapon);
-            isDead = selectedUnit.TakeDamage(damage);
-        }
-        else
-        {
-            damage = DetermineDamage(damageStat, selectedEnemy, player2Unit.equippedWeapon);
-            isDead = selectedUnit.TakeDamage(damage);
-        }
+    public delegate int DamageCalculationDelegate(int damageStat, Unit selectedEnemy, Weapon equippedWeapon);
 
-        enemyHUD[activeEnemies.IndexOf(selectedEnemy)].SetHP(selectedEnemy.currentHP);
-        dialogueText.text = selectedEnemy.unitName + " takes " + damage + " damage.";
-
-        yield return new WaitForSeconds(2f);
-
-        if (isDead)
-        {
-            dialogueText.text = selectedEnemy.unitName + " has been defeated!";
-            // Add random volatility to XP and Money
-            totalExp += ExpToGain(selectedEnemy);
-            totalMoney += MoneyToGain(selectedEnemy);
-            yield return new WaitForSeconds(2f);
-            activeEnemies.Remove(selectedEnemy);
-            Destroy(selectedEnemy.gameObject);
-
-            // If all the enemies are defeated, end encounter
-            if (activeEnemies.Count == 0)
-            {
-                state = BattleState.WON;
-                EndBattle();
-            }
-            // If player 1 went, players 2s turn
-            else if (state == BattleState.PLAYERTURN)
-            {
-                PlayerTurn();
-            }
-            else
-            {
-                state = BattleState.ENEMYTURN;
-                StartCoroutine(EnemyTurn());
-            }
-        }
-        else if (state == BattleState.PLAYERTURN && !isPlayer2Dead)
-        {
-            state = BattleState.SECONDPLAYERTURN;
-            PlayerTurn();
-        }
-        else
-        {
-            state = BattleState.ENEMYTURN;
-
-
-            StartCoroutine(EnemyTurn());
-        }
-        selectedUnit = null;
-    }
-
-    IEnumerator PlayerArcane(Unit selectedEnemy, int damageStat)
+    IEnumerator PlayerAction(Unit selectedEnemy, int damageStat, DamageCalculationDelegate damageCalculation)
     {
         bool isDead = false;
         int damage;
@@ -371,12 +314,12 @@ public class BattleSystem : MonoBehaviour
 
         if (state == BattleState.PLAYERTURN)
         {
-            damage = DetermineDamageArcane(damageStat, selectedEnemy, playerUnit.equippedWeapon);
+            damage = damageCalculation(damageStat, selectedEnemy, playerUnit.equippedWeapon);
             isDead = selectedUnit.TakeDamage(damage);
         }
         else
         {
-            damage = DetermineDamageArcane(damageStat, selectedEnemy, playerUnit.equippedWeapon);
+            damage = damageCalculation(damageStat, selectedEnemy, player2Unit.equippedWeapon);
             isDead = selectedUnit.TakeDamage(damage);
         }
 
@@ -476,7 +419,7 @@ public class BattleSystem : MonoBehaviour
             yield return null;
         }
 
-        StartCoroutine(PlayerAttack(selectedUnit, damageStat));
+        StartCoroutine(PlayerAction(selectedUnit, damageStat, DetermineDamage));
     }
 
     IEnumerator WaitForArcaneSelection(int damageStat)
@@ -486,7 +429,7 @@ public class BattleSystem : MonoBehaviour
             yield return null;
         }
 
-        StartCoroutine(PlayerArcane(selectedUnit, damageStat));
+        StartCoroutine(PlayerAction(selectedUnit, damageStat, DetermineDamageArcane));
     }
 
     /*

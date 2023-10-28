@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static BattleSystem;
 
 public class MonsterAnimController : MonoBehaviour
 {
@@ -18,6 +19,23 @@ public class MonsterAnimController : MonoBehaviour
         animator.SetBool("isMoving", enemy.isWalking);
         animator.SetBool("isRunning", enemy.isRunning);
         animator.SetBool("turning", enemy.isTurning);
+    }
+
+
+    private void OnEnable()
+    {
+        BattleSystem.OnBattleAction += HandleBattleAction;
+    }
+
+    private void OnDisable()
+    {
+        BattleSystem.OnBattleAction -= HandleBattleAction;
+    }
+
+
+    private void HandleBattleAction(BattleActionType actionType, int playerNumber)
+    {
+
     }
 
 }
