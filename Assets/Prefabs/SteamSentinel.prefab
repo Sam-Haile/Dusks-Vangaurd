@@ -354,7 +354,7 @@ MonoBehaviour:
   unitLevel: 20
   maxHP: 75
   currentHP: 75
-  baseAttack: 0
+  baseAttack: 50
   baseArcane: 5
   baseDefense: 0
   specialDefense: 10
@@ -384,6 +384,7 @@ MonoBehaviour:
   rotationSpeed: 100
   wanderRadius: 10
   isTurning: 0
+  isRunning: 0
   isWalking: 0
 --- !u!1 &7760433478284270860
 GameObject:

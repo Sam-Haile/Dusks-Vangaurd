@@ -24,18 +24,41 @@ public class MonsterAnimController : MonoBehaviour
 
     private void OnEnable()
     {
-        BattleSystem.OnBattleAction += HandleBattleAction;
+        BattleSystem.OnEnemyAction += HandleEnemyAction;
     }
 
     private void OnDisable()
     {
-        BattleSystem.OnBattleAction -= HandleBattleAction;
+        BattleSystem.OnEnemyAction -= HandleEnemyAction;
     }
 
 
-    private void HandleBattleAction(BattleActionType actionType, int playerNumber)
+    private void HandleEnemyAction(BattleActionType actionType, Unit enemy)
     {
-
+        switch (actionType)
+        {
+            case BattleActionType.Attack:
+                enemy.GetComponent<Animator>().SetTrigger("attack");
+                break;
+            case BattleActionType.Gaurd:
+                enemy.GetComponent<Animator>().SetTrigger("gaurd");
+                break;
+            case BattleActionType.Arcane:
+                enemy.GetComponent<Animator>().SetTrigger("arcane");
+                break;
+            case BattleActionType.Die:
+                float num = ReturnRandomFloat();
+                enemy.GetComponent<Animator>().SetTrigger("die");
+                enemy.GetComponent<Animator>().SetFloat("deathAnim", num);
+                break;
+            default:
+                break;
+        }
     }
 
+
+    private float ReturnRandomFloat()
+    {
+        return Random.Range(0.0f, 1.0f);
+    }
 }

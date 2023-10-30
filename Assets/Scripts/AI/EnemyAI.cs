@@ -135,7 +135,6 @@ public class EnemyAI : MonoBehaviour
             isTurning = false;
         }
 
-        wanderCoroutine = null;
     }
 
 
@@ -191,7 +190,6 @@ public class EnemyAI : MonoBehaviour
         else
             isRunning = false;
 
-        chaseCoroutine = null;
     }
 
     /// <summary>

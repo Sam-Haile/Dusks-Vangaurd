@@ -26,6 +26,7 @@ public class BattleSystem : MonoBehaviour
     public GameObject[] enemyPrefabList;
     public List<Unit> activeEnemies;
     public List<BattleHUD> enemyHUD;
+    private float shrinkDuration = 1f;
     Unit enemyUnit;
 
     // Player1 Instantiation fields
@@ -61,6 +62,7 @@ public class BattleSystem : MonoBehaviour
 
     public enum BattleActionType
     {
+        Start,
         Attack,
         Gaurd,
         Arcane,
@@ -70,8 +72,12 @@ public class BattleSystem : MonoBehaviour
     }
 
     // Event for handling battle animations
-    public delegate void BattleActionHandler(BattleActionType actionType, int playerNumber);
-    public static event BattleActionHandler OnBattleAction;
+    public delegate void PlayerActionHandler(BattleActionType actionType, int playerNumber);
+    public static event PlayerActionHandler OnPlayerAction;
+
+    public delegate void EnemyActionHandler(BattleActionType actionType, Unit enemy);
+    public static event EnemyActionHandler OnEnemyAction;
+
 
     #endregion
 
@@ -193,8 +199,8 @@ public class BattleSystem : MonoBehaviour
             activeEnemies.Add(enemyUnit);
         }
 
-
-        dialogueText.text = "A wild " + enemyUnit.unitName + " approaches...";
+        OnPlayerAction(BattleActionType.Start, 1);
+        dialogueText.text = "A " + enemyUnit.unitName + " approaches...";
 
         playerHUD.SetHUD(playerUnit);
         player2HUD.SetHUD(player2Unit);
@@ -205,7 +211,7 @@ public class BattleSystem : MonoBehaviour
         //    enemyHUD[i].SetHUD(enemyUnit);
         //}
 
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(4f);
 
         state = BattleState.PLAYERTURN;
         PlayerTurn();
@@ -311,6 +317,42 @@ public class BattleSystem : MonoBehaviour
 
     public delegate int DamageCalculationDelegate(int damageStat, Unit selectedEnemy, Weapon equippedWeapon);
 
+    IEnumerator RotatePlayer(PlayableCharacter player, Unit enemy)
+    {
+        //Rotate towards to enemy your attacking
+        Vector3 direction = (enemy.transform.position - player.transform.position).normalized;
+        Vector3 flatDirection = new Vector3(direction.x, 0, direction.z).normalized;
+        Quaternion targetRotation = Quaternion.LookRotation(flatDirection);
+
+        Quaternion startingRotation = player.transform.rotation;
+
+        int rotationSpeed = 5;
+        float t = 0f;
+
+        while (t <= 1f)
+        {
+            t += Time.deltaTime * rotationSpeed;
+            Quaternion interpolatedRotation = Quaternion.Slerp(startingRotation, targetRotation, t);
+
+            player.transform.rotation = Quaternion.Euler(0, interpolatedRotation.eulerAngles.y, 0);
+
+            yield return null;
+        }
+
+        yield return new WaitForSeconds(5f);
+
+        t = 0f;
+        while(t <= 1f)
+        {
+            t += Time.deltaTime * rotationSpeed;
+            Quaternion interpolatedRotation = Quaternion.Slerp(targetRotation, startingRotation, t);
+
+            player.transform.rotation = Quaternion.Euler(0, interpolatedRotation.eulerAngles.y, 0);
+
+            yield return null;
+        }
+    }
+
     IEnumerator PlayerAction(Unit selectedEnemy, int damageStat, DamageCalculationDelegate damageCalculation)
     {
         bool isDead;
@@ -323,19 +365,22 @@ public class BattleSystem : MonoBehaviour
         {
             damage = damageCalculation(damageStat, selectedEnemy, playerUnit.equippedWeapon);
             isDead = selectedUnit.TakeDamage(damage);
-            OnBattleAction(BattleActionType.Attack, 1);
+            StartCoroutine(RotatePlayer(playerUnit, selectedEnemy));
+            OnPlayerAction(BattleActionType.Attack, 1);
         }
         else
         {
             damage = damageCalculation(damageStat, selectedEnemy, player2Unit.equippedWeapon);
             isDead = selectedUnit.TakeDamage(damage);
-            OnBattleAction(BattleActionType.Attack, 2);
+            StartCoroutine(RotatePlayer(player2Unit, selectedEnemy));
+            OnPlayerAction(BattleActionType.Attack, 2);
         }
 
+        yield return new WaitForSeconds(2f);
         enemyHUD[activeEnemies.IndexOf(selectedEnemy)].SetHP(selectedEnemy.currentHP);
         dialogueText.text = selectedEnemy.unitName + " takes " + damage + " arcane damage.";
-
         yield return new WaitForSeconds(2f);
+
 
         if (isDead)
         {
@@ -343,7 +388,25 @@ public class BattleSystem : MonoBehaviour
             // Add random volatility to XP and Money
             totalExp += ExpToGain(selectedEnemy);
             totalMoney += MoneyToGain(selectedEnemy);
-            yield return new WaitForSeconds(2f);
+            OnEnemyAction(BattleActionType.Die, selectedEnemy);
+
+            Vector3 initialScale = selectedEnemy.transform.localScale;
+            Vector3 finalScale = Vector3.zero;
+            float elapsedTime = 0f;
+
+            yield return new WaitForSeconds(2.5f);
+
+            while (elapsedTime < shrinkDuration)
+            {
+                selectedEnemy.transform.localScale = Vector3.Lerp(initialScale, finalScale, elapsedTime/shrinkDuration);
+                elapsedTime+= Time.deltaTime;
+                yield return null;
+            }
+
+            selectedEnemy.transform.localScale = finalScale;
+            
+            yield return new WaitForSeconds(1f);
+
             activeEnemies.Remove(selectedEnemy);
             Destroy(selectedEnemy.gameObject);
 
@@ -387,7 +450,7 @@ public class BattleSystem : MonoBehaviour
     {
         if (state == BattleState.PLAYERTURN)
         {
-            OnBattleAction(BattleActionType.Gaurd, 1);
+            OnPlayerAction(BattleActionType.Gaurd, 1);
             playerUnit.baseDefense *= 2;
             dialogueText.text = "You brace yourself";
             SetButtonsActive(false);
@@ -409,7 +472,7 @@ public class BattleSystem : MonoBehaviour
         }
         else if (state == BattleState.SECONDPLAYERTURN)
         {
-            OnBattleAction(BattleActionType.Gaurd, 2);
+            OnPlayerAction(BattleActionType.Gaurd, 2);
             player2Unit.baseDefense *= 2;
             SetButtonsActive(false);
             dialogueText.text = "Puck braces himself";
@@ -511,17 +574,19 @@ public class BattleSystem : MonoBehaviour
             else                                                        //If none of the above cases apply, choose randomly
                 target = Random.Range(0, 2) == 0 ? playerUnit : player2Unit;
 
+            
             // Use a formula to determine the amount of damage to deal
-            Debug.Log(attackType);
             if (attackType == 0)
             {
                 dmg = DetermineDamage(enemy.baseAttack, target, null);
-
             }
             else
             {
                 dmg = DetermineDamageArcane(enemy.baseArcane, target, null);
             }
+
+            OnEnemyAction(BattleActionType.Attack, enemy);
+
 
             // Apply damage to P1 and display to textBox
             if (target == playerUnit)
@@ -529,6 +594,13 @@ public class BattleSystem : MonoBehaviour
                 isPlayerDead = playerUnit.TakeDamage(dmg);
                 playerHUD.SetHP(target.currentHP);
                 dialogueText.text = playerUnit.unitName + " takes " + dmg + " damage!";
+                
+                // if the hit kills the player, play the death animation
+                if(playerUnit.currentHP <= 0)
+                {
+                    yield return new WaitForSeconds(1f);
+                    OnPlayerAction(BattleActionType.Die, 1);
+                }
             }
             // Apply damage to P2 and display to textBox
             else if (target == player2Unit)
@@ -536,6 +608,11 @@ public class BattleSystem : MonoBehaviour
                 isPlayer2Dead = player2Unit.TakeDamage(dmg);
                 player2HUD.SetHP(target.currentHP);
                 dialogueText.text = player2Unit.unitName + " takes " + dmg + " damage!";
+
+                // if the hit kills the player, play the death animation
+                if (player2Unit.currentHP <= 0)
+                    yield return new WaitForSeconds(1f);
+                    OnPlayerAction(BattleActionType.Die, 2);
             }
 
 
