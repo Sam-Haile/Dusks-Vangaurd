@@ -34,6 +34,7 @@ public class BattleSystem : MonoBehaviour
     public BattleHUD playerHUD;
     PlayableCharacter playerUnit;
     CharacterController playerController;
+    PlayerCollision playerCollision;
     PlayerMovement playerMovement;
     private int initialDefenseP1;
     private bool isPlayerDead;
@@ -92,6 +93,7 @@ public class BattleSystem : MonoBehaviour
         playerUnit = playerPos.GetComponent<PlayableCharacter>();
         playerMovement = playerPos.GetComponent<PlayerMovement>();
         playerController = playerPos.GetComponent<CharacterController>();
+        playerCollision = playerPos.GetComponent<PlayerCollision>();
 
         player2Unit = Puck.instance;
         player2FollowScript = player2Unit.GetComponent<Follow>();
@@ -105,6 +107,7 @@ public class BattleSystem : MonoBehaviour
     void Start()
     {
         state = BattleState.START;
+        playerCollision.battleTransitionAnimator.SetTrigger("Start");
         StartCoroutine(SetupBattle());
         totalExp = 0;
     }

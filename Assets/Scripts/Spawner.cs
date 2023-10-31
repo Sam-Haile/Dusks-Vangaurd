@@ -29,7 +29,7 @@ public class Spawner : MonoBehaviour
         // Check if the enemy has been destroyed already
         if (!enemies.ContainsKey(enemyId) || !enemies[enemyId])
         {
-            GameObject enemy = Instantiate(listOfEnemyPrefabs[Random.Range(0,2)], spawnPosition, Quaternion.identity);
+            GameObject enemy = Instantiate(listOfEnemyPrefabs[Random.Range(enemyPrefabMin, enemyPrefabMax)], spawnPosition, Quaternion.identity);
             enemy.name = enemyId;  // Assign the unique ID to the enemy
             enemies.Add(enemyId, false);  // Add the enemy to the list
         }
