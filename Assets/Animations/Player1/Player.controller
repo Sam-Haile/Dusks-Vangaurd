@@ -239,37 +239,37 @@ AnimatorStateMachine:
     m_Position: {x: 280, y: 120, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -5445958763491709489}
-    m_Position: {x: 990, y: 120, z: 0}
+    m_Position: {x: 810, y: 120, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -2843687010273006670}
     m_Position: {x: 570, y: -20, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -4941356807935447022}
-    m_Position: {x: 330, y: 440, z: 0}
+    m_Position: {x: 580, y: 230, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -5396567601919595594}
-    m_Position: {x: 860, y: 440, z: 0}
+    m_Position: {x: 580, y: 390, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -1391856448840704240}
-    m_Position: {x: 1020, y: 590, z: 0}
+    m_Position: {x: 350, y: 570, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 5592499214184219323}
-    m_Position: {x: 730, y: 590, z: 0}
+    m_Position: {x: 270, y: 360, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 5591568529227780840}
-    m_Position: {x: 850, y: 760, z: 0}
+    m_Position: {x: 50, y: 490, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -1291868724737816826}
-    m_Position: {x: 1370, y: 360, z: 0}
+    m_Position: {x: 940, y: 290, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -4811299025441862297}
-    m_Position: {x: 1370, y: 540, z: 0}
+    m_Position: {x: 930, y: 500, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 4542566004431239372}
-    m_Position: {x: 1380, y: 440, z: 0}
+    m_Position: {x: 940, y: 400, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 3940346470212965387}
-    m_Position: {x: 580, y: 470, z: 0}
+    m_Position: {x: 580, y: 300, z: 0}
   m_ChildStateMachines: []
   m_AnyStateTransitions: []
   m_EntryTransitions: []
@@ -829,7 +829,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: GutsStartBattle
+  m_Name: DrawSword
   m_Speed: 0.75
   m_CycleOffset: 0
   m_Transitions:

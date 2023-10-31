@@ -30,7 +30,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &7551174862819731197
 MonoBehaviour:
@@ -48,5 +48,5 @@ MonoBehaviour:
   enemyPrefabMax: 1
   listOfEnemyPrefabs:
   - {fileID: 7799719084653736302, guid: d78fed50c9f6a2349aa4be2c8b65592a, type: 3}
-  - {fileID: 4941733177701261388, guid: beffdcb765d384441a405f5155d9c32c, type: 3}
+  - {fileID: 123184, guid: e967c42ede832ae4d964d682b25ec538, type: 3}
   spawnRadius: 1.5

@@ -7,7 +7,7 @@ public class PlayerCollision : MonoBehaviour
     public Vector3 beforeBattlePos;
 
     // When player collides with an enemy
-    private void OnCollisionEnter(UnityEngine.Collision collision)
+    private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.GetComponent<Unit>())
         {

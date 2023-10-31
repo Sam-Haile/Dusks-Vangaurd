@@ -8,10 +8,17 @@ public class MonsterAnimController : MonoBehaviour
     private EnemyAI enemy;
     private Animator animator;
 
+    private float num;
+
+    private float animControllerNum;
+    private AnimController animController;
+
+
     private void Start()
     {
         enemy = GetComponent<EnemyAI>();
         animator = GetComponent<Animator>();
+        animController = FindObjectOfType<AnimController>();
     }
 
     void Update()
@@ -37,6 +44,9 @@ public class MonsterAnimController : MonoBehaviour
     {
         switch (actionType)
         {
+            case BattleActionType.Start:
+                enemy.GetComponent<Animator>().SetTrigger("battle");
+                break;
             case BattleActionType.Attack:
                 enemy.GetComponent<Animator>().SetTrigger("attack");
                 break;
@@ -47,9 +57,25 @@ public class MonsterAnimController : MonoBehaviour
                 enemy.GetComponent<Animator>().SetTrigger("arcane");
                 break;
             case BattleActionType.Die:
-                float num = ReturnRandomFloat();
+                num = ReturnRandomFloat();
                 enemy.GetComponent<Animator>().SetTrigger("die");
                 enemy.GetComponent<Animator>().SetFloat("deathAnim", num);
+                break;
+            case BattleActionType.Hit:
+                animControllerNum = animController.GetNumValue();
+                if (animControllerNum < .33)
+                    StartCoroutine(WaitForReaction(1f, 0f, "hit", enemy));
+                else if (animControllerNum > .33 && animControllerNum < .66)
+                {
+                    StartCoroutine(WaitForReaction(1f, 0f, "hit", enemy));
+                    StartCoroutine(WaitForReaction(.5f, 0f, "hit", enemy));
+                }
+                else
+                {
+                    StartCoroutine(WaitForReaction(1f, 0f, "hit", enemy));
+                    StartCoroutine(WaitForReaction(.5f, 0f, "hit", enemy));
+                    StartCoroutine(WaitForReaction(.5f, 0f, "hit", enemy));
+                }
                 break;
             default:
                 break;
@@ -61,4 +87,11 @@ public class MonsterAnimController : MonoBehaviour
     {
         return Random.Range(0.0f, 1.0f);
     }
+
+    IEnumerator WaitForReaction(float initialWait, float finalWaitTime, string trigger, Unit enemy)
+    {
+        yield return new WaitForSeconds(initialWait);
+        enemy.GetComponent<Animator>().SetTrigger(trigger);
+    }
+
 }

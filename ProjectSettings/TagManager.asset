@@ -5,11 +5,19 @@ TagManager:
   serializedVersion: 2
   tags:
   - Enemy
-  - SpiderMech
-  - SteamSentinel
   - ItemSlot
   - Puck
   - Zombie
+  - Skeleton_A
+  - Skeleton_B
+  - Skeleton_C
+  - Skeleton_D
+  - Skeleton_E
+  - Skeleton_F
+  - Skeleton_G
+  - Skeleton_H
+  - Skeleton_I
+  - Skeleton_J
   layers:
   - Default
   - TransparentFX

@@ -108,7 +108,7 @@ public class AnimController : MonoBehaviour
             case BattleActionType.Attack:
                 if(playerNumber == 1)
                 {
-                    num = .89f;
+                    num = ReturnRandomFloat();
                     playerAnimator.SetTrigger("attack");
                     playerAnimator.SetFloat("attackAnim", num);
                 }

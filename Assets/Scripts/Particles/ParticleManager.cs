@@ -12,7 +12,7 @@ public class ParticleManager : MonoBehaviour
     public GameObject battleStart;
 
     private AnimController animController;
-    private float num;
+    private float animControllerNum;
 
     private void Start()
     {
@@ -40,11 +40,10 @@ public class ParticleManager : MonoBehaviour
             case BattleActionType.Attack:
                 if (playerNumber == 1)
                 {
-                    num = .89f;
-                    Debug.Log(num);
-                    if (num < .33)
+                    animControllerNum = animController.GetNumValue();
+                    if (animControllerNum < .33)
                         StartCoroutine(PlayParticles(attack1Particles, 1.15f, 1f));
-                    else if (num > .33 && num < .66)
+                    else if (animControllerNum > .33 && animControllerNum < .66)
                     {
                         StartCoroutine(PlayParticles(attack1Particles, 1.15f, 1f));
                         StartCoroutine(PlayParticles(attack2Particles, 1.75f, 1f));

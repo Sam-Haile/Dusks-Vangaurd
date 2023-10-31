@@ -97,7 +97,6 @@ public class EnemyAI : MonoBehaviour
     /// </summary>
     private IEnumerator Wander()
     {
-
         if (chaseCoroutine != null)
         {
             StopCoroutine(chaseCoroutine);
@@ -159,38 +158,37 @@ public class EnemyAI : MonoBehaviour
     /// </summary>
     private IEnumerator HandleChasing()
     {
-        if (Vector3.Angle(transform.forward, directionToPlayer) < viewAngle / 2)
+        while (true) // keep checking
         {
-            // Cast a ray towards the player
-            if (Physics.Raycast(transform.position, directionToPlayer, out RaycastHit hit, viewDistance, playerLayer))
+            if (Vector3.Angle(transform.forward, directionToPlayer) < viewAngle / 2)
             {
-                // If the player is detected, start chasing
-                if (hit.collider.transform == player && canChase)
+                // Cast a ray towards the player
+                if (Physics.Raycast(transform.position, directionToPlayer, out RaycastHit hit, viewDistance, playerLayer))
                 {
-                    // Pause for a second
-                    yield return new WaitForSeconds(.5f);
-
-                    if (wanderCoroutine != null)
+                    // If the player is detected, start chasing
+                    if (hit.collider.transform == player && canChase)
                     {
-                        StopCoroutine(wanderCoroutine);
-                        wanderCoroutine = null;
+                        if (wanderCoroutine != null)
+                        {
+                            StopCoroutine(wanderCoroutine);
+                            wanderCoroutine = null;
+                        }
+                        // Stop rotating due to wandering
+                        isRotatingRight = false;
+                        isRotatingLeft = false;
+                        isRunning = true;
+                        ChasePlayer();
                     }
-                    // Stop rotating due to wandering
-                    isRotatingRight = false;
-                    isRotatingLeft = false;
-                    isRunning = true;
-                    ChasePlayer();
+                    else
+                        isRunning = false;
                 }
-                else
-                    isRunning = false;
             }
-            else
-                isRunning = false;
-        }
-        else
-            isRunning = false;
 
+            yield return null;
+            //yield return new WaitForSeconds(0.5f); // check every half a second
+        }
     }
+
 
     /// <summary>
     /// Handles the logic for the enemy chasing the player.

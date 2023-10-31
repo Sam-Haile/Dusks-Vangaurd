@@ -66,7 +66,7 @@ public class BattleSystem : MonoBehaviour
         Attack,
         Gaurd,
         Arcane,
-        TakeDamage,
+        Hit,
         Run,
         Die
     }
@@ -200,6 +200,11 @@ public class BattleSystem : MonoBehaviour
         }
 
         OnPlayerAction(BattleActionType.Start, 1);
+
+        foreach (Unit enemy in activeEnemies)
+        {
+            OnEnemyAction(BattleActionType.Start, enemy);
+        }
         dialogueText.text = "A " + enemyUnit.unitName + " approaches...";
 
         playerHUD.SetHUD(playerUnit);
@@ -367,6 +372,7 @@ public class BattleSystem : MonoBehaviour
             isDead = selectedUnit.TakeDamage(damage);
             StartCoroutine(RotatePlayer(playerUnit, selectedEnemy));
             OnPlayerAction(BattleActionType.Attack, 1);
+            OnEnemyAction(BattleActionType.Hit, selectedEnemy);
         }
         else
         {
@@ -374,6 +380,7 @@ public class BattleSystem : MonoBehaviour
             isDead = selectedUnit.TakeDamage(damage);
             StartCoroutine(RotatePlayer(player2Unit, selectedEnemy));
             OnPlayerAction(BattleActionType.Attack, 2);
+            OnEnemyAction(BattleActionType.Hit, selectedEnemy);
         }
 
         yield return new WaitForSeconds(2f);
@@ -384,17 +391,17 @@ public class BattleSystem : MonoBehaviour
 
         if (isDead)
         {
+            OnEnemyAction(BattleActionType.Die, selectedEnemy);
             dialogueText.text = selectedEnemy.unitName + " has been defeated!";
             // Add random volatility to XP and Money
             totalExp += ExpToGain(selectedEnemy);
             totalMoney += MoneyToGain(selectedEnemy);
-            OnEnemyAction(BattleActionType.Die, selectedEnemy);
 
             Vector3 initialScale = selectedEnemy.transform.localScale;
             Vector3 finalScale = Vector3.zero;
             float elapsedTime = 0f;
 
-            yield return new WaitForSeconds(2.5f);
+            yield return new WaitForSeconds(3.5f);
 
             while (elapsedTime < shrinkDuration)
             {
