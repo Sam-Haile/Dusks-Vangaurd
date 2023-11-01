@@ -69,7 +69,8 @@ public class BattleSystem : MonoBehaviour
         Arcane,
         Hit,
         Run,
-        Die
+        Die,
+        End
     }
 
     // Event for handling battle animations
@@ -657,6 +658,9 @@ public class BattleSystem : MonoBehaviour
     {
         yield return new WaitForSeconds(2f);
         player2Unit.transform.localScale = new Vector3(2, 2, 2);
+        OnPlayerAction(BattleActionType.End, 1);
+        OnPlayerAction(BattleActionType.End, 2);
+        playerController.enabled = true;
         SceneManager.LoadScene(sceneIndex);
     }
 

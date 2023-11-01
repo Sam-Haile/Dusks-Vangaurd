@@ -139,6 +139,12 @@ public class AnimController : MonoBehaviour
                 else if (playerNumber == 2)
                     player2Animator.SetTrigger("die");
                 break;
+            case BattleActionType.End:
+                if(playerNumber == 1)
+                    playerAnimator.SetTrigger("battleEnd");
+                else if (playerNumber == 2)
+                    player2Animator.SetTrigger("battleEnd");
+                break;
             default:
                 break;
         }

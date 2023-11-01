@@ -1516,8 +1516,8 @@ GameObject:
   - component: {fileID: -7328857759990973841}
   - component: {fileID: -7100607724487015808}
   - component: {fileID: -4259561026113936467}
-  - component: {fileID: 8019277057396309595}
-  - component: {fileID: 4688738911840385119}
+  - component: {fileID: 8266662577967773083}
+  - component: {fileID: -1429514966347049963}
   m_Layer: 8
   m_Name: Skeleton_H
   m_TagString: Skeleton_H
@@ -1652,28 +1652,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 80
   m_CollisionDetection: 0
---- !u!65 &8019277057396309595
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 159544}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.75, y: 1.75, z: 0.75}
-  m_Center: {x: 0, y: 0.83555466, z: 0}
---- !u!65 &4688738911840385119
+--- !u!65 &8266662577967773083
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1692,8 +1671,29 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.5, y: 1.6, z: 0.5}
-  m_Center: {x: 0, y: 0.75, z: 0}
+  m_Size: {x: 0.6709069, y: 0.9093386, z: 0.54580575}
+  m_Center: {x: 0.00054666406, y: 0.4706325, z: 0.03385055}
+--- !u!65 &-1429514966347049963
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 159544}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.3053192, y: 0.55198646, z: 1.3165123}
+  m_Center: {x: 0.0003380477, y: 0.98759234, z: 0.046788454}
 --- !u!1 &162436
 GameObject:
   m_ObjectHideFlags: 0

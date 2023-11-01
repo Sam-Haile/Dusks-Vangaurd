@@ -6,12 +6,14 @@ using UnityEngine;
 public class EnemyAI : MonoBehaviour
 {
     // Serialized fields for enemy attributes
+    public float minWalkTime = 0;
+    public float maxWalkTime = 1f;
     [SerializeField] private float viewAngle;
     [SerializeField] private float viewDistance;
     [SerializeField] private LayerMask playerLayer;
     [SerializeField] private float chaseSpeed;
     [SerializeField] private float speed;
-    [SerializeField] private float rotationSpeed = 100.0f;
+    [SerializeField] private float rotationSpeed = 200.0f;
     [SerializeField] private float wanderRadius = 10.0f;  // Radius within which to stay
 
     // Private variables for enemy behavior
@@ -20,14 +22,13 @@ public class EnemyAI : MonoBehaviour
     private Vector3 homePosition;
     private Coroutine wanderCoroutine;
     private Coroutine chaseCoroutine;
-    private bool canChase = false;
 
     // Flags for enemy states
     private bool isRotatingLeft = false;
     private bool isRotatingRight = false;
     [HideInInspector] public bool isTurning;
     [HideInInspector] public bool isRunning;
-    [HideInInspector] public bool isWalking = false;
+    [HideInInspector] public bool isWalking;
 
     private void Awake()
     {
@@ -44,20 +45,19 @@ public class EnemyAI : MonoBehaviour
     private void Update()
     {
         // Update enemy behavior every frame
-        UpdateChaseCondition();
         UpdateDirectionToPlayer();
         HandleWandering();
         HandleRotation();
         HandleWalking();
 
         // If the enemy is not chasing the player and not already wandering, start wandering
-        if (!canChase && wanderCoroutine == null)
+        if (wanderCoroutine == null)
         {
             isRunning = false;
             wanderCoroutine = StartCoroutine(Wander());
         }
         // If the enemy can chase the player, start the HandleChasing coroutine
-        if (canChase && chaseCoroutine == null)
+        if (chaseCoroutine == null)
         {
             chaseCoroutine = StartCoroutine(HandleChasing());
         }
@@ -79,15 +79,15 @@ public class EnemyAI : MonoBehaviour
     /// </summary>
     private void HandleWalking()
     {
+        // If outside the wander radius, rotate back towards home
+        if (Vector3.Distance(transform.position, homePosition) >= wanderRadius)
+        {
+            Vector3 directionHome = (homePosition - transform.position).normalized;
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(directionHome), rotationSpeed * Time.deltaTime);
+        }
+
         if (isWalking)
         {
-            // If outside the wander radius, rotate back towards home
-            if (Vector3.Distance(transform.position, homePosition) >= wanderRadius)
-            {
-                Vector3 directionHome = (homePosition - transform.position).normalized;
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(directionHome), rotationSpeed * Time.deltaTime);
-            }
-
             transform.position += transform.forward * speed * Time.deltaTime;
         }
     }
@@ -97,6 +97,8 @@ public class EnemyAI : MonoBehaviour
     /// </summary>
     private IEnumerator Wander()
     {
+        isWalking = true;
+
         if (chaseCoroutine != null)
         {
             StopCoroutine(chaseCoroutine);
@@ -106,14 +108,12 @@ public class EnemyAI : MonoBehaviour
         int rotTime = Random.Range(1, 3);
         int rotateWait = Random.Range(1, 4);
         int rotateLorR = Random.Range(1, 2);
-        int walkWait = Random.Range(1, 4);
-        int walkTime = Random.Range(1, 2);
+        float walkTime = Random.Range(minWalkTime, maxWalkTime);
 
 
-        isWalking = true;
-        yield return new WaitForSeconds(walkWait);
         yield return new WaitForSeconds(walkTime);
         isWalking = false;
+
         yield return new WaitForSeconds(rotateWait);
 
         if (rotateLorR == 1)
@@ -133,6 +133,7 @@ public class EnemyAI : MonoBehaviour
             isRotatingLeft = false;
             isTurning = false;
         }
+        wanderCoroutine = null;
 
     }
 
@@ -140,18 +141,7 @@ public class EnemyAI : MonoBehaviour
     #endregion
 
     #region Chase Code
-    /// <summary>
-    /// Checks if player is within a certain distance of the enemys spawn position,
-    /// if the player is too far away, the enemy will not chase them anymore
-    /// </summary>
-    private void UpdateChaseCondition()
-    {
-        // Check distance between player and enemies spawn
-        if (player != null)
-            canChase = Vector3.Distance(player.position, homePosition) < wanderRadius;
-        else
-            canChase = false;
-    }
+
 
     /// <summary>
     /// Coroutine for chasing the player.
@@ -166,7 +156,7 @@ public class EnemyAI : MonoBehaviour
                 if (Physics.Raycast(transform.position, directionToPlayer, out RaycastHit hit, viewDistance, playerLayer))
                 {
                     // If the player is detected, start chasing
-                    if (hit.collider.transform == player && canChase)
+                    if (hit.collider.transform == player)
                     {
                         if (wanderCoroutine != null)
                         {

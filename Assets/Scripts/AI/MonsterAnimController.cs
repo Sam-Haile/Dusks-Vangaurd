@@ -13,7 +13,7 @@ public class MonsterAnimController : MonoBehaviour
     private float animControllerNum;
     private AnimController animController;
 
-
+    
     private void Start()
     {
         enemy = GetComponent<EnemyAI>();
@@ -23,7 +23,7 @@ public class MonsterAnimController : MonoBehaviour
 
     void Update()
     {
-        animator.SetBool("isMoving", enemy.isWalking);
+        animator.SetBool("isWalking", enemy.isWalking);
         animator.SetBool("isRunning", enemy.isRunning);
         animator.SetBool("turning", enemy.isTurning);
     }

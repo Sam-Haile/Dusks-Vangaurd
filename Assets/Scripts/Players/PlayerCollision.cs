@@ -9,6 +9,7 @@ public class PlayerCollision : MonoBehaviour
     public Vector3 beforeBattlePos;
 
     private bool isBattleInitiated = false;
+    private GameObject enemy;
 
     public Animator battleTransitionAnimator;
 
@@ -18,10 +19,12 @@ public class PlayerCollision : MonoBehaviour
     {
         if (!isBattleInitiated && other.gameObject.GetComponent<Unit>())
         {
+            enemy = other.gameObject;
             isBattleInitiated = true;
             beforeBattlePos = new Vector3(transform.position.x, transform.position.y + 1, transform.position.z);
             enemyTag = other.gameObject.tag;
             StartCoroutine(LoadScene());
+            Destroy(enemy);
         }
     }
 

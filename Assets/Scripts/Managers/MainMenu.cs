@@ -9,10 +9,15 @@ public class MainMenu : MonoBehaviour
     public GameObject loadingScreen;
     public Slider loadingBarFill;
 
+    private bool isLoading = false;
+
     public void OnStart()
     {
+        if (isLoading) return;
+
+        isLoading = true;
+        Debug.Log("OnStart called");
         StartCoroutine(LoadSceneAsync(1));
-        //SceneManager.LoadScene(1);
     }
 
     public void OnQuit()
@@ -22,6 +27,8 @@ public class MainMenu : MonoBehaviour
 
     IEnumerator LoadSceneAsync(int sceneId)
     {
+        Debug.Log("LoadingScene2");
+
         AsyncOperation operation = SceneManager.LoadSceneAsync(sceneId);
         loadingScreen.SetActive(true);
 
@@ -33,17 +40,5 @@ public class MainMenu : MonoBehaviour
 
             yield return null;
         }
-
-        // After the scene has loaded, introduce an artificial delay
-        float artificialDelay = 1.0f; // 1 second delay, for example
-        float startTime = Time.time;
-
-        while (Time.time - startTime < artificialDelay)
-        {
-            loadingBarFill.value = Mathf.Lerp(loadingBarFill.value, 1, (Time.time - startTime) / artificialDelay);
-            yield return null;
-        }
-
-        loadingBarFill.value = 1; // Ensure the slider reaches the end
     }
 }
