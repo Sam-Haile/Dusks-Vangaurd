@@ -11,19 +11,27 @@ public class BattleHUD : MonoBehaviour
 
 	public void SetHUD(Unit unit1, Unit unit2)
 	{
-		hpSlider.maxValue = unit1.maxHP;
-		hpSlider.value = unit1.currentHP;
-
-        hpSlider2.maxValue = unit2.maxHP;
-        hpSlider2.value = unit2.currentHP;
-
         string amount = unit1.money.ToString();
         money.text = amount.ToString();
     }
 
-	public void SetHP(int hp)
+	public void SetHP(Unit unit, int player)
 	{
-		hpSlider.value = hp;
-	}
+		if(player == 1) 
+		{
+			hpSlider.minValue= 0;
+			hpSlider.maxValue = 1;
+			hpSlider.value = (float)unit.currentHP / unit.maxHP;
+            Debug.Log(hpSlider.value);
+        }
+
+        else if (player == 2)
+        {
+            hpSlider2.minValue = 0;
+            hpSlider2.maxValue = 1;
+            hpSlider2.value = (float)unit.currentHP / unit.maxHP;
+			Debug.Log(hpSlider2.value);
+        }
+    }
 
 }

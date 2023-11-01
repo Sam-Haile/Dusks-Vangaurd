@@ -25,7 +25,7 @@ public class BattleSystem : MonoBehaviour
     public Transform[] enemyBattleStations;
     public GameObject[] enemyPrefabList;
     public List<Unit> activeEnemies;
-    public List<BattleHUD> enemyHUD;
+    //public List<BattleHUD> enemyHUD;
     private float shrinkDuration = 1f;
     Unit enemyUnit;
 
@@ -65,6 +65,7 @@ public class BattleSystem : MonoBehaviour
         Start,
         Attack,
         Gaurd,
+        StopGaurding,
         Arcane,
         Hit,
         Run,
@@ -386,7 +387,7 @@ public class BattleSystem : MonoBehaviour
         }
 
         yield return new WaitForSeconds(2f);
-        enemyHUD[activeEnemies.IndexOf(selectedEnemy)].SetHP(selectedEnemy.currentHP);
+        //enemyHUD[activeEnemies.IndexOf(selectedEnemy)].SetHP(selectedEnemy);
         dialogueText.text = selectedEnemy.unitName + " takes " + damage + " arcane damage.";
         yield return new WaitForSeconds(2f);
 
@@ -603,7 +604,7 @@ public class BattleSystem : MonoBehaviour
             if (target == playerUnit)
             {
                 isPlayerDead = playerUnit.TakeDamage(dmg);
-                battleHUD.SetHP(target.currentHP);
+                battleHUD.SetHP(playerUnit, 1);
                 dialogueText.text = playerUnit.unitName + " takes " + dmg + " damage!";
                 
                 // if the hit kills the player, play the death animation
@@ -617,13 +618,15 @@ public class BattleSystem : MonoBehaviour
             else if (target == player2Unit)
             {
                 isPlayer2Dead = player2Unit.TakeDamage(dmg);
-                battleHUD.SetHP(target.currentHP);
+                battleHUD.SetHP(player2Unit, 2);
                 dialogueText.text = player2Unit.unitName + " takes " + dmg + " damage!";
 
                 // if the hit kills the player, play the death animation
                 if (player2Unit.currentHP <= 0)
+                {
                     yield return new WaitForSeconds(1f);
                     OnPlayerAction(BattleActionType.Die, 2);
+                }
             }
 
 
@@ -639,6 +642,8 @@ public class BattleSystem : MonoBehaviour
 
         // Reset defense after gaurding is complete
         ResetStats();
+        OnPlayerAction(BattleActionType.StopGaurding, 1);
+        OnPlayerAction(BattleActionType.StopGaurding, 2);
         if (!isPlayerDead)
             state = BattleState.PLAYERTURN;
         else
@@ -656,6 +661,8 @@ public class BattleSystem : MonoBehaviour
     /// <returns></returns>
     IEnumerator LoadWorld(int sceneIndex)
     {
+        yield return new WaitForSeconds(.5f);
+        playerCollision.battleTransitionAnimator.SetTrigger("End");
         yield return new WaitForSeconds(2f);
         player2Unit.transform.localScale = new Vector3(2, 2, 2);
         OnPlayerAction(BattleActionType.End, 1);
@@ -732,7 +739,6 @@ public class BattleSystem : MonoBehaviour
     /// </summary>
     void Update()
     {
-
         if (canSelect)
         {
             // Highlight

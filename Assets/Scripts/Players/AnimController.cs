@@ -14,6 +14,7 @@ public class AnimController : MonoBehaviour
     public GameObject swordHand;
 
     public float num;
+    private bool hasBattled = false;
 
     public float GetNumValue()
     {
@@ -64,22 +65,30 @@ public class AnimController : MonoBehaviour
         player2Animator.SetBool(tag, flag);
     }
 
-
     private void OnLevelWasLoaded(int level)
     {
+
         // If it's a battle, swtich the animation controllers
-        if(level == 2)
+        if (level == 2)
         {
+            hasBattled = true;
             swordBack.SetActive(false);
             swordHand.SetActive(true);
             playerAnimator.SetTrigger("battle");
             player2Animator.SetTrigger("battle");
         }
-        else if(level == 1){
-            playerAnimator.SetTrigger("battleEnd");
-            player2Animator.SetTrigger("battleEnd");
+        else if(level == 1)
+        {
             swordBack.SetActive(true);
             swordHand.SetActive(false);
+
+            if (hasBattled)
+            {
+                playerAnimator.SetTrigger("battleEnd");
+                player2Animator.SetTrigger("battleEnd");
+            }
+
+            hasBattled = false;
         }
     }
 
@@ -116,6 +125,12 @@ public class AnimController : MonoBehaviour
                     playerAnimator.SetTrigger("gaurd");
                 else if (playerNumber == 2)
                     player2Animator.SetTrigger("gaurd");
+                break;
+            case BattleActionType.StopGaurding:
+                if (playerNumber == 1)
+                    playerAnimator.SetTrigger("stopGaurding");
+                else if (playerNumber == 2)
+                    player2Animator.SetTrigger("stopGaurding");
                 break;
             case BattleActionType.Arcane:
                 if (playerNumber == 1)

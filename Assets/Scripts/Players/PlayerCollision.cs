@@ -17,26 +17,29 @@ public class PlayerCollision : MonoBehaviour
 
     // When player collides with an enemy
 
+    /// <summary>
+    /// Save the players position in the main world
+    /// Destroy the enemy and its spawner
+    /// Begin loading the battle scene
+    /// </summary>
+    /// <param name="other"></param>
     private void OnTriggerEnter(Collider other)
     {
         if (!isBattleInitiated && other.gameObject.GetComponent<EnemyAI>())
         {
             beforeBattlePos = new Vector3(transform.position.x, transform.position.y + 1, transform.position.z);
-            //enemy = other.gameObject;
             enemySpawner = other.GetComponent<EnemyAI>().refToSpawner;
             isBattleInitiated = true;
             enemyTag = other.gameObject.tag;
-            StartCoroutine(LoadScene());
-            Destroy(other.gameObject);
-            //Destroy(enemySpawner.gameObject);
-
+            StartCoroutine(LoadScene(other.gameObject));
         }
     }
 
-    IEnumerator LoadScene()
+    IEnumerator LoadScene(GameObject enemyToDestroy)
     {
         battleTransitionAnimator.SetTrigger("End");
         yield return new WaitForSeconds(3f);
+        Destroy(enemyToDestroy);
         SceneManager.LoadSceneAsync(2);
         isBattleInitiated = false;
     }
@@ -46,6 +49,7 @@ public class PlayerCollision : MonoBehaviour
     {
         if (level == 1)
         {
+            battleTransitionAnimator.SetTrigger("Start");
             this.transform.position = beforeBattlePos;
         }
     }

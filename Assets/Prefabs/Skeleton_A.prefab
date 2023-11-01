@@ -895,15 +895,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   unitName: Skeleton
-  unitLevel: 10
-  maxHP: 75
-  currentHP: 75
-  baseAttack: 10
-  baseArcane: 10
-  baseDefense: 0
-  specialDefense: 10
-  experience: 50
-  money: 22
+  unitLevel: 1
+  maxHP: 25
+  currentHP: 25
+  baseAttack: 5
+  baseArcane: 2
+  baseDefense: 3
+  specialDefense: 1
+  experience: 25
+  money: 10
   equippedWeapon: {fileID: 0}
   equippedArmor: {fileID: 0}
 --- !u!114 &-7609503470523418590
@@ -918,6 +918,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b3a858775768d9645b4214ed810f65d6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  refToSpawner: {fileID: 0}
   minWalkTime: 0
   maxWalkTime: 1
   viewAngle: 63.4
