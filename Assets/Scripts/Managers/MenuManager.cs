@@ -1,9 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -29,8 +26,7 @@ public class MenuManager : MonoBehaviour
     public Inventory invManager;
 
     public GameObject uiCanvas;
-    public BattleHUD battleHud1;
-    public BattleHUD battleHud2;
+    public BattleHUD battleHud;
 
     private void Awake()
     {
@@ -153,12 +149,6 @@ public class MenuManager : MonoBehaviour
         Time.timeScale = 1;
     }
 
-    // Use this to save game and quit out of application
-    public void OnApplicationQuit()
-    {
-
-    }
-
     public void OnMenu()
     {
         statsMenu?.SetActive(false);
@@ -227,8 +217,7 @@ public class MenuManager : MonoBehaviour
             uiCanvas.SetActive(true);
 
 
-            battleHud1.SetHUD(player1.GetComponent<Unit>());
-            battleHud2.SetHUD(player2.GetComponent<Unit>());
+            battleHud.SetHUD(player1.GetComponent<Unit>(), player2.GetComponent<Unit>());
         }
 
         if(level == 2) {

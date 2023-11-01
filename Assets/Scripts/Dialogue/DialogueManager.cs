@@ -1,13 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class DialogueManager : MonoBehaviour
 {
-    public static DialogueManager instance;  // This is the singleton instance
+    public static DialogueManager instance;  
 
     public TextMeshProUGUI nameText;
     public TextMeshProUGUI dialogueText;

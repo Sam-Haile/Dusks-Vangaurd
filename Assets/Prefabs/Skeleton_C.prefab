@@ -2288,8 +2288,8 @@ MonoBehaviour:
   unitLevel: 10
   maxHP: 75
   currentHP: 75
-  baseAttack: 80
-  baseArcane: 50
+  baseAttack: 10
+  baseArcane: 10
   baseDefense: 0
   specialDefense: 10
   experience: 50
@@ -2308,6 +2308,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b3a858775768d9645b4214ed810f65d6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  minWalkTime: 0
+  maxWalkTime: 1
   viewAngle: 76.9
   viewDistance: 9.45
   playerLayer:

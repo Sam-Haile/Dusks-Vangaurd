@@ -30,7 +30,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &7551174862819731197
 MonoBehaviour:
@@ -45,8 +45,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyPrefabMin: 0
-  enemyPrefabMax: 1
+  enemyPrefabMax: 10
   listOfEnemyPrefabs:
-  - {fileID: 7799719084653736302, guid: d78fed50c9f6a2349aa4be2c8b65592a, type: 3}
+  - {fileID: 146754, guid: a27aaa9514020fa44bb6081abd5f14fc, type: 3}
+  - {fileID: 165576, guid: 37030c5c7c1b6674dac293a85cc7d5a6, type: 3}
+  - {fileID: 188982, guid: d86c716d338a1a04d89b6ee52d44933c, type: 3}
+  - {fileID: 197444, guid: b2951f8d32af933468dd00c41bb3f7d8, type: 3}
   - {fileID: 123184, guid: e967c42ede832ae4d964d682b25ec538, type: 3}
-  spawnRadius: 1.5
+  - {fileID: 185486, guid: 3a367ca1b4f5a1a47bda6e98e7ba1f43, type: 3}
+  - {fileID: 154340, guid: 95af6d03dc5e07142b1a349a829d8b30, type: 3}
+  - {fileID: 159544, guid: 77ad0facb2a27504ab8edf68c35a1346, type: 3}
+  - {fileID: 133616, guid: b806d07906e3ec2418b856b830337dcf, type: 3}
+  - {fileID: 108450, guid: cf1f48d2327ff8640a3ed8e9673685ac, type: 3}
+  spawnRadius: 0.5

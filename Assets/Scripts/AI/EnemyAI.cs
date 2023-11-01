@@ -1,10 +1,10 @@
-using MoreMountains.Feedbacks;
 using System.Collections;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class EnemyAI : MonoBehaviour
 {
+    public Spawner refToSpawner;
+
     // Serialized fields for enemy attributes
     public float minWalkTime = 0;
     public float maxWalkTime = 1f;
@@ -38,6 +38,7 @@ public class EnemyAI : MonoBehaviour
 
     private void Start()
     {
+        refToSpawner.canSpawn = false;
         // Initialize the home position
         homePosition = transform.position;
     }

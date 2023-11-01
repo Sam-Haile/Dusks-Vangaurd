@@ -11,27 +11,32 @@ public class PlayerCollision : MonoBehaviour
     private bool isBattleInitiated = false;
     private GameObject enemy;
 
+    private Spawner enemySpawner;
+
     public Animator battleTransitionAnimator;
 
     // When player collides with an enemy
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!isBattleInitiated && other.gameObject.GetComponent<Unit>())
+        if (!isBattleInitiated && other.gameObject.GetComponent<EnemyAI>())
         {
-            enemy = other.gameObject;
-            isBattleInitiated = true;
             beforeBattlePos = new Vector3(transform.position.x, transform.position.y + 1, transform.position.z);
+            //enemy = other.gameObject;
+            enemySpawner = other.GetComponent<EnemyAI>().refToSpawner;
+            isBattleInitiated = true;
             enemyTag = other.gameObject.tag;
             StartCoroutine(LoadScene());
-            Destroy(enemy);
+            Destroy(other.gameObject);
+            //Destroy(enemySpawner.gameObject);
+
         }
     }
 
     IEnumerator LoadScene()
     {
         battleTransitionAnimator.SetTrigger("End");
-        yield return new WaitForSeconds(.75f);
+        yield return new WaitForSeconds(3f);
         SceneManager.LoadSceneAsync(2);
         isBattleInitiated = false;
     }

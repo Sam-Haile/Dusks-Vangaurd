@@ -31,7 +31,6 @@ public class BattleSystem : MonoBehaviour
 
     // Player1 Instantiation fields
     public Transform playerBattleStation;
-    public BattleHUD playerHUD;
     PlayableCharacter playerUnit;
     CharacterController playerController;
     PlayerCollision playerCollision;
@@ -42,7 +41,6 @@ public class BattleSystem : MonoBehaviour
 
     // Player2 Instantiation fields
     public Transform player2BattleStation;
-    public BattleHUD player2HUD;
     PlayableCharacter player2Unit;
     Follow player2FollowScript;
     private int initialDefenseP2;
@@ -59,6 +57,7 @@ public class BattleSystem : MonoBehaviour
     public GameObject levelScreen;
     public UnityEvent levelUpEvent;
     private int totalMoney = 0;
+    public BattleHUD battleHUD;
 
 
     public enum BattleActionType
@@ -211,8 +210,7 @@ public class BattleSystem : MonoBehaviour
         }
         dialogueText.text = "A " + enemyUnit.unitName + " approaches...";
 
-        playerHUD.SetHUD(playerUnit);
-        player2HUD.SetHUD(player2Unit);
+        battleHUD.SetHUD(playerUnit, player2Unit);
 
         //for (int i = 0; i < activeEnemies.Count; i++)
         //{
@@ -428,15 +426,19 @@ public class BattleSystem : MonoBehaviour
                 EndBattle();
             }
             // If player 1 went, players 2s turn
-            else if (state == BattleState.PLAYERTURN)
+            else if (state == BattleState.PLAYERTURN && !isPlayer2Dead)
             {
+                Debug.Log("Second Player turn");
+                state = BattleState.SECONDPLAYERTURN;
                 PlayerTurn();
             }
-            else
+            else if(state == BattleState.SECONDPLAYERTURN)
             {
+                Debug.Log("Enemy Player turn");
                 state = BattleState.ENEMYTURN;
                 StartCoroutine(EnemyTurn());
             }
+
         }
         else if (state == BattleState.PLAYERTURN && !isPlayer2Dead)
         {
@@ -446,8 +448,6 @@ public class BattleSystem : MonoBehaviour
         else
         {
             state = BattleState.ENEMYTURN;
-
-
             StartCoroutine(EnemyTurn());
         }
         selectedUnit = null;
@@ -603,7 +603,7 @@ public class BattleSystem : MonoBehaviour
             if (target == playerUnit)
             {
                 isPlayerDead = playerUnit.TakeDamage(dmg);
-                playerHUD.SetHP(target.currentHP);
+                battleHUD.SetHP(target.currentHP);
                 dialogueText.text = playerUnit.unitName + " takes " + dmg + " damage!";
                 
                 // if the hit kills the player, play the death animation
@@ -617,7 +617,7 @@ public class BattleSystem : MonoBehaviour
             else if (target == player2Unit)
             {
                 isPlayer2Dead = player2Unit.TakeDamage(dmg);
-                player2HUD.SetHP(target.currentHP);
+                battleHUD.SetHP(target.currentHP);
                 dialogueText.text = player2Unit.unitName + " takes " + dmg + " damage!";
 
                 // if the hit kills the player, play the death animation
@@ -660,6 +660,7 @@ public class BattleSystem : MonoBehaviour
         player2Unit.transform.localScale = new Vector3(2, 2, 2);
         OnPlayerAction(BattleActionType.End, 1);
         OnPlayerAction(BattleActionType.End, 2);
+        battleHUD.SetHUD(playerUnit, player2Unit);
         playerController.enabled = true;
         SceneManager.LoadScene(sceneIndex);
     }
