@@ -159,6 +159,9 @@ public class EnemyAI : MonoBehaviour
                     // If the player is detected, start chasing
                     if (hit.collider.transform == player)
                     {
+                        isRunning = true;
+                        isTurning = false;
+
                         if (wanderCoroutine != null)
                         {
                             StopCoroutine(wanderCoroutine);
@@ -167,7 +170,6 @@ public class EnemyAI : MonoBehaviour
                         // Stop rotating due to wandering
                         isRotatingRight = false;
                         isRotatingLeft = false;
-                        isRunning = true;
                         ChasePlayer();
                     }
                     else

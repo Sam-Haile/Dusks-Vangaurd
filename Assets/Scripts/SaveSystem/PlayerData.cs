@@ -1,7 +1,6 @@
 [System.Serializable]
 public class PlayerData
 {
-
     //Player fields
     public string unitName;
     public int unitLevel;

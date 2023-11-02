@@ -30,11 +30,9 @@ public class MenuManager : MonoBehaviour
 
     private void Awake()
     {
-        // Locate the player 1/2 game objects
         player1 = FindObjectOfType<PlayerMovement>().gameObject;
         player2 = FindObjectOfType<Follow>().gameObject;
     }
-
 
     private void Start()
     {
@@ -42,7 +40,6 @@ public class MenuManager : MonoBehaviour
         playerInfo = player1.GetComponent<Player>();
         player2Info = player2.GetComponent<Puck>();
     }
-
 
     private void OnEnable()
     {
@@ -121,26 +118,27 @@ public class MenuManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!pauseGame.isPaused)
-        {
-            if (Input.GetKeyDown(KeyCode.Tab) && SceneManager.GetActiveScene().buildIndex != 1)
-            {
-                UpdateStats();
-                OnInvOpened?.Invoke();
+        /*Inventory system is outside the scope of my MVP and will be worked on at a later time*/
+        //if (!pauseGame.isPaused)
+        //{
+        //    if (Input.GetKeyDown(KeyCode.Tab) && SceneManager.GetActiveScene().buildIndex != 2)
+        //    {
+        //        UpdateStats();
+        //        OnInvOpened?.Invoke();
 
-                statsMenu.SetActive(!statsMenu.activeSelf);
-                if (!statsMenu.activeSelf)
-                {
-                    Time.timeScale = 1;
-                    menuScreenActive = false;
-                }
-                else
-                {
-                    menuScreenActive = true;
-                    Time.timeScale = 0;
-                }
-            }
-        }
+        //        statsMenu.SetActive(!statsMenu.activeSelf);
+        //        if (!statsMenu.activeSelf)
+        //        {
+        //            Time.timeScale = 1;
+        //            menuScreenActive = false;
+        //        }
+        //        else
+        //        {
+        //            menuScreenActive = true;
+        //            Time.timeScale = 0;
+        //        }
+        //    }
+        //}
     }
 
     public void OnResume()
@@ -149,22 +147,39 @@ public class MenuManager : MonoBehaviour
         Time.timeScale = 1;
     }
 
-    public void OnMenu()
-    {
-        statsMenu?.SetActive(false);
-        SceneManager.LoadScene(0);
-    }
-
     public void OnSave()
     {
-        SaveSystem.SavePlayer(playerInfo);
-        SaveSystem.SavePlayer(player2Info);
+        if (SceneManager.GetActiveScene().buildIndex == 1)
+        {
+            SaveSystem.SavePlayer(playerInfo);
+            SaveSystem.SavePlayer(player2Info);
+            SaveSystem.SaveSettings(pauseGame.volumeSlider, pauseGame.sfxSlider, pauseGame.isFullscreen, pauseGame.graphicsLevel);
+        }
+        else
+        {
+            Debug.Log("Tryin");
+            pauseGame.popupAnimator.SetTrigger("in");
+        }
     }
 
     public void OnLoad()
     {
-        LoadPlayer(playerInfo);
-        LoadPlayer(player2Info);
+        if(SceneManager.GetActiveScene().buildIndex == 1)
+        {
+            LoadPlayer(playerInfo);
+            LoadPlayer(player2Info);
+            LoadSettings(pauseGame.volumeSlider, pauseGame.sfxSlider, pauseGame.isFullscreen, pauseGame.graphicsLevel);
+        }
+    }
+
+    private void LoadSettings(Slider volumeSlider, Slider sfxSlider, Toggle isFullscreen, TMP_Dropdown graphicsLevel)
+    {
+        SystemSettings data = SaveSystem.LoadSettings();
+
+        volumeSlider.value = data.volume;
+        sfxSlider.value = data.sfx;
+        isFullscreen.enabled = data.fullscreen;
+        graphicsLevel.value = data.graphics;
     }
 
     private void LoadPlayer(PlayableCharacter player)

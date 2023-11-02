@@ -38,7 +38,7 @@ public class PlayerCollision : MonoBehaviour
     IEnumerator LoadScene(GameObject enemyToDestroy)
     {
         battleTransitionAnimator.SetTrigger("End");
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(1f);
         Destroy(enemyToDestroy);
         SceneManager.LoadSceneAsync(2);
         isBattleInitiated = false;

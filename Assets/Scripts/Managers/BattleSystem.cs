@@ -387,8 +387,8 @@ public class BattleSystem : MonoBehaviour
         }
 
         yield return new WaitForSeconds(2f);
-        //enemyHUD[activeEnemies.IndexOf(selectedEnemy)].SetHP(selectedEnemy);
-        dialogueText.text = selectedEnemy.unitName + " takes " + damage + " arcane damage.";
+
+        dialogueText.text = selectedEnemy.unitName + " takes " + damage + " damage.";
         yield return new WaitForSeconds(2f);
 
 
@@ -429,13 +429,11 @@ public class BattleSystem : MonoBehaviour
             // If player 1 went, players 2s turn
             else if (state == BattleState.PLAYERTURN && !isPlayer2Dead)
             {
-                Debug.Log("Second Player turn");
                 state = BattleState.SECONDPLAYERTURN;
                 PlayerTurn();
             }
             else if(state == BattleState.SECONDPLAYERTURN)
             {
-                Debug.Log("Enemy Player turn");
                 state = BattleState.ENEMYTURN;
                 StartCoroutine(EnemyTurn());
             }
@@ -808,7 +806,6 @@ public class BattleSystem : MonoBehaviour
             weapon = playersWeapon.GetComponent<Weapon>();
         // Determine the defensive stat of the unit
         int armorDefense = (recievingDmg.equippedArmor != null) ? recievingDmg.equippedArmor.defense : 0;
-        //Debug.Log(recievingDmg + "Defense: " + armorDefense);
         int damage = Mathf.Max(1, givingDmgStat - recievingDmg.baseDefense - armorDefense);
         if (weapon != null)
             damage += weapon.attack;
@@ -822,7 +819,6 @@ public class BattleSystem : MonoBehaviour
             weapon = playersWeapon.GetComponent<Weapon>();
         // Determine the special defensive stat of the unit
         int armorSpecDefense = (recievingDmg.equippedArmor != null) ? recievingDmg.equippedArmor.specialDefense : 0;
-        //Debug.Log(recievingDmg + "Special Defense: " + armorSpecDefense);
         int damage = Mathf.Max(1, givingDmgStat - recievingDmg.baseDefense - armorSpecDefense);
         if (weapon != null)
             damage += weapon.arcane;

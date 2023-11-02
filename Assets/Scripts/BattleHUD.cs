@@ -22,7 +22,6 @@ public class BattleHUD : MonoBehaviour
 			hpSlider.minValue= 0;
 			hpSlider.maxValue = 1;
 			hpSlider.value = (float)unit.currentHP / unit.maxHP;
-            Debug.Log(hpSlider.value);
         }
 
         else if (player == 2)
@@ -30,7 +29,6 @@ public class BattleHUD : MonoBehaviour
             hpSlider2.minValue = 0;
             hpSlider2.maxValue = 1;
             hpSlider2.value = (float)unit.currentHP / unit.maxHP;
-			Debug.Log(hpSlider2.value);
         }
     }
 

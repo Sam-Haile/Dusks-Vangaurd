@@ -236,7 +236,7 @@ public class Inventory : MonoBehaviour
         }
         else
         {
-            Debug.Log("No item to unequip for Person");
+            Debug.LogWarning("No item to unequip for Person");
         }
 
         OnItemEquipped?.Invoke();

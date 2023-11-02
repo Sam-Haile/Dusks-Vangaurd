@@ -1,12 +1,24 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
+using TMPro.EditorUtilities;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class PauseGame : MonoBehaviour
 {
 
     public GameObject pauseMenu;
+    public GameObject settingsMenu;
+    public GameObject[] pauseOptions;
+
+    public Slider volumeSlider;
+    public Slider sfxSlider;
+    public Toggle isFullscreen;
+    public TMP_Dropdown graphicsLevel;
+
+    public Animator popupAnimator;
 
     [HideInInspector]
     public bool isPaused;
@@ -21,6 +33,7 @@ public class PauseGame : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
+
             pauseMenu.SetActive(!pauseMenu.activeSelf);
             if (!pauseMenu.activeSelf)
             {
@@ -31,6 +44,14 @@ public class PauseGame : MonoBehaviour
             else
             {
                 isPaused = true;
+
+                //reset the pause menu if left on the settings
+                settingsMenu.SetActive(false);
+                foreach (GameObject button in pauseOptions)
+                {
+                    button.SetActive(true);
+                }
+                
                 Time.timeScale = 0;
             }
         }
@@ -55,8 +76,4 @@ public class PauseGame : MonoBehaviour
         SceneManager.LoadScene(0);
     }
 
-    public void OnLoad()
-    {
-        Debug.Log("Loading Game... Please vait beta");
-    }
 }
