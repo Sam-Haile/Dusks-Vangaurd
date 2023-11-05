@@ -30,7 +30,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: -1
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &7551174862819731197
 MonoBehaviour:
@@ -57,4 +57,6 @@ MonoBehaviour:
   - {fileID: 159544, guid: 77ad0facb2a27504ab8edf68c35a1346, type: 3}
   - {fileID: 133616, guid: b806d07906e3ec2418b856b830337dcf, type: 3}
   - {fileID: 108450, guid: cf1f48d2327ff8640a3ed8e9673685ac, type: 3}
+  canSpawn: 1
   spawnRadius: 0.5
+  playerCollision: {fileID: 0}

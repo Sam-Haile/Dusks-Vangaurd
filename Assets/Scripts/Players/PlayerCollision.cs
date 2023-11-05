@@ -9,13 +9,8 @@ public class PlayerCollision : MonoBehaviour
     public Vector3 beforeBattlePos;
 
     private bool isBattleInitiated = false;
-    private GameObject enemy;
-
-    private Spawner enemySpawner;
 
     public Animator battleTransitionAnimator;
-
-    // When player collides with an enemy
 
     /// <summary>
     /// Save the players position in the main world
@@ -28,19 +23,22 @@ public class PlayerCollision : MonoBehaviour
         if (!isBattleInitiated && other.gameObject.GetComponent<EnemyAI>())
         {
             beforeBattlePos = new Vector3(transform.position.x, transform.position.y + 1, transform.position.z);
-            enemySpawner = other.GetComponent<EnemyAI>().refToSpawner;
             isBattleInitiated = true;
             enemyTag = other.gameObject.tag;
-            StartCoroutine(LoadScene(other.gameObject));
+
+            EnemyAI enemyai = other.GetComponent<EnemyAI>();
+
+            enemyai.refToSpawner.OnEnemyDestroyed(enemyai.refToSpawner.gameObject.name);
+
+            StartCoroutine(LoadScene(other));
         }
     }
 
-    IEnumerator LoadScene(GameObject enemyToDestroy)
+    IEnumerator LoadScene(Collider enemyToDestroy)
     {
         battleTransitionAnimator.SetTrigger("End");
-        yield return new WaitForSeconds(1f);
-        Destroy(enemyToDestroy);
-        SceneManager.LoadSceneAsync(2);
+        yield return new WaitForSeconds(3f);
+        SceneManager.LoadScene(2);
         isBattleInitiated = false;
     }
 

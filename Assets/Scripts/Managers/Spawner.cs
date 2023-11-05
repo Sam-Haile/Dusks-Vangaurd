@@ -9,32 +9,56 @@ public class Spawner : MonoBehaviour
 
     public List<GameObject> listOfEnemyPrefabs;
 
-    public bool canSpawn = true;
+    public bool canSpawn;
 
     public float spawnRadius = 10f;
 
-    // Dictionary to keep track of destroyed enemies
-    private Dictionary<string, bool> enemies = new Dictionary<string, bool>();
+    public PlayerCollision playerCollision;
+
+    private EnemyAI spawnedEnemy;
 
     private void Start()
     {
         if (canSpawn)
         {
-
-            Vector2 randomPosition = Random.insideUnitCircle.normalized * spawnRadius;
-            Vector3 spawnPosition = transform.position + new Vector3(randomPosition.x, 1f, randomPosition.y);
-
-            string enemyId = System.Guid.NewGuid().ToString();
-
-            // Check if the enemy has been destroyed already
-            if (!enemies.ContainsKey(enemyId) || !enemies[enemyId])
-            {
-                GameObject enemy = Instantiate(listOfEnemyPrefabs[Random.Range(enemyPrefabMin, enemyPrefabMax)], spawnPosition, Quaternion.identity);
-                enemy.GetComponent<EnemyAI>().refToSpawner = this;
-                enemy.name = enemyId;  // Assign the unique ID to the enemy
-                enemies.Add(enemyId, false);  // Add the enemy to the list
-            }
+            SpawnEnemy();
         }
+    }
+
+
+    private void SpawnEnemy()
+    {
+        string enemyId = gameObject.name; // Use the spawner's name as the enemy's identifier
+
+        // Check if the enemy has already been destroyed.
+        // If it has, do not spawn it again.
+        if (GameData.enemies.TryGetValue(enemyId, out bool isDestroyed) && isDestroyed)
+        {
+            Debug.Log("HAL");
+            return; // Enemy was already destroyed, don't spawn it.
+        }
+
+        // Check if the enemy has been destroyed already
+        Vector2 randomPosition = Random.insideUnitCircle.normalized * spawnRadius;
+        Vector3 spawnPosition = transform.position + new Vector3(randomPosition.x, 1f, randomPosition.y);
+
+            Debug.Log("instantiate");
+        GameObject enemy = Instantiate(listOfEnemyPrefabs[Random.Range(enemyPrefabMin, enemyPrefabMax)], spawnPosition, Quaternion.identity);
+        spawnedEnemy = enemy.GetComponent<EnemyAI>();
+        spawnedEnemy.refToSpawner = this;
+        enemy.name = enemyId; // Set the enemy's name to the consistent identifier
+
+        // Add the enemy to the GameData dictionary if it's not already there.
+        if (!GameData.enemies.ContainsKey(enemyId))
+        {
+            GameData.enemies[enemyId] = false;
+        }
+    }
+
+    // Call this method when the enemy is destroyed
+    public void OnEnemyDestroyed(string enemyId)
+    {
+        GameData.enemies[enemyId] = true;
     }
 
     private void OnDrawGizmosSelected()
@@ -42,5 +66,6 @@ public class Spawner : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, spawnRadius);
     }
+
 
 }

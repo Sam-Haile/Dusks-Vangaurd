@@ -157,15 +157,22 @@ public class MenuManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("Tryin");
             pauseGame.popupAnimator.SetTrigger("in");
         }
     }
 
     public void OnLoad()
     {
-        if(SceneManager.GetActiveScene().buildIndex == 1)
+        if (SceneManager.GetActiveScene().buildIndex == 1)
         {
+            LoadPlayer(playerInfo);
+            LoadPlayer(player2Info);
+            LoadSettings(pauseGame.volumeSlider, pauseGame.sfxSlider, pauseGame.isFullscreen, pauseGame.graphicsLevel);
+        }
+        if (SceneManager.GetActiveScene().buildIndex == 2)
+        {
+            SceneManager.LoadScene(1);
+            player2Info.gameObject.transform.localScale = new Vector3(2, 2, 2);
             LoadPlayer(playerInfo);
             LoadPlayer(player2Info);
             LoadSettings(pauseGame.volumeSlider, pauseGame.sfxSlider, pauseGame.isFullscreen, pauseGame.graphicsLevel);

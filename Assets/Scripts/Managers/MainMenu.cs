@@ -25,6 +25,11 @@ public class MainMenu : MonoBehaviour
         Application.Quit();
     }
 
+    public void LoadLink(string hyperlink)
+    {
+        Application.OpenURL(hyperlink);
+    }
+
     IEnumerator LoadSceneAsync(int sceneId)
     {
         Debug.Log("LoadingScene2");
