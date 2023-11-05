@@ -34,7 +34,6 @@ public class Spawner : MonoBehaviour
         // If it has, do not spawn it again.
         if (GameData.enemies.TryGetValue(enemyId, out bool isDestroyed) && isDestroyed)
         {
-            Debug.Log("HAL");
             return; // Enemy was already destroyed, don't spawn it.
         }
 
@@ -42,7 +41,6 @@ public class Spawner : MonoBehaviour
         Vector2 randomPosition = Random.insideUnitCircle.normalized * spawnRadius;
         Vector3 spawnPosition = transform.position + new Vector3(randomPosition.x, 1f, randomPosition.y);
 
-            Debug.Log("instantiate");
         GameObject enemy = Instantiate(listOfEnemyPrefabs[Random.Range(enemyPrefabMin, enemyPrefabMax)], spawnPosition, Quaternion.identity);
         spawnedEnemy = enemy.GetComponent<EnemyAI>();
         spawnedEnemy.refToSpawner = this;

@@ -20,35 +20,37 @@ public class PlayerCollision : MonoBehaviour
     /// <param name="other"></param>
     private void OnTriggerEnter(Collider other)
     {
-        if (!isBattleInitiated && other.gameObject.GetComponent<EnemyAI>())
+        EnemyAI enemyReference = other.GetComponent<EnemyAI>();
+        
+        if (!isBattleInitiated && enemyReference)
         {
+            this.GetComponent<PlayerMovement>().enabled = false;
             beforeBattlePos = new Vector3(transform.position.x, transform.position.y + 1, transform.position.z);
             isBattleInitiated = true;
             enemyTag = other.gameObject.tag;
 
-            EnemyAI enemyai = other.GetComponent<EnemyAI>();
+            enemyReference.refToSpawner.OnEnemyDestroyed(enemyReference.refToSpawner.gameObject.name);
 
-            enemyai.refToSpawner.OnEnemyDestroyed(enemyai.refToSpawner.gameObject.name);
-
-            StartCoroutine(LoadScene(other));
+            StartCoroutine(LoadScene(other.gameObject));
         }
     }
 
-    IEnumerator LoadScene(Collider enemyToDestroy)
+    IEnumerator LoadScene(GameObject enemyToDestroy)
     {
         battleTransitionAnimator.SetTrigger("End");
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(1.25f);
+        Destroy(enemyToDestroy);
         SceneManager.LoadScene(2);
-        isBattleInitiated = false;
     }
 
 
     public void OnLevelWasLoaded(int level)
     {
-        if (level == 1)
+        if (level == 1 && isBattleInitiated)
         {
             battleTransitionAnimator.SetTrigger("Start");
             this.transform.position = beforeBattlePos;
+            isBattleInitiated = false; // Reset the flag after handling the scene load
         }
     }
 
