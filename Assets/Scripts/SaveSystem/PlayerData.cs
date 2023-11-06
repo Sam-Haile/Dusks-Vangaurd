@@ -6,6 +6,8 @@ public class PlayerData
     public int unitLevel;
     public int maxHP;
     public int currentHP;
+    public int maxMP;
+    public int currentMP;
     public int baseAttack;
     public int baseArcane;
     public int baseDefense; 
@@ -23,6 +25,8 @@ public class PlayerData
         unitLevel = player.unitLevel;
         maxHP = player.maxHP;
         currentHP = player.currentHP;
+        maxMP = player.maxMP;
+        currentMP = player.currentMP;
         baseAttack = player.baseAttack;
         baseArcane = player.baseArcane;
         baseDefense = player.baseDefense;

@@ -183,6 +183,7 @@ public class MenuManager : MonoBehaviour
     {
         Application.Quit();
     }
+
     private void LoadSettings(Slider volumeSlider, Slider sfxSlider, Toggle isFullscreen, TMP_Dropdown graphicsLevel)
     {
         SystemSettings data = SaveSystem.LoadSettings();

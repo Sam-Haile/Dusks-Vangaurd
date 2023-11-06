@@ -12,6 +12,8 @@ public class Unit : MonoBehaviour
 
 	public int maxHP;
 	public int currentHP;
+	public int maxMP;
+	public int currentMP;
 	public int baseAttack;
 	public int baseArcane;
 	public int baseDefense; // For physical attacks

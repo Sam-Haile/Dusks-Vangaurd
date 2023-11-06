@@ -5,6 +5,7 @@ public class Player : PlayableCharacter
 
     public static Player instance;
 
+
     void Awake()
     {
         if (instance == null)
@@ -16,6 +17,12 @@ public class Player : PlayableCharacter
         {
             Destroy(this.gameObject);
         }
+    }
+    private void Start()
+    {
+        ParticleSystem fireclaws = spellParticles.Find(p => p.name == "Fireclaws");
+        spellbook.LearnSpell(new Spell("Fireball", 10, 20, 30, false, fireclaws));
+
     }
 
 }

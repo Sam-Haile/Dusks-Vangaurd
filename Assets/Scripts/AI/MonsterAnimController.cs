@@ -61,21 +61,21 @@ public class MonsterAnimController : MonoBehaviour
                 enemy.GetComponent<Animator>().SetTrigger("die");
                 enemy.GetComponent<Animator>().SetFloat("deathAnim", num);
                 break;
-            case BattleActionType.Hit:
-                animControllerNum = animController.GetNumValue();
-                if (animControllerNum < .33)
-                    StartCoroutine(WaitForReaction(1f, 0f, "hit", enemy));
-                else if (animControllerNum > .33 && animControllerNum < .66)
-                {
-                    StartCoroutine(WaitForReaction(1f, 0f, "hit", enemy));
-                    StartCoroutine(WaitForReaction(.5f, 0f, "hit", enemy));
-                }
-                else
-                {
-                    StartCoroutine(WaitForReaction(1f, 0f, "hit", enemy));
-                    StartCoroutine(WaitForReaction(.5f, 0f, "hit", enemy));
-                    StartCoroutine(WaitForReaction(.5f, 0f, "hit", enemy));
-                }
+            case BattleActionType.Damaged:
+                //animControllerNum = animController.GetNumValue();
+                //if (animControllerNum < .33)
+                    StartCoroutine(WaitForReaction(1f, 0f, "damaged", enemy));
+                //else if (animControllerNum > .33 && animControllerNum < .66)
+                //{
+                //    StartCoroutine(WaitForReaction(1f, 0f, "damaged", enemy));
+                //    StartCoroutine(WaitForReaction(.5f, 0f, "damaged", enemy));
+                //}
+                //else
+                //{
+                //    StartCoroutine(WaitForReaction(1f, 0f, "damaged", enemy));
+                //    StartCoroutine(WaitForReaction(.5f, 0f, "damaged", enemy));
+                //    StartCoroutine(WaitForReaction(.5f, 0f, "damaged", enemy));
+                //}
                 break;
             default:
                 break;

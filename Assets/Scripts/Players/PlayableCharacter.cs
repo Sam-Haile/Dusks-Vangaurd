@@ -12,6 +12,8 @@ public class PlayableCharacter : Unit
     public Button weaponSlot;
     public Button armorSlot;
 
+    public Spellbook spellbook;
+    public List<ParticleSystem> spellParticles;
     public void AddExperience(int exp, string text)
     {
         experience += exp;

@@ -249,6 +249,14 @@ public class EnemyAI : MonoBehaviour
         StopAllCoroutines();
     }
 
+    private void OnDestroy()
+    {
+        if (refToSpawner != null)
+        {
+            refToSpawner.OnEnemyDestroyed(this.name);
+        }
+    }
+
 #if UNITY_EDITOR 
     private void OnDrawGizmos()
     {

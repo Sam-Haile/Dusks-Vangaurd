@@ -50,6 +50,9 @@ public class BattleSystem : MonoBehaviour
     public List<Button> buttons;
     public BattleState state;
     public List<Button> backButtons;
+    public List<Button> spells;
+    private int spellDamage;
+    private Spell selectedSpell;
     //EXP Screen
     private int totalExp;
     public Slider p1XpSlider;
@@ -67,7 +70,7 @@ public class BattleSystem : MonoBehaviour
         Gaurd,
         StopGaurding,
         Arcane,
-        Hit,
+        Damaged,
         Run,
         Die,
         End
@@ -263,6 +266,46 @@ public class BattleSystem : MonoBehaviour
     }
 
     /// <summary>
+    /// Display the currently equipped spells
+    /// for each player on their turn
+    /// </summary>
+    public void DisplaySpells()
+    {
+        if (state == BattleState.PLAYERTURN)
+        {
+            for (int i = 0; i < playerUnit.spellbook.spells.Count; i++)
+            {
+                Spell spell = playerUnit.spellbook.spells[i];
+                spells[i].GetComponent<Text>().text = spell.spellName;
+
+                // Add a listener to the button click event
+                spells[i].onClick.RemoveAllListeners(); // Remove existing listeners to avoid duplicates
+                int index = i;
+                spells[i].onClick.AddListener(() => {
+                    selectedSpell = playerUnit.spellbook.spells[index];
+                    spellDamage = playerUnit.spellbook.CastSpell(selectedSpell.spellName, playerUnit);
+                });
+            }
+        }
+        else if (state == BattleState.SECONDPLAYERTURN)
+        {
+            for (int i = 0; i < player2Unit.spellbook.spells.Count; i++)
+            {
+                Spell spell = player2Unit.spellbook.spells[i];
+                spells[i].GetComponent<Text>().text = spell.spellName;
+
+                // Add a listener to the button click event
+                spells[i].onClick.RemoveAllListeners(); // Remove existing listeners to avoid duplicates
+                int index = i;
+                spells[i].onClick.AddListener(() => {
+                    selectedSpell = player2Unit.spellbook.spells[index];
+                    spellDamage = player2Unit.spellbook.CastSpell(selectedSpell.spellName, player2Unit);
+                });
+            }
+        }
+    }
+
+    /// <summary>
     /// When the arcane button is pressed
     /// depends on arcane stat
     /// </summary>
@@ -272,7 +315,9 @@ public class BattleSystem : MonoBehaviour
             return;
 
         if (state == BattleState.PLAYERTURN)
+        {
             StartCoroutine(WaitForArcaneSelection(playerUnit.baseArcane));
+        }
         else if (state == BattleState.SECONDPLAYERTURN)
             StartCoroutine(WaitForArcaneSelection(player2Unit.baseArcane));
     }
@@ -371,26 +416,26 @@ public class BattleSystem : MonoBehaviour
 
         if (state == BattleState.PLAYERTURN)
         {
+            battleHUD.SetMP(playerUnit, 1);
             damage = damageCalculation(damageStat, selectedEnemy, playerUnit.equippedWeapon);
             isDead = selectedUnit.TakeDamage(damage);
             StartCoroutine(RotatePlayer(playerUnit, selectedEnemy));
             OnPlayerAction(BattleActionType.Attack, 1);
-            OnEnemyAction(BattleActionType.Hit, selectedEnemy);
+            OnEnemyAction(BattleActionType.Damaged, selectedEnemy);
         }
         else
         {
+            battleHUD.SetMP(player2Unit, 2);
             damage = damageCalculation(damageStat, selectedEnemy, player2Unit.equippedWeapon);
             isDead = selectedUnit.TakeDamage(damage);
             StartCoroutine(RotatePlayer(player2Unit, selectedEnemy));
             OnPlayerAction(BattleActionType.Attack, 2);
-            OnEnemyAction(BattleActionType.Hit, selectedEnemy);
+            OnEnemyAction(BattleActionType.Damaged, selectedEnemy);
         }
 
-        yield return new WaitForSeconds(2f);
-
+        //yield return new WaitForSeconds(2f);
         dialogueText.text = selectedEnemy.unitName + " takes " + damage + " damage.";
         yield return new WaitForSeconds(2f);
-
 
         if (isDead)
         {
@@ -404,7 +449,7 @@ public class BattleSystem : MonoBehaviour
             Vector3 finalScale = Vector3.zero;
             float elapsedTime = 0f;
 
-            yield return new WaitForSeconds(3.5f);
+            yield return new WaitForSeconds(2.5f);
 
             while (elapsedTime < shrinkDuration)
             {
@@ -462,8 +507,8 @@ public class BattleSystem : MonoBehaviour
         {
             OnPlayerAction(BattleActionType.Gaurd, 1);
             playerUnit.baseDefense *= 2;
-            dialogueText.text = "You brace yourself";
             SetButtonsActive(false);
+            dialogueText.text = "Guts brace himself";
 
 
             yield return new WaitForSeconds(2f);
@@ -514,6 +559,10 @@ public class BattleSystem : MonoBehaviour
         {
             yield return null;
         }
+
+        damageStat += spellDamage;
+        selectedSpell.spellVFX.transform.position = selectedUnit.transform.position;
+        selectedSpell.spellVFX.Play();
 
         StartCoroutine(PlayerAction(selectedUnit, damageStat, DetermineDamageArcane));
     }
