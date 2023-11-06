@@ -17,16 +17,16 @@ public class BattleHUD : MonoBehaviour
         money.text = amount.ToString();
     }
 
-	public void SetHP(Unit unit, int player)
+	public void SetHP(Unit unit)
 	{
-		if(player == 1) 
+		if(unit.tag == "Player") 
 		{
 			hpSlider.minValue= 0;
 			hpSlider.maxValue = 1;
 			hpSlider.value = (float)unit.currentHP / unit.maxHP;
         }
 
-        else if (player == 2)
+        else if (unit.tag == "Puck")
         {
             hpSlider2.minValue = 0;
             hpSlider2.maxValue = 1;
@@ -34,16 +34,16 @@ public class BattleHUD : MonoBehaviour
         }
     }
 
-    public void SetMP(Unit unit, int player)
+    public void SetMP(Unit unit)
     {
-        if (player == 1)
+        if (unit.tag == "Player")
         {
             mpSlider.minValue = 0;
             mpSlider.maxValue = 1;
             mpSlider.value = (float)unit.currentMP / unit.maxMP;
         }
 
-        else if (player == 2)
+        else if (unit.tag == "Puck")
         {
             mpSlider2.minValue = 0;
             mpSlider2.maxValue = 1;

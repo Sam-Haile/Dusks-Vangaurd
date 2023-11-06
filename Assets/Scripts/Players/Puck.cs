@@ -20,7 +20,7 @@ public class Puck : PlayableCharacter
     void Start()
     {
         ParticleSystem healingDust = spellParticles.Find(p => p.name == "Healing Dust");
-        spellbook.LearnSpell(new Spell("Heal", 10, 20, 30, false, healingDust));
+        spellbook.LearnSpell(new Spell("Heal", 3, 5, 10, true, healingDust));
 
         ParticleSystem fireclaws = spellParticles.Find(p => p.name == "Fireclaws");
         spellbook.LearnSpell(new Spell("Fireball", 10, 20, 30, false, fireclaws));

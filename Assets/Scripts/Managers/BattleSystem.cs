@@ -139,7 +139,7 @@ public class BattleSystem : MonoBehaviour
 
     private void SetupPlayers()
     {
-        playerController.enabled= false;
+        playerController.enabled = false;
         playerMovement.isMoving = false;
         playerMovement.enabled = false;
         playerPos.rotation = Quaternion.Euler(0, 0, 0);
@@ -149,8 +149,11 @@ public class BattleSystem : MonoBehaviour
         player2FollowScript.enabled = false;
         player2Unit.gameObject.transform.position = player2BattleStation.transform.position;
         player2Unit.transform.rotation = Quaternion.Euler(0, 0, 0);
-        player2Unit.transform.localScale = new Vector3(5,5,5);
+        player2Unit.transform.localScale = new Vector3(5, 5, 5);
         initialDefenseP2 = player2Unit.baseDefense;
+
+        battleHUD.SetHP(playerUnit);
+        battleHUD.SetHP(player2Unit);
     }
 
 
@@ -281,7 +284,8 @@ public class BattleSystem : MonoBehaviour
                 // Add a listener to the button click event
                 spells[i].onClick.RemoveAllListeners(); // Remove existing listeners to avoid duplicates
                 int index = i;
-                spells[i].onClick.AddListener(() => {
+                spells[i].onClick.AddListener(() =>
+                {
                     selectedSpell = playerUnit.spellbook.spells[index];
                     spellDamage = playerUnit.spellbook.CastSpell(selectedSpell.spellName, playerUnit);
                 });
@@ -297,7 +301,8 @@ public class BattleSystem : MonoBehaviour
                 // Add a listener to the button click event
                 spells[i].onClick.RemoveAllListeners(); // Remove existing listeners to avoid duplicates
                 int index = i;
-                spells[i].onClick.AddListener(() => {
+                spells[i].onClick.AddListener(() =>
+                {
                     selectedSpell = player2Unit.spellbook.spells[index];
                     spellDamage = player2Unit.spellbook.CastSpell(selectedSpell.spellName, player2Unit);
                 });
@@ -395,7 +400,7 @@ public class BattleSystem : MonoBehaviour
         yield return new WaitForSeconds(5f);
 
         t = 0f;
-        while(t <= 1f)
+        while (t <= 1f)
         {
             t += Time.deltaTime * rotationSpeed;
             Quaternion interpolatedRotation = Quaternion.Slerp(targetRotation, startingRotation, t);
@@ -416,7 +421,7 @@ public class BattleSystem : MonoBehaviour
 
         if (state == BattleState.PLAYERTURN)
         {
-            battleHUD.SetMP(playerUnit, 1);
+            battleHUD.SetMP(playerUnit);
             damage = damageCalculation(damageStat, selectedEnemy, playerUnit.equippedWeapon);
             isDead = selectedUnit.TakeDamage(damage);
             StartCoroutine(RotatePlayer(playerUnit, selectedEnemy));
@@ -425,7 +430,7 @@ public class BattleSystem : MonoBehaviour
         }
         else
         {
-            battleHUD.SetMP(player2Unit, 2);
+            battleHUD.SetMP(player2Unit);
             damage = damageCalculation(damageStat, selectedEnemy, player2Unit.equippedWeapon);
             isDead = selectedUnit.TakeDamage(damage);
             StartCoroutine(RotatePlayer(player2Unit, selectedEnemy));
@@ -453,13 +458,13 @@ public class BattleSystem : MonoBehaviour
 
             while (elapsedTime < shrinkDuration)
             {
-                selectedEnemy.transform.localScale = Vector3.Lerp(initialScale, finalScale, elapsedTime/shrinkDuration);
-                elapsedTime+= Time.deltaTime;
+                selectedEnemy.transform.localScale = Vector3.Lerp(initialScale, finalScale, elapsedTime / shrinkDuration);
+                elapsedTime += Time.deltaTime;
                 yield return null;
             }
 
             selectedEnemy.transform.localScale = finalScale;
-            
+
             yield return new WaitForSeconds(1f);
 
             activeEnemies.Remove(selectedEnemy);
@@ -477,7 +482,7 @@ public class BattleSystem : MonoBehaviour
                 state = BattleState.SECONDPLAYERTURN;
                 PlayerTurn();
             }
-            else if(state == BattleState.SECONDPLAYERTURN)
+            else if (state == BattleState.SECONDPLAYERTURN)
             {
                 state = BattleState.ENEMYTURN;
                 StartCoroutine(EnemyTurn());
@@ -560,19 +565,34 @@ public class BattleSystem : MonoBehaviour
             yield return null;
         }
 
-        damageStat += spellDamage;
-        selectedSpell.spellVFX.transform.position = selectedUnit.transform.position;
-        selectedSpell.spellVFX.Play();
+        if (selectedSpell.isHealingSpell)
+        {
+            StartCoroutine(PlayerHeal(selectedUnit));
+        }
 
-        StartCoroutine(PlayerAction(selectedUnit, damageStat, DetermineDamageArcane));
+        if (!selectedSpell.isHealingSpell)
+        {
+            damageStat += spellDamage;
+            selectedSpell.spellVFX.transform.position = selectedUnit.transform.position;
+            selectedSpell.spellVFX.Play();
+
+            StartCoroutine(PlayerAction(selectedUnit, damageStat, DetermineDamageArcane));
+        }
     }
 
-    /*
-    IEnumerator PlayerHeal()
+    
+    IEnumerator PlayerHeal(Unit selectedPlayer)
     {
-        playerUnit.Heal(5);     // CALCULATE HEALING HERE
+        int healingAmnt = Random.Range(selectedSpell.minDamage, selectedSpell.maxDamage);
 
-        playerHUD.SetHP(playerUnit.currentHP);
+        selectedPlayer.Heal(healingAmnt); 
+
+        battleHUD.SetHP(selectedPlayer);
+        if(state == BattleState.PLAYERTURN)
+            battleHUD.SetMP(playerUnit);
+        else if(state == BattleState.SECONDPLAYERTURN)
+            battleHUD.SetMP(player2Unit);
+
         dialogueText.text = "You feel renewed strength!";
 
         yield return new WaitForSeconds(2f);
@@ -580,14 +600,6 @@ public class BattleSystem : MonoBehaviour
         state = BattleState.ENEMYTURN;
         StartCoroutine(EnemyTurn());
     }
-    public void OnHealButton()
-    {
-        if (state != BattleState.PLAYERTURN)
-            return;
-
-        StartCoroutine(PlayerHeal());
-    }
-    */ // HealCode
 
     #endregion
 
@@ -633,7 +645,7 @@ public class BattleSystem : MonoBehaviour
             else                                                        //If none of the above cases apply, choose randomly
                 target = Random.Range(0, 2) == 0 ? playerUnit : player2Unit;
 
-            
+
             // Use a formula to determine the amount of damage to deal
             if (attackType == 0)
             {
@@ -651,11 +663,11 @@ public class BattleSystem : MonoBehaviour
             if (target == playerUnit)
             {
                 isPlayerDead = playerUnit.TakeDamage(dmg);
-                battleHUD.SetHP(playerUnit, 1);
+                battleHUD.SetHP(playerUnit);
                 dialogueText.text = playerUnit.unitName + " takes " + dmg + " damage!";
-                
+
                 // if the hit kills the player, play the death animation
-                if(playerUnit.currentHP <= 0)
+                if (playerUnit.currentHP <= 0)
                 {
                     yield return new WaitForSeconds(1f);
                     OnPlayerAction(BattleActionType.Die, 1);
@@ -665,7 +677,7 @@ public class BattleSystem : MonoBehaviour
             else if (target == player2Unit)
             {
                 isPlayer2Dead = player2Unit.TakeDamage(dmg);
-                battleHUD.SetHP(player2Unit, 2);
+                battleHUD.SetHP(player2Unit);
                 dialogueText.text = player2Unit.unitName + " takes " + dmg + " damage!";
 
                 // if the hit kills the player, play the death animation
@@ -791,33 +803,40 @@ public class BattleSystem : MonoBehaviour
             // Highlight
             if (highlight != null)
             {
-                highlight.gameObject.GetComponent<Outline>().enabled = false;
+                Outline outlineComponent = highlight.gameObject.GetComponent<Outline>();
+                if (outlineComponent != null)
+                {
+                    outlineComponent.enabled = false;
+                }
                 highlight = null;
             }
+
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
             if (!EventSystem.current.IsPointerOverGameObject() && Physics.Raycast(ray, out raycastHit))
             {
-                highlight = raycastHit.transform;
-                if (highlight.gameObject.GetComponent<EnemyAI>() != null && highlight != selection)
-                {
-                    Outline outline;
 
-                    if (highlight.gameObject.GetComponent<Outline>() != null)
+                Transform hitTransform = raycastHit.transform;
+                if (hitTransform != null)
+                {
+                    highlight = hitTransform;
+
+                    EnemyAI enemyAI = highlight.gameObject.GetComponent<EnemyAI>();
+                    Player playerComponent = highlight.gameObject.GetComponent<Player>();
+
+                    // if selected object is an enemy
+                    if (enemyAI != null && (selectedSpell == null || !selectedSpell.isHealingSpell) && highlight != selection)
                     {
-                        outline = highlight.gameObject.GetComponent<Outline>();
-                        outline.OutlineWidth = 30f;
-                        outline.enabled = true;
+                        SelectEnemy(30f, Color.red);
+                    }
+                    else if (playerComponent != null && selectedSpell != null && selectedSpell.isHealingSpell && highlight != selection)
+                    {
+                        SelectEnemy(40f, Color.green);
                     }
                     else
                     {
-                        outline = highlight.gameObject.AddComponent<Outline>();
-                        outline.OutlineWidth = 30f;
-                        outline.enabled = true;
+                        highlight = null;
                     }
-                }
-                else
-                {
-                    highlight = null;
                 }
             }
 
@@ -847,6 +866,28 @@ public class BattleSystem : MonoBehaviour
         }
 
     }
+
+    private void SelectEnemy(float outlineWidth, Color outlineColor)
+    {
+        Outline outline;
+
+        if (highlight.gameObject.GetComponent<Outline>() != null)
+        {
+            outline = highlight.gameObject.GetComponent<Outline>();
+            outline.OutlineWidth = 1;
+            outline.OutlineColor = outlineColor;
+            outline.enabled = true;
+        }
+        else
+        {
+            outline = highlight.gameObject.AddComponent<Outline>();
+            outline.OutlineWidth = 1;
+            outline.OutlineColor = outlineColor;
+            outline.enabled = true;
+        }
+
+    }
+
 
     private int DetermineDamage(int givingDmgStat, Unit recievingDmg, Weapon playersWeapon)
     {
