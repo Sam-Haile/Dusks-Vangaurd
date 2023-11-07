@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public enum BattleState { START, PLAYERTURN, SECONDPLAYERTURN, ENEMYTURN, WON, GAINEXP, LOST, FLEE }
+public enum BattleState { START, PLAYERTURN, SECONDPLAYERTURN, ENEMYTURN, WON, LOST, FLEE }
 
 public class BattleSystem : MonoBehaviour
 {
@@ -25,20 +25,20 @@ public class BattleSystem : MonoBehaviour
     string enemyTag = PlayerCollision.enemyTag;
     public Transform[] enemyBattleStations;
     public GameObject[] enemyPrefabList;
-    public List<Unit> activeEnemies;
+    [HideInInspector] public List<Unit> activeEnemies;
     //public List<BattleHUD> enemyHUD;
     private float shrinkDuration = 1f;
     Unit enemyUnit;
 
     // Player1 Instantiation fields
     public Transform playerBattleStation;
-    PlayableCharacter playerUnit;
-    CharacterController playerController;
-    PlayerCollision playerCollision;
-    PlayerMovement playerMovement;
+    private PlayableCharacter playerUnit;
+    private CharacterController playerController;
+    private PlayerCollision playerCollision;
+    private PlayerMovement playerMovement;
     private int initialDefenseP1;
     private bool isPlayerDead;
-    public Transform playerPos;
+    private Transform playerPos;
 
     // Player2 Instantiation fields
     public Transform player2BattleStation;
@@ -49,22 +49,14 @@ public class BattleSystem : MonoBehaviour
 
     public Text dialogueText;
     public List<Button> buttons;
-    public BattleState state;
+    private BattleState state;
     public List<Button> backButtons;
     public List<Button> spells;
     private int spellDamage;
     private Spell selectedSpell;
-    //EXP Screen
-    private int totalExp;
-    public Slider p1XpSlider;
-    public Slider p2XpSlider;
-    public GameObject levelScreen;
-    public UnityEvent levelUpEvent;
-    public TextMeshProUGUI moneyFromBattle;
-    public TextMeshProUGUI currentMoney;
-    private int totalMoney = 0;
-    public BattleHUD battleHUD;
 
+    private LevelUpManager levelUpManager;
+    public BattleHUD battleHUD;
 
     public enum BattleActionType
     {
@@ -86,6 +78,7 @@ public class BattleSystem : MonoBehaviour
     public delegate void EnemyActionHandler(BattleActionType actionType, Unit enemy);
     public static event EnemyActionHandler OnEnemyAction;
 
+    public delegate int DamageCalculationDelegate(int damageStat, Unit selectedEnemy, Weapon equippedWeapon);
 
     #endregion
 
@@ -108,6 +101,8 @@ public class BattleSystem : MonoBehaviour
         {
             enemyDictionary.Add(enemy.tag, enemy);
         }
+
+        levelUpManager = GetComponent<LevelUpManager>();
     }
 
     void Start()
@@ -115,11 +110,12 @@ public class BattleSystem : MonoBehaviour
         state = BattleState.START;
         playerCollision.battleTransitionAnimator.SetTrigger("Start");
         StartCoroutine(SetupBattle());
-        totalExp = 0;
+        levelUpManager.totalExp = 0;
     }
 
     /// <summary>
     /// Determines the number of enemeis to spawn in a given battle
+    /// 50% chance for 2 enemies, 35% for 3, 15% for 1
     /// </summary>
     /// <returns>Number of enemies to spawn</returns>
     private int NumOfEnemies()
@@ -139,6 +135,10 @@ public class BattleSystem : MonoBehaviour
             return 1;//15% Chance
     }
 
+    /// <summary>
+    /// Stops player 1 and 2 from moving
+    /// Set the hud to their current stats
+    /// </summary>
     private void SetupPlayers()
     {
         playerController.enabled = false;
@@ -158,7 +158,6 @@ public class BattleSystem : MonoBehaviour
         battleHUD.SetHP(player2Unit);
     }
 
-
     IEnumerator SetupBattle()
     {
         SetButtonsActive(false);
@@ -167,8 +166,7 @@ public class BattleSystem : MonoBehaviour
 
         List<string> keys = new List<string>(enemyDictionary.Keys);
 
-        int num = NumOfEnemies();
-
+        int num = 1;
         if (num == 1)
         {
             GameObject enemyGameObj = Instantiate(enemyDictionary[enemyTag], enemyBattleStations[1]);
@@ -211,21 +209,20 @@ public class BattleSystem : MonoBehaviour
             activeEnemies.Add(enemyUnit);
         }
 
-        OnPlayerAction(BattleActionType.Start, playerUnit);
+        OnPlayerAction(BattleActionType.Start, playerUnit); //Start battle animations
 
+        // foreach enemy, play the start animation
         foreach (Unit enemy in activeEnemies)
         {
             OnEnemyAction(BattleActionType.Start, enemy);
         }
-        dialogueText.text = "A " + enemyUnit.unitName + " approaches...";
+
+        if(num > 1)
+            dialogueText.text = enemyUnit.unitName + " approaches...";
+        else
+            dialogueText.text = num + enemyUnit.unitName + "s approach...";
 
         battleHUD.SetHUD(playerUnit, player2Unit);
-
-        //for (int i = 0; i < activeEnemies.Count; i++)
-        //{
-        //    enemyHUD[i].gameObject.SetActive(true);
-        //    enemyHUD[i].SetHUD(enemyUnit);
-        //}
 
         yield return new WaitForSeconds(4f);
 
@@ -235,9 +232,13 @@ public class BattleSystem : MonoBehaviour
     #endregion
 
     #region Player Options
+
+    /// <summary>
+    /// Display buttons and waits for an input from player
+    /// </summary>
     void PlayerTurn()
     {
-        dialogueText.text = "Choose an action:";
+        dialogueText.text = "";
         SetButtonsActive(true);
     }
 
@@ -252,10 +253,15 @@ public class BattleSystem : MonoBehaviour
 
         dialogueText.text = "Who?";
 
-        if (state == BattleState.PLAYERTURN)
-            StartCoroutine(WaitForAttackSelection(playerUnit.baseAttack));
-        else
-            StartCoroutine(WaitForAttackSelection(player2Unit.baseAttack));
+        switch (state)
+        {
+            case BattleState.PLAYERTURN:
+                StartCoroutine(WaitForAttackSelection(playerUnit.baseAttack));
+                break;
+            case BattleState.SECONDPLAYERTURN:
+                StartCoroutine(WaitForAttackSelection(player2Unit.baseAttack));
+                break;
+        }
     }
 
     /// <summary>
@@ -357,6 +363,19 @@ public class BattleSystem : MonoBehaviour
     /// <returns>If successful, ends battle. If not, enemies turn</returns>
     IEnumerator PlayerFlee()
     {
+        // If there is a boss present in the battle
+        // you cannot leave
+        foreach(Unit enemy in activeEnemies)
+        {
+            if (enemy.tag == "Boss")
+            {
+                dialogueText.text = "You cannot flee this battle.";
+                yield return new WaitForSeconds(2f);
+                state = BattleState.ENEMYTURN;
+                StartCoroutine(EnemyTurn());
+            }
+        }
+
         int escape = Random.Range(0, 100);
 
         if (escape < 80)
@@ -373,9 +392,6 @@ public class BattleSystem : MonoBehaviour
             StartCoroutine(EnemyTurn());
         }
     }
-
-
-    public delegate int DamageCalculationDelegate(int damageStat, Unit selectedEnemy, Weapon equippedWeapon);
 
     IEnumerator RotatePlayer(PlayableCharacter player, Unit enemy)
     {
@@ -413,43 +429,37 @@ public class BattleSystem : MonoBehaviour
         }
     }
 
-    IEnumerator PlayerAction(Unit selectedEnemy, int damageStat, DamageCalculationDelegate damageCalculation)
+    IEnumerator PlayerAction(PlayableCharacter player, Unit selectedEnemy, int damageStat, DamageCalculationDelegate damageCalculation)
     {
         bool isDead;
         int damage;
+        
+        // Set the HUD
         SetButtonsActive(false);
         backButtons[0].gameObject.SetActive(false);
         backButtons[1].gameObject.SetActive(false);
+        battleHUD.SetMP(player);
 
-        if (state == BattleState.PLAYERTURN)
-        {
-            battleHUD.SetMP(playerUnit);
-            damage = damageCalculation(damageStat, selectedEnemy, playerUnit.equippedWeapon);
-            isDead = selectedUnit.TakeDamage(damage);
-            StartCoroutine(RotatePlayer(playerUnit, selectedEnemy));
-            OnEnemyAction(BattleActionType.Damaged, selectedEnemy);
-        }
-        else
-        {
-            battleHUD.SetMP(player2Unit);
-            damage = damageCalculation(damageStat, selectedEnemy, player2Unit.equippedWeapon);
-            isDead = selectedUnit.TakeDamage(damage);
-            StartCoroutine(RotatePlayer(player2Unit, selectedEnemy));
-            OnEnemyAction(BattleActionType.Damaged, selectedEnemy);
-        }
+        // Determine the damage and if the enemy is dead
+        damage = damageCalculation(damageStat, selectedEnemy, player.equippedWeapon);
+        isDead = selectedUnit.TakeDamage(damage);
+        StartCoroutine(RotatePlayer(player, selectedEnemy));
+        OnEnemyAction(BattleActionType.Damaged, selectedEnemy);
 
-        //yield return new WaitForSeconds(2f);
+
         dialogueText.text = selectedEnemy.unitName + " takes " + damage + " damage.";
         yield return new WaitForSeconds(2f);
 
+        // If an enemy dies
         if (isDead)
         {
             OnEnemyAction(BattleActionType.Die, selectedEnemy);
             dialogueText.text = selectedEnemy.unitName + " has been defeated!";
-            // Add random volatility to XP and Money
-            totalExp += ExpToGain(selectedEnemy);
-            totalMoney += MoneyToGain(selectedEnemy);
 
+            // Gain xp/money 
+            levelUpManager.GainXPAndMoney(selectedEnemy);
+
+            // Slowly shrink enemy
             Vector3 initialScale = selectedEnemy.transform.localScale;
             Vector3 finalScale = Vector3.zero;
             float elapsedTime = 0f;
@@ -476,28 +486,22 @@ public class BattleSystem : MonoBehaviour
                 state = BattleState.WON;
                 EndBattle();
             }
-            else if (state == BattleState.SECONDPLAYERTURN)
-            {
-                state = BattleState.ENEMYTURN;
-                StartCoroutine(EnemyTurn());
-            }
-            else if (state == BattleState.PLAYERTURN && !isPlayer2Dead)
-            {
-                state = BattleState.SECONDPLAYERTURN;
-                PlayerTurn();
-            }
-
         }
-        else if (state == BattleState.PLAYERTURN && !isPlayer2Dead)
+        // if the battle is not over,
+        // and players turn is over,
+        // and player 2 is not dead
+        if (state == BattleState.PLAYERTURN && !isPlayer2Dead)
         {
             state = BattleState.SECONDPLAYERTURN;
             PlayerTurn();
         }
-        else
+        // if the second player has moved
+        else if (state == BattleState.SECONDPLAYERTURN)
         {
             state = BattleState.ENEMYTURN;
             StartCoroutine(EnemyTurn());
         }
+
         selectedUnit = null;
     }
 
@@ -507,38 +511,34 @@ public class BattleSystem : MonoBehaviour
     /// <returns></returns>
     IEnumerator PlayerGaurd()
     {
-        if (state == BattleState.PLAYERTURN)
+        switch (state)
         {
-            OnPlayerAction(BattleActionType.Gaurd, playerUnit);
-            playerUnit.baseDefense *= 2;
-            SetButtonsActive(false);
-            dialogueText.text = "Guts brace himself";
-
-
-            yield return new WaitForSeconds(2f);
-
-            if (!isPlayer2Dead)
-            {
-                state = BattleState.SECONDPLAYERTURN;
-                PlayerTurn();
-            }
-            else
-            {
+            case BattleState.PLAYERTURN:
+                OnPlayerAction(BattleActionType.Gaurd, playerUnit);
+                playerUnit.baseDefense *= 2;
+                SetButtonsActive(false);
+                dialogueText.text = "Guts brace himself";
+                yield return new WaitForSeconds(2f);
+                if (!isPlayer2Dead)
+                {
+                    state = BattleState.SECONDPLAYERTURN;
+                    PlayerTurn();
+                }
+                else
+                {
+                    state = BattleState.ENEMYTURN;
+                    StartCoroutine(EnemyTurn());
+                }
+                break;
+            case BattleState.SECONDPLAYERTURN:
+                OnPlayerAction(BattleActionType.Gaurd, player2Unit);
+                player2Unit.baseDefense *= 2;
+                SetButtonsActive(false);
+                dialogueText.text = "Puck braces himself";
+                yield return new WaitForSeconds(2f);
                 state = BattleState.ENEMYTURN;
                 StartCoroutine(EnemyTurn());
-
-            }
-        }
-        else if (state == BattleState.SECONDPLAYERTURN)
-        {
-            OnPlayerAction(BattleActionType.Gaurd, player2Unit);
-            player2Unit.baseDefense *= 2;
-            SetButtonsActive(false);
-            dialogueText.text = "Puck braces himself";
-
-            yield return new WaitForSeconds(2f);
-            state = BattleState.ENEMYTURN;
-            StartCoroutine(EnemyTurn());
+                break;
         }
     }
 
@@ -554,26 +554,28 @@ public class BattleSystem : MonoBehaviour
             yield return null;
         }
 
-        StartCoroutine(PlayerAction(selectedUnit, damageStat, DetermineDamage));
-
-        if(state == BattleState.PLAYERTURN)
-            OnPlayerAction(BattleActionType.Attack, playerUnit);
-        else if (state == BattleState.SECONDPLAYERTURN)
-            OnPlayerAction(BattleActionType.Attack, player2Unit);
-
+        switch (state)
+        {
+            case BattleState.PLAYERTURN:
+                StartCoroutine(PlayerAction(playerUnit, selectedUnit, damageStat, DetermineDamage));
+                OnPlayerAction(BattleActionType.Attack, playerUnit);
+                break;
+            case BattleState.SECONDPLAYERTURN:
+                StartCoroutine(PlayerAction(player2Unit, selectedUnit, damageStat, DetermineDamage));
+                OnPlayerAction(BattleActionType.Attack, player2Unit);
+                break;
+            default:
+                break;
+        }
     }
 
     IEnumerator WaitForArcaneSelection(int damageStat)
     {
         while (selectedUnit == null)
-        {
             yield return null;
-        }
 
         if (selectedSpell.isHealingSpell)
-        {
             StartCoroutine(PlayerHeal(selectedUnit));
-        }
 
         if (!selectedSpell.isHealingSpell)
         {
@@ -581,16 +583,21 @@ public class BattleSystem : MonoBehaviour
             selectedSpell.spellVFX.transform.position = selectedUnit.transform.position;
             selectedSpell.spellVFX.Play();
             
-            StartCoroutine(PlayerAction(selectedUnit, damageStat, DetermineDamageArcane));
-
-            if (state == BattleState.PLAYERTURN)
-                OnPlayerAction(BattleActionType.Arcane, playerUnit);
-            else if (state == BattleState.SECONDPLAYERTURN)
-                OnPlayerAction(BattleActionType.Arcane, player2Unit);
-
+            switch (state)
+            {
+                case BattleState.PLAYERTURN:
+                    StartCoroutine(PlayerAction(playerUnit, selectedUnit, damageStat, DetermineDamageArcane));
+                    OnPlayerAction(BattleActionType.Arcane, playerUnit);
+                    break;
+                case BattleState.SECONDPLAYERTURN:
+                    StartCoroutine(PlayerAction(player2Unit, selectedUnit, damageStat, DetermineDamageArcane));
+                    OnPlayerAction(BattleActionType.Arcane, player2Unit);
+                    break;
+                default:
+                    break;
+            }
         }
     }
-
     
     IEnumerator PlayerHeal(Unit selectedPlayer)
     {
@@ -599,23 +606,28 @@ public class BattleSystem : MonoBehaviour
         selectedPlayer.Heal(healingAmnt); 
 
         battleHUD.SetHP(selectedPlayer);
-        if(state == BattleState.PLAYERTURN)
-            battleHUD.SetMP(playerUnit);
-        else if(state == BattleState.SECONDPLAYERTURN)
-            battleHUD.SetMP(player2Unit);
+        
+        switch (state)
+        {
+            case BattleState.PLAYERTURN:
+                battleHUD.SetMP(playerUnit);
+                dialogueText.text = "You feel renewed strength!";
+                yield return new WaitForSeconds(2f);
+                state = BattleState.SECONDPLAYERTURN;
+                PlayerTurn();
+                break;
+            case BattleState.SECONDPLAYERTURN:
+                battleHUD.SetMP(player2Unit);
+                state = BattleState.ENEMYTURN;
+                StartCoroutine(EnemyTurn());
+                break;
+        }
 
-        dialogueText.text = "You feel renewed strength!";
 
-        yield return new WaitForSeconds(2f);
-
-        state = BattleState.ENEMYTURN;
-        StartCoroutine(EnemyTurn());
     }
-
     #endregion
 
     #region Enemy Options
-
     /// <summary>
     /// Enemies turn will attack the player
     /// prioritizes player if health < 15% of max
@@ -626,24 +638,22 @@ public class BattleSystem : MonoBehaviour
         SetButtonsActive(false);
 
         if (playerUnit.currentHP == 0)
-        {
             isPlayerDead = true;
-        }
         else if (player2Unit.currentHP == 0)
-        {
             isPlayer2Dead = true;
-        }
 
         foreach (Unit enemy in activeEnemies)
         {
-            // Enemies randomly decide wether to use arcane or physical attacks
+            int attackType = 0;
             yield return new WaitForSeconds(1.5f);
-            int attackType = Random.Range(0, 1);
-            dialogueText.text = enemyUnit.unitName + " attacks!";
+
+            // If the enemy can use magic, give them a chance of doing so
+            if (enemy.canUseMagic)
+               attackType = Random.Range(0, 2);
+            //dialogueText.text = enemyUnit.unitName + " attacks!";
 
             int dmg;
             Unit target;   //The target the enemy will attack
-
 
             if (isPlayerDead)                                           //If P1 is dead attack P2
                 target = player2Unit;
@@ -659,46 +669,16 @@ public class BattleSystem : MonoBehaviour
 
             // Use a formula to determine the amount of damage to deal
             if (attackType == 0)
-            {
                 dmg = DetermineDamage(enemy.baseAttack, target, null);
-            }
             else
-            {
                 dmg = DetermineDamageArcane(enemy.baseArcane, target, null);
-            }
 
             OnEnemyAction(BattleActionType.Attack, enemy);
-
-
-            // Apply damage to P1 and display to textBox
+            
             if (target == playerUnit)
-            {
-                isPlayerDead = playerUnit.TakeDamage(dmg);
-                battleHUD.SetHP(playerUnit);
-                dialogueText.text = playerUnit.unitName + " takes " + dmg + " damage!";
-
-                // if the hit kills the player, play the death animation
-                if (playerUnit.currentHP <= 0)
-                {
-                    yield return new WaitForSeconds(1f);
-                    OnPlayerAction(BattleActionType.Die, playerUnit);
-                }
-            }
-            // Apply damage to P2 and display to textBox
+                DealDamage(playerUnit, dmg); // Apply damage to P1          
             else if (target == player2Unit)
-            {
-                isPlayer2Dead = player2Unit.TakeDamage(dmg);
-                battleHUD.SetHP(player2Unit);
-                dialogueText.text = player2Unit.unitName + " takes " + dmg + " damage!";
-
-                // if the hit kills the player, play the death animation
-                if (player2Unit.currentHP <= 0)
-                {
-                    yield return new WaitForSeconds(1f);
-                    OnPlayerAction(BattleActionType.Die, player2Unit);
-                }
-            }
-
+               DealDamage(player2Unit, dmg); // Apply damage to P2
 
             yield return new WaitForSeconds(2f);
 
@@ -714,16 +694,30 @@ public class BattleSystem : MonoBehaviour
         ResetStats();
         OnPlayerAction(BattleActionType.StopGaurding, playerUnit);
         OnPlayerAction(BattleActionType.StopGaurding, player2Unit);
+
         if (!isPlayerDead)
             state = BattleState.PLAYERTURN;
         else
             state = BattleState.SECONDPLAYERTURN;
+        
         PlayerTurn();
     }
+    private void DealDamage(PlayableCharacter player, int damage)
+    {
+        isPlayerDead = player.TakeDamage(damage);
+        OnPlayerAction(BattleActionType.Damaged, player);
+        battleHUD.SetHP(player);
+        dialogueText.text = player.unitName + " takes " + damage + " damage!";
+
+        // if the hit kills the player, play the death animation
+        if (player.currentHP <= 0)
+        {
+            OnPlayerAction(BattleActionType.Die, player);
+        }
+    } 
     #endregion
 
     #region Misc. Coroutines
-
     /// <summary>
     /// Loads a selected scene
     /// </summary>
@@ -742,100 +736,16 @@ public class BattleSystem : MonoBehaviour
         SceneManager.LoadScene(sceneIndex);
     }
 
-    /// <summary>
-    /// Apply the XP to players after a battle ends in victory
-    /// </summary>
-    /// <returns></returns>
-    IEnumerator GainExp(PlayableCharacter player, Slider xpSlider)
-    {
-
-        //expFromBattle.text = totalExp.ToString();
-        float startValue = (float)player.experience / (float)player.expToNextLevel;
-        xpSlider.value = startValue;
-        levelScreen.SetActive(true);
-        yield return new WaitForSeconds(2f);
-
-        float targetValue = (float)(player.experience + totalExp) / (float)player.expToNextLevel;
-
-        float overflowExp = 0;
-        float elapsedTime = 0f;
-        float duration = 2f; // Time (in seconds) you want the interpolation to take
-
-        while (elapsedTime < duration)
-        {
-            float sliderValue = Mathf.Lerp(startValue, targetValue, elapsedTime / duration);
-
-            if (xpSlider.value == 1)
-            {
-                //TRIGGER LEVEL UP LOGIC HERE
-                levelUpEvent?.Invoke();
-
-                overflowExp = (targetValue * player.expToNextLevel) - player.expToNextLevel;
-
-                // Reset the start and target values to correctly interpolate the overflow experience:
-                startValue = 0;
-                targetValue = overflowExp / player.expToNextLevel;
-
-                // Reset the elapsed time and duration to interpolate the overflow experience:
-                elapsedTime = 0;
-                duration = 2f; // Reset the interpolation duration
-
-                sliderValue = Mathf.Lerp(startValue, targetValue, elapsedTime / duration);
-            }
-
-            SetXP(sliderValue, xpSlider);
-            elapsedTime += Time.deltaTime;
-
-            yield return null;
-        }
-
-        // Ensure the slider value reaches the exact target value in case of rounding errors
-        SetXP(targetValue, xpSlider);
-        player.AddExperience(totalExp, dialogueText.text);
-
-        yield return new WaitForSeconds(2f);
-    }
-
-    IEnumerator GainMoney()
-    {
-        float duration = 1f;
-        float elapsedTime = 0f;
-
-        while (elapsedTime < duration)
-        {
-            int moneyInterpolation = (int)Mathf.Lerp(totalMoney, 0f, elapsedTime/ duration);
-            moneyFromBattle.text = moneyInterpolation.ToString();
-
-            int totalMoneyInterpolation = (int) Mathf.Lerp(playerUnit.money, playerUnit.money + totalMoney, elapsedTime/ duration);
-            currentMoney.text = totalMoneyInterpolation.ToString();
-
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-
-        // Ensure the values reach the exact target values in case of rounding errors
-        moneyFromBattle.text = "0";
-        currentMoney.text = (playerUnit.money + totalMoney).ToString();
-
-        // Update the player's money to the new total
-        playerUnit.money += totalMoney;
-
-        yield return null;
-    }
-
     #endregion
 
     #region Misc. Methods
-    private void SetXP(float currentXp, Slider slider)
-    {
-        slider.value = currentXp;
-    }
 
     /// <summary>
     /// Handles selecting an enemy during the player phase
     /// </summary>
     void Update()
     {
+        Debug.Log(state.ToString());
         if (canSelect)
         {
             // Highlight
@@ -903,6 +813,13 @@ public class BattleSystem : MonoBehaviour
 
         }
 
+
+        if (levelUpManager.expDone && levelUpManager.moneyDone)
+        {
+            levelUpManager.expDone = false;
+            levelUpManager.moneyDone = false;
+            StartCoroutine(LoadWorld(1));
+        }
     }
 
     private void SelectEnemy(float outlineWidth, Color outlineColor)
@@ -929,14 +846,18 @@ public class BattleSystem : MonoBehaviour
 
     private int DetermineDamage(int givingDmgStat, Unit recievingDmg, Weapon playersWeapon)
     {
+        // Add equipped weapons power to the damage
         Weapon weapon = null;
         if (playersWeapon != null)
             weapon = playersWeapon.GetComponent<Weapon>();
+
         // Determine the defensive stat of the unit
         int armorDefense = (recievingDmg.equippedArmor != null) ? recievingDmg.equippedArmor.defense : 0;
         int damage = Mathf.Max(1, givingDmgStat - recievingDmg.baseDefense - armorDefense);
+        
         if (weapon != null)
             damage += weapon.attack;
+        
         return damage;
     }
 
@@ -945,32 +866,14 @@ public class BattleSystem : MonoBehaviour
         Weapon weapon = null;
         if (playersWeapon != null)
             weapon = playersWeapon.GetComponent<Weapon>();
+
         // Determine the special defensive stat of the unit
         int armorSpecDefense = (recievingDmg.equippedArmor != null) ? recievingDmg.equippedArmor.specialDefense : 0;
         int damage = Mathf.Max(1, givingDmgStat - recievingDmg.baseDefense - armorSpecDefense);
+
         if (weapon != null)
             damage += weapon.arcane;
         return damage;
-    }
-
-    /// <summary>
-    /// Returns the enemies XP will a little random increase/decrease
-    /// </summary>
-    /// <param name="enemiesXP"></param>
-    /// <returns></returns>
-    private int ExpToGain(Unit enemiesXP)
-    {
-        return enemiesXP.experience + Random.Range(-10, 11);
-    }
-
-    /// <summary>
-    /// Returns a random amount of money
-    /// </summary>
-    /// <param name="enemiesMoney"></param>
-    /// <returns>Fluctuates within 10% of the enemies base money drop</returns>
-    private int MoneyToGain(Unit enemiesMoney)
-    {
-        return enemiesMoney.money + (int)Random.Range(enemiesMoney.money * -.1f , enemiesMoney.money * .1f);
     }
 
     public void SetButtonsActive(bool active)
@@ -986,7 +889,7 @@ public class BattleSystem : MonoBehaviour
 
     void EndBattle()
     {
-        if (state == BattleState.GAINEXP || state == BattleState.FLEE)
+        if (state == BattleState.FLEE || state == BattleState.WON)
         {
             if (isPlayerDead)
                 playerUnit.currentHP = 1;
@@ -998,10 +901,10 @@ public class BattleSystem : MonoBehaviour
         {
             dialogueText.text = "You won the battle!";
 
-            state = BattleState.GAINEXP;
-            StartCoroutine(GainExp(playerUnit, p1XpSlider));
-            StartCoroutine(GainExp(player2Unit, p2XpSlider));
-            StartCoroutine(GainMoney());
+            StartCoroutine(levelUpManager.GainExp(playerUnit, levelUpManager.p1XpSlider, dialogueText));
+            StartCoroutine(levelUpManager.GainExp(player2Unit, levelUpManager.p2XpSlider, dialogueText));
+            StartCoroutine(levelUpManager.GainMoney(playerUnit));
+           
         }
         else if (state == BattleState.FLEE)
         {
@@ -1013,10 +916,7 @@ public class BattleSystem : MonoBehaviour
             dialogueText.text = "You were defeated.";
             StartCoroutine(LoadWorld(0));
         }
-        else if (state == BattleState.GAINEXP)
-        {
-            StartCoroutine(LoadWorld(1));
-        }
+
     }
     #endregion
 

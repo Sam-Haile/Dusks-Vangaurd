@@ -18,6 +18,7 @@ TagManager:
   - Skeleton_H
   - Skeleton_I
   - Skeleton_J
+  - Boss
   layers:
   - Default
   - TransparentFX

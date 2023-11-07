@@ -21,7 +21,7 @@ public class Unit : MonoBehaviour
     public int experience;
 	public int money;
 
-
+	public bool canUseMagic;
     public Weapon equippedWeapon;
     public Armor equippedArmor;
 
