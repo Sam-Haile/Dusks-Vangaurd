@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
@@ -59,6 +60,8 @@ public class BattleSystem : MonoBehaviour
     public Slider p2XpSlider;
     public GameObject levelScreen;
     public UnityEvent levelUpEvent;
+    public TextMeshProUGUI moneyFromBattle;
+    public TextMeshProUGUI currentMoney;
     private int totalMoney = 0;
     public BattleHUD battleHUD;
 
@@ -77,7 +80,7 @@ public class BattleSystem : MonoBehaviour
     }
 
     // Event for handling battle animations
-    public delegate void PlayerActionHandler(BattleActionType actionType, int playerNumber);
+    public delegate void PlayerActionHandler(BattleActionType actionType, PlayableCharacter player);
     public static event PlayerActionHandler OnPlayerAction;
 
     public delegate void EnemyActionHandler(BattleActionType actionType, Unit enemy);
@@ -90,7 +93,6 @@ public class BattleSystem : MonoBehaviour
 
     private void Awake()
     {
-
         playerPos = FindObjectOfType<Player>().transform;
         playerPos.position = playerBattleStation.position;
 
@@ -209,7 +211,7 @@ public class BattleSystem : MonoBehaviour
             activeEnemies.Add(enemyUnit);
         }
 
-        OnPlayerAction(BattleActionType.Start, 1);
+        OnPlayerAction(BattleActionType.Start, playerUnit);
 
         foreach (Unit enemy in activeEnemies)
         {
@@ -425,7 +427,6 @@ public class BattleSystem : MonoBehaviour
             damage = damageCalculation(damageStat, selectedEnemy, playerUnit.equippedWeapon);
             isDead = selectedUnit.TakeDamage(damage);
             StartCoroutine(RotatePlayer(playerUnit, selectedEnemy));
-            OnPlayerAction(BattleActionType.Attack, 1);
             OnEnemyAction(BattleActionType.Damaged, selectedEnemy);
         }
         else
@@ -434,7 +435,6 @@ public class BattleSystem : MonoBehaviour
             damage = damageCalculation(damageStat, selectedEnemy, player2Unit.equippedWeapon);
             isDead = selectedUnit.TakeDamage(damage);
             StartCoroutine(RotatePlayer(player2Unit, selectedEnemy));
-            OnPlayerAction(BattleActionType.Attack, 2);
             OnEnemyAction(BattleActionType.Damaged, selectedEnemy);
         }
 
@@ -476,16 +476,15 @@ public class BattleSystem : MonoBehaviour
                 state = BattleState.WON;
                 EndBattle();
             }
-            // If player 1 went, players 2s turn
-            else if (state == BattleState.PLAYERTURN && !isPlayer2Dead)
-            {
-                state = BattleState.SECONDPLAYERTURN;
-                PlayerTurn();
-            }
             else if (state == BattleState.SECONDPLAYERTURN)
             {
                 state = BattleState.ENEMYTURN;
                 StartCoroutine(EnemyTurn());
+            }
+            else if (state == BattleState.PLAYERTURN && !isPlayer2Dead)
+            {
+                state = BattleState.SECONDPLAYERTURN;
+                PlayerTurn();
             }
 
         }
@@ -510,7 +509,7 @@ public class BattleSystem : MonoBehaviour
     {
         if (state == BattleState.PLAYERTURN)
         {
-            OnPlayerAction(BattleActionType.Gaurd, 1);
+            OnPlayerAction(BattleActionType.Gaurd, playerUnit);
             playerUnit.baseDefense *= 2;
             SetButtonsActive(false);
             dialogueText.text = "Guts brace himself";
@@ -532,7 +531,7 @@ public class BattleSystem : MonoBehaviour
         }
         else if (state == BattleState.SECONDPLAYERTURN)
         {
-            OnPlayerAction(BattleActionType.Gaurd, 2);
+            OnPlayerAction(BattleActionType.Gaurd, player2Unit);
             player2Unit.baseDefense *= 2;
             SetButtonsActive(false);
             dialogueText.text = "Puck braces himself";
@@ -556,6 +555,12 @@ public class BattleSystem : MonoBehaviour
         }
 
         StartCoroutine(PlayerAction(selectedUnit, damageStat, DetermineDamage));
+
+        if(state == BattleState.PLAYERTURN)
+            OnPlayerAction(BattleActionType.Attack, playerUnit);
+        else if (state == BattleState.SECONDPLAYERTURN)
+            OnPlayerAction(BattleActionType.Attack, player2Unit);
+
     }
 
     IEnumerator WaitForArcaneSelection(int damageStat)
@@ -575,8 +580,14 @@ public class BattleSystem : MonoBehaviour
             damageStat += spellDamage;
             selectedSpell.spellVFX.transform.position = selectedUnit.transform.position;
             selectedSpell.spellVFX.Play();
-
+            
             StartCoroutine(PlayerAction(selectedUnit, damageStat, DetermineDamageArcane));
+
+            if (state == BattleState.PLAYERTURN)
+                OnPlayerAction(BattleActionType.Arcane, playerUnit);
+            else if (state == BattleState.SECONDPLAYERTURN)
+                OnPlayerAction(BattleActionType.Arcane, player2Unit);
+
         }
     }
 
@@ -670,7 +681,7 @@ public class BattleSystem : MonoBehaviour
                 if (playerUnit.currentHP <= 0)
                 {
                     yield return new WaitForSeconds(1f);
-                    OnPlayerAction(BattleActionType.Die, 1);
+                    OnPlayerAction(BattleActionType.Die, playerUnit);
                 }
             }
             // Apply damage to P2 and display to textBox
@@ -684,7 +695,7 @@ public class BattleSystem : MonoBehaviour
                 if (player2Unit.currentHP <= 0)
                 {
                     yield return new WaitForSeconds(1f);
-                    OnPlayerAction(BattleActionType.Die, 2);
+                    OnPlayerAction(BattleActionType.Die, player2Unit);
                 }
             }
 
@@ -701,8 +712,8 @@ public class BattleSystem : MonoBehaviour
 
         // Reset defense after gaurding is complete
         ResetStats();
-        OnPlayerAction(BattleActionType.StopGaurding, 1);
-        OnPlayerAction(BattleActionType.StopGaurding, 2);
+        OnPlayerAction(BattleActionType.StopGaurding, playerUnit);
+        OnPlayerAction(BattleActionType.StopGaurding, player2Unit);
         if (!isPlayerDead)
             state = BattleState.PLAYERTURN;
         else
@@ -724,8 +735,8 @@ public class BattleSystem : MonoBehaviour
         playerCollision.battleTransitionAnimator.SetTrigger("End");
         yield return new WaitForSeconds(2f);
         player2Unit.transform.localScale = new Vector3(2, 2, 2);
-        OnPlayerAction(BattleActionType.End, 1);
-        OnPlayerAction(BattleActionType.End, 2);
+        OnPlayerAction(BattleActionType.End, playerUnit);
+        OnPlayerAction(BattleActionType.End, player2Unit);
         battleHUD.SetHUD(playerUnit, player2Unit);
         playerController.enabled = true;
         SceneManager.LoadScene(sceneIndex);
@@ -737,6 +748,8 @@ public class BattleSystem : MonoBehaviour
     /// <returns></returns>
     IEnumerator GainExp(PlayableCharacter player, Slider xpSlider)
     {
+
+        //expFromBattle.text = totalExp.ToString();
         float startValue = (float)player.experience / (float)player.expToNextLevel;
         xpSlider.value = startValue;
         levelScreen.SetActive(true);
@@ -781,8 +794,33 @@ public class BattleSystem : MonoBehaviour
         player.AddExperience(totalExp, dialogueText.text);
 
         yield return new WaitForSeconds(2f);
+    }
 
-        EndBattle();
+    IEnumerator GainMoney()
+    {
+        float duration = 1f;
+        float elapsedTime = 0f;
+
+        while (elapsedTime < duration)
+        {
+            int moneyInterpolation = (int)Mathf.Lerp(totalMoney, 0f, elapsedTime/ duration);
+            moneyFromBattle.text = moneyInterpolation.ToString();
+
+            int totalMoneyInterpolation = (int) Mathf.Lerp(playerUnit.money, playerUnit.money + totalMoney, elapsedTime/ duration);
+            currentMoney.text = totalMoneyInterpolation.ToString();
+
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        // Ensure the values reach the exact target values in case of rounding errors
+        moneyFromBattle.text = "0";
+        currentMoney.text = (playerUnit.money + totalMoney).ToString();
+
+        // Update the player's money to the new total
+        playerUnit.money += totalMoney;
+
+        yield return null;
     }
 
     #endregion
@@ -874,14 +912,14 @@ public class BattleSystem : MonoBehaviour
         if (highlight.gameObject.GetComponent<Outline>() != null)
         {
             outline = highlight.gameObject.GetComponent<Outline>();
-            outline.OutlineWidth = 1;
+            outline.OutlineWidth = outlineWidth;
             outline.OutlineColor = outlineColor;
             outline.enabled = true;
         }
         else
         {
             outline = highlight.gameObject.AddComponent<Outline>();
-            outline.OutlineWidth = 1;
+            outline.OutlineWidth = outlineWidth;
             outline.OutlineColor = outlineColor;
             outline.enabled = true;
         }
@@ -926,13 +964,13 @@ public class BattleSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// Returns the enemies XP will a little random increase/decrease
+    /// Returns a random amount of money
     /// </summary>
     /// <param name="enemiesMoney"></param>
-    /// <returns></returns>
+    /// <returns>Fluctuates within 10% of the enemies base money drop</returns>
     private int MoneyToGain(Unit enemiesMoney)
     {
-        return enemiesMoney.money + Random.Range(-50, 51);
+        return enemiesMoney.money + (int)Random.Range(enemiesMoney.money * -.1f , enemiesMoney.money * .1f);
     }
 
     public void SetButtonsActive(bool active)
@@ -963,7 +1001,7 @@ public class BattleSystem : MonoBehaviour
             state = BattleState.GAINEXP;
             StartCoroutine(GainExp(playerUnit, p1XpSlider));
             StartCoroutine(GainExp(player2Unit, p2XpSlider));
-            playerUnit.money += totalMoney;
+            StartCoroutine(GainMoney());
         }
         else if (state == BattleState.FLEE)
         {

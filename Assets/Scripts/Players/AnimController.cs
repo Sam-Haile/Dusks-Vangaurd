@@ -103,7 +103,7 @@ public class AnimController : MonoBehaviour
         BattleSystem.OnPlayerAction -= HandlePlayerAction;
     }
 
-    private void HandlePlayerAction(BattleActionType actionType, int playerNumber)
+    private void HandlePlayerAction(BattleActionType actionType, PlayableCharacter player)
     {
         switch (actionType)
         {
@@ -111,49 +111,49 @@ public class AnimController : MonoBehaviour
                 
                 break;
             case BattleActionType.Attack:
-                if(playerNumber == 1)
+                if(player.tag == "Player")
                 {
                     num = ReturnRandomFloat();
                     playerAnimator.SetTrigger("attack");
                     playerAnimator.SetFloat("attackAnim", num);
                 }
-                else if(playerNumber == 2)
+                else if(player.tag == "Puck")
                     player2Animator.SetTrigger("attack");
                 break;
             case BattleActionType.Gaurd:
-                if (playerNumber == 1)
+                if (player.tag == "Player")
                     playerAnimator.SetTrigger("gaurd");
-                else if (playerNumber == 2)
+                else if (player.tag == "Puck")
                     player2Animator.SetTrigger("gaurd");
                 break;
             case BattleActionType.StopGaurding:
-                if (playerNumber == 1)
+                if (player.tag == "Player")
                     playerAnimator.SetTrigger("stopGaurding");
-                else if (playerNumber == 2)
+                else if (player.tag == "Puck")
                     player2Animator.SetTrigger("stopGaurding");
                 break;
             case BattleActionType.Arcane:
-                if (playerNumber == 1)
+                if (player.tag == "Player")
                     playerAnimator.SetTrigger("arcane");
-                else if (playerNumber == 2)
+                else if (player.tag == "Puck")
                     player2Animator.SetTrigger("arcane");
                 break;
             case BattleActionType.Run:
-                if (playerNumber == 1)
+                if (player.tag == "Player")
                     playerAnimator.SetTrigger("run");
-                else if (playerNumber == 2)
+                else if (player.tag == "Player")
                     player2Animator.SetTrigger("run");
                 break;
             case BattleActionType.Die:
-                if (playerNumber == 1)
+                if (player.tag == "Player")
                     playerAnimator.SetTrigger("die");
-                else if (playerNumber == 2)
+                else if (player.tag == "Puck")
                     player2Animator.SetTrigger("die");
                 break;
             case BattleActionType.End:
-                if(playerNumber == 1)
+                if(player.tag == "Player")
                     playerAnimator.SetTrigger("battleEnd");
-                else if (playerNumber == 2)
+                else if (player.tag == "Puck")
                     player2Animator.SetTrigger("battleEnd");
                 break;
             default:

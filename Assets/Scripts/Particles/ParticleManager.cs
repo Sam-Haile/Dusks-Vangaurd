@@ -28,16 +28,16 @@ public class ParticleManager : MonoBehaviour
         BattleSystem.OnPlayerAction -= HandleParticles;
     }
 
-    private void HandleParticles(BattleActionType actionType, int playerNumber)
+    private void HandleParticles(BattleActionType actionType, PlayableCharacter player)
     {
         switch (actionType)
         {
             case BattleActionType.Start:
-                if(playerNumber == 1)
+                if(player.tag == "Player")
                     StartCoroutine(PlayParticles(battleStart, 1.25f, 3f));
                 break;
             case BattleActionType.Attack:
-                if (playerNumber == 1)
+                if (player.tag == "Player")
                 {
                     animControllerNum = animController.GetNumValue();
                     if (animControllerNum < .33)
