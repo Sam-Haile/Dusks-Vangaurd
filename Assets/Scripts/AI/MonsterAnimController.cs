@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using static BattleSystem;
 
 public class MonsterAnimController : MonoBehaviour
@@ -9,6 +11,10 @@ public class MonsterAnimController : MonoBehaviour
     private Animator animator;
 
     private float num;
+
+    public BattleSystem battleSystem;
+    public Animator damageNumbers;
+    public TextMeshPro damageText;
 
     private float animControllerNum;
     private AnimController animController;
@@ -19,6 +25,8 @@ public class MonsterAnimController : MonoBehaviour
         enemy = GetComponent<EnemyAI>();
         animator = GetComponent<Animator>();
         animController = FindObjectOfType<AnimController>();
+        
+        battleSystem = FindAnyObjectByType<BattleSystem>();
     }
 
     void Update()
@@ -27,7 +35,6 @@ public class MonsterAnimController : MonoBehaviour
         animator.SetBool("isRunning", enemy.isRunning);
         animator.SetBool("turning", enemy.isTurning);
     }
-
 
     private void OnEnable()
     {
@@ -38,7 +45,6 @@ public class MonsterAnimController : MonoBehaviour
     {
         BattleSystem.OnEnemyAction -= HandleEnemyAction;
     }
-
 
     private void HandleEnemyAction(BattleActionType actionType, Unit enemy)
     {
@@ -64,7 +70,10 @@ public class MonsterAnimController : MonoBehaviour
             case BattleActionType.Damaged:
                 //animControllerNum = animController.GetNumValue();
                 //if (animControllerNum < .33)
-                    StartCoroutine(WaitForReaction(1f, 0f, "damaged", enemy));
+                StartCoroutine(WaitForReaction(1f, 0f, "damaged", enemy.GetComponent<Animator>()));
+                damageText.text = battleSystem?.LastDamage.ToString();
+                StartCoroutine(WaitForReaction(.5f, 0f, "damaged", damageNumbers));
+
                 //else if (animControllerNum > .33 && animControllerNum < .66)
                 //{
                 //    StartCoroutine(WaitForReaction(1f, 0f, "damaged", enemy));
@@ -88,10 +97,10 @@ public class MonsterAnimController : MonoBehaviour
         return Random.Range(0.0f, 1.0f);
     }
 
-    IEnumerator WaitForReaction(float initialWait, float finalWaitTime, string trigger, Unit enemy)
+    IEnumerator WaitForReaction(float initialWait, float finalWaitTime, string trigger, Animator animator)
     {
         yield return new WaitForSeconds(initialWait);
-        enemy.GetComponent<Animator>().SetTrigger(trigger);
+        animator.SetTrigger(trigger);
     }
 
 }

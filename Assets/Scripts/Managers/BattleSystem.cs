@@ -57,6 +57,7 @@ public class BattleSystem : MonoBehaviour
 
     private LevelUpManager levelUpManager;
     public BattleHUD battleHUD;
+    public int LastDamage { get; private set; }
 
     public enum BattleActionType
     {
@@ -433,7 +434,7 @@ public class BattleSystem : MonoBehaviour
     {
         bool isDead;
         int damage;
-        
+
         // Set the HUD
         SetButtonsActive(false);
         backButtons[0].gameObject.SetActive(false);
@@ -442,6 +443,7 @@ public class BattleSystem : MonoBehaviour
 
         // Determine the damage and if the enemy is dead
         damage = damageCalculation(damageStat, selectedEnemy, player.equippedWeapon);
+        LastDamage = damage;
         isDead = selectedUnit.TakeDamage(damage);
         StartCoroutine(RotatePlayer(player, selectedEnemy));
         OnEnemyAction(BattleActionType.Damaged, selectedEnemy);
@@ -745,7 +747,6 @@ public class BattleSystem : MonoBehaviour
     /// </summary>
     void Update()
     {
-        Debug.Log(state.ToString());
         if (canSelect)
         {
             // Highlight

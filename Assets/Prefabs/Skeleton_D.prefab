@@ -2437,7 +2437,7 @@ Transform:
   - {fileID: 417842}
   - {fileID: 5682237078839373647}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!95 &9549160
 Animator:
@@ -2526,6 +2526,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56eea47cb5af5234a8625dd07eebe99a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  battleSystem: {fileID: 0}
+  damageNumbers: {fileID: 1276170625367689165}
+  damageText: {fileID: 8049519037774648324}
 --- !u!54 &4091878770278484732
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -2621,14 +2624,14 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3801953923770800642}
-  m_LocalRotation: {x: -0.00000010312465, y: -0.92388093, z: -0.0000016233449, w: -0.38268006}
+  m_LocalRotation: {x: -0.009700525, y: -0.90852153, z: 0.021124937, w: -0.4171911}
   m_LocalPosition: {x: 0, y: 0, z: 0.136}
   m_LocalScale: {x: 0.07866, y: 0.07866, z: 0.07866}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 456290}
   m_RootOrder: -1
-  m_LocalEulerAnglesHint: {x: 0, y: -225, z: 0}
+  m_LocalEulerAnglesHint: {x: 2.664, y: -229.329, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 1.687}
