@@ -13,8 +13,7 @@ public class MonsterAnimController : MonoBehaviour
     private float num;
 
     public BattleSystem battleSystem;
-    public Animator damageNumbers;
-    public TextMeshPro damageText;
+    public GameObject damageText;
 
     private float animControllerNum;
     private AnimController animController;
@@ -71,8 +70,9 @@ public class MonsterAnimController : MonoBehaviour
                 //animControllerNum = animController.GetNumValue();
                 //if (animControllerNum < .33)
                 StartCoroutine(WaitForReaction(1f, 0f, "damaged", enemy.GetComponent<Animator>()));
-                damageText.text = battleSystem?.LastDamage.ToString();
-                StartCoroutine(WaitForReaction(.5f, 0f, "damaged", damageNumbers));
+                //damageText.text = battleSystem?.LastDamage.ToString();
+
+                //StartCoroutine(WaitForReaction(.5f, 0f, "damaged", damageText.GetComponent<Animator>()));
 
                 //else if (animControllerNum > .33 && animControllerNum < .66)
                 //{

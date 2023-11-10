@@ -950,8 +950,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   battleSystem: {fileID: 0}
-  damageNumbers: {fileID: 3605527243104393009}
-  damageText: {fileID: 0}
+  damageText: {fileID: 539305730534728477}
 --- !u!54 &3906034567134114624
 Rigidbody:
   m_ObjectHideFlags: 0

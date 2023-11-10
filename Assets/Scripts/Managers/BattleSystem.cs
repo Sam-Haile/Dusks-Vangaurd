@@ -167,47 +167,27 @@ public class BattleSystem : MonoBehaviour
 
         List<string> keys = new List<string>(enemyDictionary.Keys);
 
-        int num = 1;
+        int num = 3;
+
         if (num == 1)
         {
-            GameObject enemyGameObj = Instantiate(enemyDictionary[enemyTag], enemyBattleStations[1]);
-            enemyUnit = enemyGameObj.GetComponent<Unit>();
-            enemyUnit.GetComponent<EnemyAI>().enabled = false;
-            activeEnemies.Add(enemyUnit);
-
-            enemyBattleStations[2].gameObject.SetActive(false);
-            enemyBattleStations[0].gameObject.SetActive(false);
+            InstantiateEnemies(enemyDictionary[enemyTag], 2);
         }
         else if (num == 2)
         {
-            GameObject enemyGameObj1 = Instantiate(enemyDictionary[keys[Random.Range(0, keys.Count)]], enemyBattleStations[0]);
-            enemyUnit = enemyGameObj1.GetComponent<Unit>();
-            enemyUnit.GetComponent<EnemyAI>().enabled = false;
-            activeEnemies.Add(enemyUnit);
-
-            GameObject enemyGameObj2 = Instantiate(enemyDictionary[enemyTag], enemyBattleStations[1]);
-            enemyUnit = enemyGameObj2.GetComponent<Unit>();
-            enemyUnit.GetComponent<EnemyAI>().enabled = false;
-            activeEnemies.Add(enemyUnit);
-
-            enemyBattleStations[2].gameObject.SetActive(false);
+            InstantiateEnemies(enemyDictionary[enemyTag], 3);
+            InstantiateEnemies(enemyDictionary[keys[Random.Range(0, keys.Count)]], 1);
         }
         else if (num == 3)
         {
-            GameObject enemyGameObj1 = Instantiate(enemyDictionary[keys[Random.Range(0, keys.Count)]], enemyBattleStations[0]);
-            enemyUnit = enemyGameObj1.GetComponent<Unit>();
-            enemyUnit.GetComponent<EnemyAI>().enabled = false;
-            activeEnemies.Add(enemyUnit);
+            InstantiateEnemies(enemyDictionary[keys[Random.Range(0, keys.Count)]], 4);
+            InstantiateEnemies(enemyDictionary[enemyTag], 2);
+            InstantiateEnemies(enemyDictionary[keys[Random.Range(0, keys.Count)]], 0);
+        }
 
-            GameObject enemyGameObj2 = Instantiate(enemyDictionary[enemyTag], enemyBattleStations[1]);
-            enemyUnit = enemyGameObj2.GetComponent<Unit>();
-            enemyUnit.GetComponent<EnemyAI>().enabled = false;
-            activeEnemies.Add(enemyUnit);
+        for (int i = 0; i < enemyBattleStations.Length; i++)
+        {
 
-            GameObject enemyGameObj3 = Instantiate(enemyDictionary[keys[Random.Range(0, keys.Count)]], enemyBattleStations[2]);
-            enemyUnit = enemyGameObj3.GetComponent<Unit>();
-            enemyUnit.GetComponent<EnemyAI>().enabled = false;
-            activeEnemies.Add(enemyUnit);
         }
 
         OnPlayerAction(BattleActionType.Start, playerUnit); //Start battle animations
@@ -218,10 +198,10 @@ public class BattleSystem : MonoBehaviour
             OnEnemyAction(BattleActionType.Start, enemy);
         }
 
-        if(num > 1)
+        if(num == 1)
             dialogueText.text = enemyUnit.unitName + " approaches...";
         else
-            dialogueText.text = num + enemyUnit.unitName + "s approach...";
+            dialogueText.text = num + " " + enemyUnit.unitName + "s approach...";
 
         battleHUD.SetHUD(playerUnit, player2Unit);
 
@@ -229,6 +209,16 @@ public class BattleSystem : MonoBehaviour
 
         state = BattleState.PLAYERTURN;
         PlayerTurn();
+    }
+
+
+    private void InstantiateEnemies(GameObject enemyToInstantite, int battleStationIndex)
+    {
+        enemyBattleStations[battleStationIndex].gameObject.SetActive(true);
+        GameObject enemyGameObj = Instantiate(enemyToInstantite, enemyBattleStations[battleStationIndex]);
+        enemyUnit = enemyGameObj.GetComponent<Unit>();
+        enemyUnit.GetComponent<EnemyAI>().enabled = false;
+        activeEnemies.Add(enemyUnit);
     }
     #endregion
 
@@ -904,8 +894,7 @@ public class BattleSystem : MonoBehaviour
 
             StartCoroutine(levelUpManager.GainExp(playerUnit, levelUpManager.p1XpSlider, dialogueText));
             StartCoroutine(levelUpManager.GainExp(player2Unit, levelUpManager.p2XpSlider, dialogueText));
-            StartCoroutine(levelUpManager.GainMoney(playerUnit));
-           
+            StartCoroutine(levelUpManager.GainMoney(playerUnit));           
         }
         else if (state == BattleState.FLEE)
         {

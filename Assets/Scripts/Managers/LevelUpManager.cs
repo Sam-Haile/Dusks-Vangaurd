@@ -14,6 +14,7 @@ public class LevelUpManager : MonoBehaviour
     public GameObject levelScreen;
     public TextMeshProUGUI moneyFromBattle;
     public TextMeshProUGUI currentMoney;
+    public TextMeshProUGUI expFromBattle;
     [HideInInspector] public int totalMoney = 0;
 
 
@@ -45,6 +46,19 @@ public class LevelUpManager : MonoBehaviour
         totalMoney += MoneyToGain(selectedEnemy);
     }
 
+    private void UpdateStats(PlayableCharacter player)
+    {
+        //Set money fields
+        moneyFromBattle.text = totalMoney.ToString();
+
+        currentMoney.text = player.money.ToString();
+        
+        //Set EXP fields
+        expFromBattle.text = totalExp.ToString();
+        
+        levelScreen.SetActive(true);
+    }
+
     /// <summary>
     /// Apply the XP to players after a battle ends in victory
     /// </summary>
@@ -54,18 +68,18 @@ public class LevelUpManager : MonoBehaviour
         //expFromBattle.text = totalExp.ToString();
         float startValue = (float)player.experience / (float)player.expToNextLevel;
         xpSlider.value = startValue;
-        levelScreen.SetActive(true);
         yield return new WaitForSeconds(2f);
 
         float targetValue = (float)(player.experience + totalExp) / (float)player.expToNextLevel;
 
         float overflowExp;
+        float duration = 1.5f; // Time (in seconds) you want the interpolation to take
         float elapsedTime = 0f;
-        float duration = 2f; // Time (in seconds) you want the interpolation to take
 
         while (elapsedTime < duration)
         {
             float sliderValue = Mathf.Lerp(startValue, targetValue, elapsedTime / duration);
+            int expInterpolation = (int)Mathf.Lerp(totalExp, 0, elapsedTime/ duration);
 
             if (xpSlider.value == 1)
             {
@@ -100,9 +114,11 @@ public class LevelUpManager : MonoBehaviour
 
     public IEnumerator GainMoney(PlayableCharacter player)
     {
+        UpdateStats(player);
+
         yield return new WaitForSeconds(2f);
 
-        float duration = 1f;
+        float duration = 1.5f;
         float elapsedTime = 0f;
 
         while (elapsedTime < duration)
