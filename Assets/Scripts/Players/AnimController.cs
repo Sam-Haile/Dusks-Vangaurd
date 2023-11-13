@@ -140,10 +140,10 @@ public class AnimController : MonoBehaviour
                 else if (player.tag == "Puck")
                     player2Animator.SetTrigger("damaged");
 
-                StartCoroutine(DamagePlayer(2, player));
+                StartCoroutine(ApplyDamageOrHeal(2, player, Color.red));
                 break;
             case BattleActionType.Healed:
-                Debug.Log("Healing Event");
+                StartCoroutine(ApplyDamageOrHeal(2, player, Color.green));
                 break;
             case BattleActionType.Gaurd:
                 if (player.tag == "Player")
@@ -193,18 +193,19 @@ public class AnimController : MonoBehaviour
     }
 
     /// <summary>
-    /// Displays the damage texts and turns it off after X seconds
+    /// Displays the damage/heal amount and turns it off after X seconds
     /// </summary>
     /// <param name="waitTime"></param>
     /// <param name="player"></param>
     /// <returns></returns>
-    IEnumerator DamagePlayer(float waitTime, PlayableCharacter player)
+    IEnumerator ApplyDamageOrHeal(float waitTime, PlayableCharacter player, Color textColor)
     {
+        dmgText.color = textColor;
         player.damageNumbers.SetActive(true);
         dmgText.text = battleSystem?.LastDamage.ToString();
         dmgAnimator.SetTrigger("damaged");
         yield return new WaitForSeconds(waitTime);
+        dmgText.color = Color.red;
         player.damageNumbers.SetActive(false);
     }
-
 }

@@ -14017,15 +14017,6 @@ MonoBehaviour:
   - {fileID: 1194928821}
   enemyPrefabList:
   - {fileID: 146754, guid: a27aaa9514020fa44bb6081abd5f14fc, type: 3}
-  - {fileID: 165576, guid: 37030c5c7c1b6674dac293a85cc7d5a6, type: 3}
-  - {fileID: 188982, guid: d86c716d338a1a04d89b6ee52d44933c, type: 3}
-  - {fileID: 197444, guid: b2951f8d32af933468dd00c41bb3f7d8, type: 3}
-  - {fileID: 123184, guid: e967c42ede832ae4d964d682b25ec538, type: 3}
-  - {fileID: 185486, guid: 3a367ca1b4f5a1a47bda6e98e7ba1f43, type: 3}
-  - {fileID: 154340, guid: 95af6d03dc5e07142b1a349a829d8b30, type: 3}
-  - {fileID: 159544, guid: 77ad0facb2a27504ab8edf68c35a1346, type: 3}
-  - {fileID: 133616, guid: b806d07906e3ec2418b856b830337dcf, type: 3}
-  - {fileID: 108450, guid: cf1f48d2327ff8640a3ed8e9673685ac, type: 3}
   activeEnemies: []
   playerBattleStation: {fileID: 609605013}
   player2BattleStation: {fileID: 1310700716}
@@ -14044,6 +14035,7 @@ MonoBehaviour:
   - {fileID: 1673222130}
   - {fileID: 633069619}
   battleHUD: {fileID: 1714929646}
+  outlineMaterial: {fileID: 2100000, guid: 5a43eb92231e29441b870192df1409ba, type: 2}
 --- !u!4 &1714929644
 Transform:
   m_ObjectHideFlags: 0

@@ -57,6 +57,9 @@ public class BattleSystem : MonoBehaviour
 
     private LevelUpManager levelUpManager;
     public BattleHUD battleHUD;
+
+    public Material outlineMaterial;
+
     public int LastDamage { get; private set; }
 
     public enum BattleActionType
@@ -606,6 +609,8 @@ public class BattleSystem : MonoBehaviour
         switch (state)
         {
             case BattleState.PLAYERTURN:
+                LastDamage = healingAmnt;
+                Debug.Log("Healiong for " + healingAmnt);
                 OnPlayerAction(BattleActionType.Healed, playerUnit);
                 battleHUD.SetMP(playerUnit);
                 dialogueText.text = "You feel renewed strength!";
@@ -614,7 +619,9 @@ public class BattleSystem : MonoBehaviour
                 PlayerTurn();
                 break;
             case BattleState.SECONDPLAYERTURN:
-                OnPlayerAction(BattleActionType.Healed, player2Unit);
+                LastDamage = healingAmnt;
+                Debug.Log("Healiong for " + healingAmnt);
+                OnPlayerAction(BattleActionType.Healed, playerUnit);
                 battleHUD.SetMP(player2Unit);
                 state = BattleState.ENEMYTURN;
                 StartCoroutine(EnemyTurn());
@@ -702,10 +709,10 @@ public class BattleSystem : MonoBehaviour
     }
     private void DealDamage(PlayableCharacter player, int damage)
     {
+        LastDamage = damage;
         isPlayerDead = player.TakeDamage(damage);
         OnPlayerAction(BattleActionType.Damaged, player);
         battleHUD.SetHP(player);
-        LastDamage = damage;
         dialogueText.text = player.unitName + " takes " + damage + " damage!";
 
         // if the hit kills the player, play the death animation
@@ -773,11 +780,11 @@ public class BattleSystem : MonoBehaviour
                     // if selected object is an enemy
                     if (enemyAI != null && (selectedSpell == null || !selectedSpell.isHealingSpell))
                     {
-                        SelectEnemy(30f, Color.red);
+                        SelectEnemy("EnemyMat");
                     }
                     else if (playerComponent != null && selectedSpell != null && selectedSpell.isHealingSpell)
                     {
-                        SelectEnemy(40f, Color.green);
+                        SelectEnemy("PlayerMat");
                     }
                     else
                     {
@@ -833,25 +840,21 @@ public class BattleSystem : MonoBehaviour
         }
     }
 
-    private void SelectEnemy(float outlineWidth, Color outlineColor)
+    private void SelectEnemy(string materialName)
     {
         Outline outline;
 
         if (highlight.gameObject.GetComponent<Outline>() != null)
         {
             outline = highlight.gameObject.GetComponent<Outline>();
-            outline.OutlineWidth = outlineWidth;
-            outline.OutlineColor = outlineColor;
-            outline.enabled = true;
         }
         else
         {
             outline = highlight.gameObject.AddComponent<Outline>();
-            outline.OutlineWidth = outlineWidth;
-            outline.OutlineColor = outlineColor;
-            outline.enabled = true;
         }
 
+        outline.SetMaterialName(materialName);
+        outline.enabled = true;
     }
 
 
