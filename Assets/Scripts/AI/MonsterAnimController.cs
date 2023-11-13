@@ -1,8 +1,7 @@
 using System.Collections;
-using System.Collections.Generic;
+using System.Xml;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using static BattleSystem;
 
 public class MonsterAnimController : MonoBehaviour
@@ -12,19 +11,20 @@ public class MonsterAnimController : MonoBehaviour
 
     private float num;
 
-    public BattleSystem battleSystem;
-    public GameObject damageText;
+    private BattleSystem battleSystem;
 
     private float animControllerNum;
     private AnimController animController;
 
-    
+    private Animator dmgAnimator;
+    private TextMeshPro dmgText;
+
     private void Start()
     {
         enemy = GetComponent<EnemyAI>();
         animator = GetComponent<Animator>();
         animController = FindObjectOfType<AnimController>();
-        
+
         battleSystem = FindAnyObjectByType<BattleSystem>();
     }
 
@@ -47,6 +47,9 @@ public class MonsterAnimController : MonoBehaviour
 
     private void HandleEnemyAction(BattleActionType actionType, Unit enemy)
     {
+        dmgAnimator = enemy.damageNumbers.GetComponent<Animator>();
+        dmgText = enemy.damageNumbers.GetComponent<TextMeshPro>();
+
         switch (actionType)
         {
             case BattleActionType.Start:
@@ -67,12 +70,12 @@ public class MonsterAnimController : MonoBehaviour
                 enemy.GetComponent<Animator>().SetFloat("deathAnim", num);
                 break;
             case BattleActionType.Damaged:
+                StartCoroutine(WaitForReaction(1f, 0f, "damaged", enemy.GetComponent<Animator>()));
+
+                StartCoroutine(DamageEnemy(2, enemy));
+
                 //animControllerNum = animController.GetNumValue();
                 //if (animControllerNum < .33)
-                StartCoroutine(WaitForReaction(1f, 0f, "damaged", enemy.GetComponent<Animator>()));
-                //damageText.text = battleSystem?.LastDamage.ToString();
-
-                //StartCoroutine(WaitForReaction(.5f, 0f, "damaged", damageText.GetComponent<Animator>()));
 
                 //else if (animControllerNum > .33 && animControllerNum < .66)
                 //{
@@ -101,6 +104,21 @@ public class MonsterAnimController : MonoBehaviour
     {
         yield return new WaitForSeconds(initialWait);
         animator.SetTrigger(trigger);
+    }
+
+    /// <summary>
+    /// Displays the damage texts and turns it off after X seconds
+    /// </summary>
+    /// <param name="waitTime"></param>
+    /// <param name="player"></param>
+    /// <returns></returns>
+    IEnumerator DamageEnemy(float waitTime, Unit enemy)
+    {
+        enemy.damageNumbers.SetActive(true);
+        dmgText.text = battleSystem?.LastDamage.ToString();
+        dmgAnimator.SetTrigger("damaged");
+        yield return new WaitForSeconds(waitTime);
+        enemy.damageNumbers.SetActive(false);
     }
 
 }

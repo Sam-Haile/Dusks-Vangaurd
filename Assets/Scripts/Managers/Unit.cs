@@ -25,6 +25,8 @@ public class Unit : MonoBehaviour
     public Weapon equippedWeapon;
     public Armor equippedArmor;
 
+	public GameObject damageNumbers;
+
     public int CurrentHealth //Update the UI when a stat changes
     {
         get { return currentHP; }

@@ -1,3 +1,5 @@
+using System.Collections;
+using TMPro;
 using UnityEngine;
 using static BattleSystem;
 
@@ -13,6 +15,11 @@ public class AnimController : MonoBehaviour
     public GameObject swordBack;
     public GameObject swordHand;
 
+    private Animator dmgAnimator;
+    private TextMeshPro dmgText;
+
+    private BattleSystem battleSystem;
+
     public float num;
     private bool hasBattled = false;
 
@@ -25,6 +32,7 @@ public class AnimController : MonoBehaviour
     {
         playerAnimator = player1.GetComponent<Animator>();
         player2Animator = player2.GetComponent<Animator>();
+
     }
 
     private void Start()
@@ -71,6 +79,7 @@ public class AnimController : MonoBehaviour
         // If it's a battle, swtich the animation controllers
         if (level == 2)
         {
+            battleSystem = FindAnyObjectByType<BattleSystem>();
             hasBattled = true;
             swordBack.SetActive(false);
             swordHand.SetActive(true);
@@ -105,6 +114,10 @@ public class AnimController : MonoBehaviour
 
     private void HandlePlayerAction(BattleActionType actionType, PlayableCharacter player)
     {
+
+        dmgAnimator = player.damageNumbers.GetComponent<Animator>();
+        dmgText = player.damageNumbers.GetComponent<TextMeshPro>();
+
         switch (actionType)
         {
             case BattleActionType.Start:
@@ -119,6 +132,18 @@ public class AnimController : MonoBehaviour
                 }
                 else if(player.tag == "Puck")
                     player2Animator.SetTrigger("attack");
+                break;
+            case BattleActionType.Damaged:
+                if (player.tag == "Player"){
+                    playerAnimator.SetTrigger("damaged");
+                }
+                else if (player.tag == "Puck")
+                    player2Animator.SetTrigger("damaged");
+
+                StartCoroutine(DamagePlayer(2, player));
+                break;
+            case BattleActionType.Healed:
+                Debug.Log("Healing Event");
                 break;
             case BattleActionType.Gaurd:
                 if (player.tag == "Player")
@@ -165,6 +190,21 @@ public class AnimController : MonoBehaviour
     private float ReturnRandomFloat()
     {
         return Random.Range(0.0f, 1.0f);
+    }
+
+    /// <summary>
+    /// Displays the damage texts and turns it off after X seconds
+    /// </summary>
+    /// <param name="waitTime"></param>
+    /// <param name="player"></param>
+    /// <returns></returns>
+    IEnumerator DamagePlayer(float waitTime, PlayableCharacter player)
+    {
+        player.damageNumbers.SetActive(true);
+        dmgText.text = battleSystem?.LastDamage.ToString();
+        dmgAnimator.SetTrigger("damaged");
+        yield return new WaitForSeconds(waitTime);
+        player.damageNumbers.SetActive(false);
     }
 
 }

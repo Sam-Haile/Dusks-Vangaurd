@@ -67,6 +67,7 @@ public class BattleSystem : MonoBehaviour
         StopGaurding,
         Arcane,
         Damaged,
+        Healed,
         Run,
         Die,
         End
@@ -443,6 +444,7 @@ public class BattleSystem : MonoBehaviour
         yield return new WaitForSeconds(2f);
 
         // If an enemy dies
+        // If an enemy dies
         if (isDead)
         {
             OnEnemyAction(BattleActionType.Die, selectedEnemy);
@@ -550,10 +552,12 @@ public class BattleSystem : MonoBehaviour
         {
             case BattleState.PLAYERTURN:
                 StartCoroutine(PlayerAction(playerUnit, selectedUnit, damageStat, DetermineDamage));
+                SetHighlightable(false);
                 OnPlayerAction(BattleActionType.Attack, playerUnit);
                 break;
             case BattleState.SECONDPLAYERTURN:
                 StartCoroutine(PlayerAction(player2Unit, selectedUnit, damageStat, DetermineDamage));
+                SetHighlightable(false);
                 OnPlayerAction(BattleActionType.Attack, player2Unit);
                 break;
             default:
@@ -602,6 +606,7 @@ public class BattleSystem : MonoBehaviour
         switch (state)
         {
             case BattleState.PLAYERTURN:
+                OnPlayerAction(BattleActionType.Healed, playerUnit);
                 battleHUD.SetMP(playerUnit);
                 dialogueText.text = "You feel renewed strength!";
                 yield return new WaitForSeconds(2f);
@@ -609,6 +614,7 @@ public class BattleSystem : MonoBehaviour
                 PlayerTurn();
                 break;
             case BattleState.SECONDPLAYERTURN:
+                OnPlayerAction(BattleActionType.Healed, player2Unit);
                 battleHUD.SetMP(player2Unit);
                 state = BattleState.ENEMYTURN;
                 StartCoroutine(EnemyTurn());
@@ -699,6 +705,7 @@ public class BattleSystem : MonoBehaviour
         isPlayerDead = player.TakeDamage(damage);
         OnPlayerAction(BattleActionType.Damaged, player);
         battleHUD.SetHP(player);
+        LastDamage = damage;
         dialogueText.text = player.unitName + " takes " + damage + " damage!";
 
         // if the hit kills the player, play the death animation
@@ -764,11 +771,11 @@ public class BattleSystem : MonoBehaviour
                     Player playerComponent = highlight.gameObject.GetComponent<Player>();
 
                     // if selected object is an enemy
-                    if (enemyAI != null && (selectedSpell == null || !selectedSpell.isHealingSpell) && highlight != selection)
+                    if (enemyAI != null && (selectedSpell == null || !selectedSpell.isHealingSpell))
                     {
                         SelectEnemy(30f, Color.red);
                     }
-                    else if (playerComponent != null && selectedSpell != null && selectedSpell.isHealingSpell && highlight != selection)
+                    else if (playerComponent != null && selectedSpell != null && selectedSpell.isHealingSpell)
                     {
                         SelectEnemy(40f, Color.green);
                     }
@@ -802,6 +809,19 @@ public class BattleSystem : MonoBehaviour
                 }
             }
 
+        }
+        else
+        {
+            // Highlight
+            if (highlight != null)
+            {
+                Outline outlineComponent = highlight.gameObject.GetComponent<Outline>();
+                if (outlineComponent != null)
+                {
+                    outlineComponent.enabled = false;
+                }
+                highlight = null;
+            }
         }
 
 
