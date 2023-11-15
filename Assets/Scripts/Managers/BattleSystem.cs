@@ -60,6 +60,8 @@ public class BattleSystem : MonoBehaviour
 
     public Material outlineMaterial;
 
+    public Spawner refToSpawner;
+
     public int LastDamage { get; private set; }
 
     public enum BattleActionType
@@ -108,6 +110,8 @@ public class BattleSystem : MonoBehaviour
         }
 
         levelUpManager = GetComponent<LevelUpManager>();
+        
+        refToSpawner = playerCollision.collidedSpawner;
     }
 
     void Start()
@@ -171,7 +175,7 @@ public class BattleSystem : MonoBehaviour
 
         List<string> keys = new List<string>(enemyDictionary.Keys);
 
-        int num = 3;
+        int num = 1;
 
         if (num == 1)
         {
@@ -189,11 +193,6 @@ public class BattleSystem : MonoBehaviour
             InstantiateEnemies(enemyDictionary[keys[Random.Range(0, keys.Count)]], 0);
         }
 
-        for (int i = 0; i < enemyBattleStations.Length; i++)
-        {
-
-        }
-
         OnPlayerAction(BattleActionType.Start, playerUnit); //Start battle animations
 
         // foreach enemy, play the start animation
@@ -202,7 +201,7 @@ public class BattleSystem : MonoBehaviour
             OnEnemyAction(BattleActionType.Start, enemy);
         }
 
-        if(num == 1)
+        if (num == 1)
             dialogueText.text = enemyUnit.unitName + " approaches...";
         else
             dialogueText.text = num + " " + enemyUnit.unitName + "s approach...";
@@ -360,7 +359,7 @@ public class BattleSystem : MonoBehaviour
     {
         // If there is a boss present in the battle
         // you cannot leave
-        foreach(Unit enemy in activeEnemies)
+        foreach (Unit enemy in activeEnemies)
         {
             if (enemy.tag == "Boss")
             {
@@ -581,7 +580,7 @@ public class BattleSystem : MonoBehaviour
             damageStat += spellDamage;
             selectedSpell.spellVFX.transform.position = selectedUnit.transform.position;
             selectedSpell.spellVFX.Play();
-            
+
             switch (state)
             {
                 case BattleState.PLAYERTURN:
@@ -597,15 +596,15 @@ public class BattleSystem : MonoBehaviour
             }
         }
     }
-    
+
     IEnumerator PlayerHeal(Unit selectedPlayer)
     {
         int healingAmnt = Random.Range(selectedSpell.minDamage, selectedSpell.maxDamage);
 
-        selectedPlayer.Heal(healingAmnt); 
+        selectedPlayer.Heal(healingAmnt);
 
         battleHUD.SetHP(selectedPlayer);
-        
+
         switch (state)
         {
             case BattleState.PLAYERTURN:
@@ -654,7 +653,7 @@ public class BattleSystem : MonoBehaviour
 
             // If the enemy can use magic, give them a chance of doing so
             if (enemy.canUseMagic)
-               attackType = Random.Range(0, 2);
+                attackType = Random.Range(0, 2);
             //dialogueText.text = enemyUnit.unitName + " attacks!";
 
             int dmg;
@@ -679,11 +678,11 @@ public class BattleSystem : MonoBehaviour
                 dmg = DetermineDamageArcane(enemy.baseArcane, target, null);
 
             OnEnemyAction(BattleActionType.Attack, enemy);
-            
+
             if (target == playerUnit)
                 DealDamage(playerUnit, dmg); // Apply damage to P1          
             else if (target == player2Unit)
-               DealDamage(player2Unit, dmg); // Apply damage to P2
+                DealDamage(player2Unit, dmg); // Apply damage to P2
 
             yield return new WaitForSeconds(2f);
 
@@ -704,7 +703,7 @@ public class BattleSystem : MonoBehaviour
             state = BattleState.PLAYERTURN;
         else
             state = BattleState.SECONDPLAYERTURN;
-        
+
         PlayerTurn();
     }
     private void DealDamage(PlayableCharacter player, int damage)
@@ -720,7 +719,7 @@ public class BattleSystem : MonoBehaviour
         {
             OnPlayerAction(BattleActionType.Die, player);
         }
-    } 
+    }
     #endregion
 
     #region Misc. Coroutines
@@ -779,17 +778,11 @@ public class BattleSystem : MonoBehaviour
 
                     // if selected object is an enemy
                     if (enemyAI != null && (selectedSpell == null || !selectedSpell.isHealingSpell))
-                    {
                         SelectEnemy("EnemyMat");
-                    }
                     else if (playerComponent != null && selectedSpell != null && selectedSpell.isHealingSpell)
-                    {
                         SelectEnemy("PlayerMat");
-                    }
                     else
-                    {
                         highlight = null;
-                    }
                 }
             }
 
@@ -868,10 +861,10 @@ public class BattleSystem : MonoBehaviour
         // Determine the defensive stat of the unit
         int armorDefense = (recievingDmg.equippedArmor != null) ? recievingDmg.equippedArmor.defense : 0;
         int damage = Mathf.Max(1, givingDmgStat - recievingDmg.baseDefense - armorDefense);
-        
+
         if (weapon != null)
             damage += weapon.attack;
-        
+
         return damage;
     }
 
@@ -915,9 +908,12 @@ public class BattleSystem : MonoBehaviour
         {
             dialogueText.text = "You won the battle!";
 
+            refToSpawner.OnEnemyDestroyed(refToSpawner.gameObject.name);
+            refToSpawner.canSpawn = false;
+
             StartCoroutine(levelUpManager.GainExp(playerUnit, levelUpManager.p1XpSlider, dialogueText));
             StartCoroutine(levelUpManager.GainExp(player2Unit, levelUpManager.p2XpSlider, dialogueText));
-            StartCoroutine(levelUpManager.GainMoney(playerUnit));           
+            StartCoroutine(levelUpManager.GainMoney(playerUnit));
         }
         else if (state == BattleState.FLEE)
         {

@@ -7,16 +7,51 @@ public class MainMenu : MonoBehaviour
 {
 
     public GameObject loadingScreen;
+    public GameObject saveLoadUI;
     public Slider loadingBarFill;
 
     private bool isLoading = false;
 
+    private void Start()
+    {
+        Debug.Log(PlayerPrefs.GetInt("FirstTime"));
+    }
+
+    public void UICheck()
+    {
+
+        if (PlayerPrefs.GetInt("FirstTime", 1) == 1)
+        {
+            // This is the first time the game is being opened
+            PlayerPrefs.SetInt("FirstTime", 1); // Set the flag to indicate the game has been opened before
+            PlayerPrefs.Save();
+            DisableSaveLoadUI();
+            Debug.Log("Disabled first");
+            StartCoroutine(LoadSceneAsync(1));
+        }
+        else
+        {
+            EnableSaveLoadUI();
+            Debug.Log("Enabling now first");
+        }
+    }
+
+    void DisableSaveLoadUI()
+    {
+        saveLoadUI.SetActive(false);
+    }
+
+    void EnableSaveLoadUI()
+    {
+        saveLoadUI.SetActive(true);
+    }
+
+    // Start Button
     public void OnStart()
     {
         if (isLoading) return;
 
         isLoading = true;
-        Debug.Log("OnStart called");
         StartCoroutine(LoadSceneAsync(1));
     }
 
@@ -25,6 +60,7 @@ public class MainMenu : MonoBehaviour
         Application.Quit();
     }
 
+    // Loads Credits
     public void LoadLink(string hyperlink)
     {
         Application.OpenURL(hyperlink);
@@ -32,8 +68,6 @@ public class MainMenu : MonoBehaviour
 
     IEnumerator LoadSceneAsync(int sceneId)
     {
-        Debug.Log("LoadingScene2");
-
         AsyncOperation operation = SceneManager.LoadSceneAsync(sceneId);
         loadingScreen.SetActive(true);
 

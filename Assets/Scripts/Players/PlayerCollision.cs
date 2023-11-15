@@ -12,6 +12,8 @@ public class PlayerCollision : MonoBehaviour
 
     public Animator battleTransitionAnimator;
 
+    public Spawner collidedSpawner;
+
     /// <summary>
     /// Save the players position in the main world
     /// Destroy the enemy and its spawner
@@ -30,6 +32,8 @@ public class PlayerCollision : MonoBehaviour
             enemyTag = other.gameObject.tag;
 
             enemyReference.refToSpawner.OnEnemyDestroyed(enemyReference.refToSpawner.gameObject.name);
+
+            collidedSpawner = enemyReference.refToSpawner;
 
             StartCoroutine(LoadScene(other.gameObject));
         }

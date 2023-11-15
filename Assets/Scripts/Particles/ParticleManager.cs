@@ -33,8 +33,8 @@ public class ParticleManager : MonoBehaviour
         switch (actionType)
         {
             case BattleActionType.Start:
-                if(player.tag == "Player")
-                    StartCoroutine(PlayParticles(battleStart, 1.25f, 3f));
+                if(player.tag == "Player") { }
+                    //StartCoroutine(PlayParticles(battleStart, 1.25f, 3f));
                 break;
             case BattleActionType.Attack:
                 if (player.tag == "Player")

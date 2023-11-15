@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class DontDestroy : MonoBehaviour
 {
@@ -17,6 +18,12 @@ public class DontDestroy : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }
+
+    public void DestroyThis()
+    {
+        Debug.Log("Destoying");
+        Destroy(gameObject);    
     }
 
 

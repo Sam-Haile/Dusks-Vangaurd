@@ -81,10 +81,10 @@ public class AnimController : MonoBehaviour
         {
             battleSystem = FindAnyObjectByType<BattleSystem>();
             hasBattled = true;
-            swordBack.SetActive(false);
-            swordHand.SetActive(true);
             playerAnimator.SetTrigger("battle");
             player2Animator.SetTrigger("battle");
+            swordBack.SetActive(false);
+            swordHand.SetActive(true);
         }
         else if(level == 1)
         {

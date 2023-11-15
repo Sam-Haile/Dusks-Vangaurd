@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -28,10 +29,16 @@ public class MenuManager : MonoBehaviour
     public GameObject uiCanvas;
     public BattleHUD battleHud;
 
+    public GameObject loadingScreen;
+    public Slider loadingBarFill;
+
+    public Spawner[] spawners;
+
     private void Awake()
     {
         player1 = FindObjectOfType<PlayerMovement>().gameObject;
         player2 = FindObjectOfType<Follow>().gameObject;
+        spawners = FindObjectsOfType<Spawner>();
     }
 
     private void Start()
@@ -39,6 +46,8 @@ public class MenuManager : MonoBehaviour
         pauseGame = gameObject.GetComponent<PauseGame>();
         playerInfo = player1.GetComponent<Player>();
         player2Info = player2.GetComponent<Puck>();
+
+
     }
 
     private void OnEnable()
@@ -151,8 +160,11 @@ public class MenuManager : MonoBehaviour
     {
         if (SceneManager.GetActiveScene().buildIndex == 1)
         {
-            SaveSystem.SavePlayer(playerInfo);
             SaveSystem.SavePlayer(player2Info);
+            SaveSystem.SavePlayer(playerInfo);
+            Debug.Log("Saving enemy Spawner");
+            SaveSystem.SaveEnemies(spawners);
+
             SaveSystem.SaveSettings(pauseGame.volumeSlider, pauseGame.sfxSlider, pauseGame.isFullscreen, pauseGame.graphicsLevel);
         }
         else
@@ -165,9 +177,12 @@ public class MenuManager : MonoBehaviour
     {
         if (SceneManager.GetActiveScene().buildIndex == 1)
         {
-            LoadPlayer(playerInfo);
             LoadPlayer(player2Info);
+            LoadPlayer(playerInfo);
+            Debug.Log("Loading the player");
+            LoadEnemies(spawners);
             LoadSettings(pauseGame.volumeSlider, pauseGame.sfxSlider, pauseGame.isFullscreen, pauseGame.graphicsLevel);
+            Time.timeScale = 1;
         }
         if (SceneManager.GetActiveScene().buildIndex == 2)
         {
@@ -179,9 +194,36 @@ public class MenuManager : MonoBehaviour
         }
     }
 
-    public void OnQuit()
+
+
+    public void QuitToMenu(int sceneIndex)
     {
-        Application.Quit();
+        StartCoroutine(LoadSceneAsync(sceneIndex));
+    }
+    IEnumerator LoadSceneAsync(int sceneId)
+    {
+        Time.timeScale = 1.0f;
+        AsyncOperation operation = SceneManager.LoadSceneAsync(sceneId);
+        loadingScreen.SetActive(true);
+
+        while (!operation.isDone)
+        {
+            float progressValue = Mathf.Clamp01(operation.progress / 0.9f);
+
+            loadingBarFill.value = progressValue;
+
+            yield return null;
+        }
+    }
+
+    private void LoadEnemies(Spawner[] spawners)
+    {
+        EnemyData enemyData = SaveSystem.LoadEnemies();
+
+        for (int i = 0; i < spawners.Length; i++)
+        {
+            spawners[i].canSpawn = enemyData.activeEnemies[i];
+        }
     }
 
     private void LoadSettings(Slider volumeSlider, Slider sfxSlider, Toggle isFullscreen, TMP_Dropdown graphicsLevel)
@@ -194,9 +236,10 @@ public class MenuManager : MonoBehaviour
         graphicsLevel.value = data.graphics;
     }
 
+
     private void LoadPlayer(PlayableCharacter player)
     {
-        PlayerData data = SaveSystem.LoadPlayer();
+        PlayerData data = SaveSystem.LoadPlayer(player.name);
 
         player.unitName = data.unitName;
         player.unitLevel = data.unitLevel;
@@ -250,6 +293,11 @@ public class MenuManager : MonoBehaviour
         if(level == 2) {
             uiCanvas.SetActive(false);
         }
+    }
+    
+    public void OnQuit()
+    {
+        Application.Quit();
     }
 
     private void OnDisable()
