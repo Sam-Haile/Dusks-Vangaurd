@@ -181,6 +181,7 @@ public class MenuManager : MonoBehaviour
             LoadPlayer(playerInfo);
             Debug.Log("Loading the player");
             LoadEnemies(spawners);
+
             LoadSettings(pauseGame.volumeSlider, pauseGame.sfxSlider, pauseGame.isFullscreen, pauseGame.graphicsLevel);
             Time.timeScale = 1;
         }
@@ -224,7 +225,16 @@ public class MenuManager : MonoBehaviour
         {
             spawners[i].canSpawn = enemyData.activeEnemies[i];
         }
+
+        GameData.enemies = enemyData.enemies;
+
+        foreach (Spawner item in spawners)
+        {
+            item.SpawnEnemy();
+        }
     }
+
+ 
 
     private void LoadSettings(Slider volumeSlider, Slider sfxSlider, Toggle isFullscreen, TMP_Dropdown graphicsLevel)
     {

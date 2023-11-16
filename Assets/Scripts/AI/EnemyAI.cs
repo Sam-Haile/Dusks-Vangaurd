@@ -30,6 +30,8 @@ public class EnemyAI : MonoBehaviour
     [HideInInspector] public bool isRunning;
     [HideInInspector] public bool isWalking;
 
+    public bool isSpawned = false;
+
     private void Awake()
     {
         // Find the player in the scene
@@ -38,7 +40,7 @@ public class EnemyAI : MonoBehaviour
 
     private void Start()
     {
-        refToSpawner.canSpawn = false;
+        //refToSpawner.canSpawn = false;
         // Initialize the home position
         homePosition = transform.position;
     }

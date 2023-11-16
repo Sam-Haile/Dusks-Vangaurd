@@ -46,7 +46,7 @@ public static class SaveSystem {
         string path = Application.persistentDataPath + "/active_enemies" + ".sve";
         FileStream stream = new FileStream(path, FileMode.Create);
 
-        EnemyData data = new EnemyData(spawners);
+        EnemyData data = new EnemyData(spawners, GameData.enemies);
 
         formatter.Serialize(stream, data);
         stream.Close();
