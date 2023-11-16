@@ -32,13 +32,11 @@ public class MenuManager : MonoBehaviour
     public GameObject loadingScreen;
     public Slider loadingBarFill;
 
-    public Spawner[] spawners;
 
     private void Awake()
     {
         player1 = FindObjectOfType<PlayerMovement>().gameObject;
         player2 = FindObjectOfType<Follow>().gameObject;
-        spawners = FindObjectsOfType<Spawner>();
     }
 
     private void Start()
@@ -162,10 +160,13 @@ public class MenuManager : MonoBehaviour
         {
             SaveSystem.SavePlayer(player2Info);
             SaveSystem.SavePlayer(playerInfo);
-            Debug.Log("Saving enemy Spawner");
-            SaveSystem.SaveEnemies(spawners);
 
-            SaveSystem.SaveSettings(pauseGame.volumeSlider, pauseGame.sfxSlider, pauseGame.isFullscreen, pauseGame.graphicsLevel);
+            foreach (var enemy in GameData.enemies)
+            {
+                EnemyAI enemyAI = enemy.GetComponent<EnemyAI>();
+
+                SaveSystem.SaveEnemy(enemyAI.enemyID, enemyAI.isDefeated);
+            }
         }
         else
         {
@@ -179,10 +180,9 @@ public class MenuManager : MonoBehaviour
         {
             LoadPlayer(player2Info);
             LoadPlayer(playerInfo);
-            Debug.Log("Loading the player");
-            LoadEnemies(spawners);
+            LoadEnemies();
 
-            LoadSettings(pauseGame.volumeSlider, pauseGame.sfxSlider, pauseGame.isFullscreen, pauseGame.graphicsLevel);
+
             Time.timeScale = 1;
         }
         if (SceneManager.GetActiveScene().buildIndex == 2)
@@ -191,7 +191,6 @@ public class MenuManager : MonoBehaviour
             player2Info.gameObject.transform.localScale = new Vector3(2, 2, 2);
             LoadPlayer(playerInfo);
             LoadPlayer(player2Info);
-            LoadSettings(pauseGame.volumeSlider, pauseGame.sfxSlider, pauseGame.isFullscreen, pauseGame.graphicsLevel);
         }
     }
 
@@ -217,34 +216,31 @@ public class MenuManager : MonoBehaviour
         }
     }
 
-    private void LoadEnemies(Spawner[] spawners)
+    private void LoadEnemies()
     {
-        EnemyData enemyData = SaveSystem.LoadEnemies();
+        EnemyData data = SaveSystem.LoadEnemies();
 
-        for (int i = 0; i < spawners.Length; i++)
+        if (data != null)
         {
-            spawners[i].canSpawn = enemyData.activeEnemies[i];
-        }
+            foreach (var enemy in GameData.enemies)
+            {
+                enemy.gameObject.SetActive(true);
 
-        GameData.enemies = enemyData.enemies;
-
-        foreach (Spawner item in spawners)
-        {
-            item.SpawnEnemy();
+                EnemyAI enemyAI = enemy.GetComponent<EnemyAI>();
+                Debug.Log(enemyAI);
+                if (enemyAI != null && data.enemies.TryGetValue(enemyAI.enemyID, out bool isDefeated))
+                {
+                    enemyAI.isDefeated = isDefeated;
+                }
+                else
+                {
+                    Debug.LogError("Enemy not found in saved data: " + enemyAI.enemyID);
+                }
+            }
         }
     }
 
- 
 
-    private void LoadSettings(Slider volumeSlider, Slider sfxSlider, Toggle isFullscreen, TMP_Dropdown graphicsLevel)
-    {
-        SystemSettings data = SaveSystem.LoadSettings();
-
-        volumeSlider.value = data.volume;
-        sfxSlider.value = data.sfx;
-        isFullscreen.enabled = data.fullscreen;
-        graphicsLevel.value = data.graphics;
-    }
 
 
     private void LoadPlayer(PlayableCharacter player)

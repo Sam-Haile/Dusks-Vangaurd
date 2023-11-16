@@ -1,98 +1,86 @@
-using System.Collections.Generic;
-using UnityEngine;
+//using System.Collections.Generic;
+//using UnityEngine;
 
-/*Used for spawning enemies in the main world*/
-public class Spawner : MonoBehaviour
-{
-    public int enemyPrefabMin;
-    public int enemyPrefabMax;
+///* Used for spawning enemies in the main world */
+//public class Spawner : MonoBehaviour
+//{
+//    public int enemyPrefabMin;
+//    public int enemyPrefabMax;
 
-    public List<GameObject> listOfEnemyPrefabs;
+//    public List<GameObject> listOfEnemyPrefabs;
 
-    public bool canSpawn;
+//    public float spawnRadius = 10f;
 
-    public float spawnRadius = 10f;
+//    public PlayerCollision playerCollision;
 
-    public PlayerCollision playerCollision;
+//    public EnemyAI spawnedEnemy;
 
-    private EnemyAI spawnedEnemy;
-
-    private void Start()
-    {
-        FirstRoundSpawns();
-    }
-
-    private void FirstRoundSpawns()
-    {
-        string enemyId = gameObject.name; // Use the spawner's name as the enemy's identifier
-
-        // If the enemy does not exist in the dictionary or is not destroyed, spawn it.
-        Vector2 randomPosition = Random.insideUnitCircle.normalized * spawnRadius;
-        Vector3 spawnPosition = transform.position + new Vector3(randomPosition.x, .25f, randomPosition.y);
-
-        GameObject enemy = Instantiate(listOfEnemyPrefabs[Random.Range(enemyPrefabMin, enemyPrefabMax)], spawnPosition, Quaternion.identity);
-        spawnedEnemy = enemy.GetComponent<EnemyAI>();
-        spawnedEnemy.refToSpawner = this;
-        spawnedEnemy.isSpawned = true;
-        enemy.name = enemyId; // Set the enemy's name to the consistent identifier
+//    public bool canSpawn;
 
 
-        // Add the enemy to the GameData dictionary if it's not already there.
-        if (!GameData.enemies.ContainsKey(enemyId))
-        {
-            Debug.Log("First sessdcsdcsion of spawning");
-            GameData.enemies[enemyId] = false;
-        }
-    }
+//    private void Start()
+//    {
+//        SpawnEnemyStart();
+//    }
 
-    public void SpawnEnemy()
-    {
-        if (canSpawn)
-        {
+//    private void SpawnEnemyStart()
+//    {
+//        if (canSpawn)
+//        {
+//                // Randomly pick an enemy prefab
+//                int index = Random.Range(enemyPrefabMin, Mathf.Min(enemyPrefabMax, listOfEnemyPrefabs.Count));
+//                GameObject enemyPrefab = listOfEnemyPrefabs[index];
 
-            string enemyId = gameObject.name; // Use the spawner's name as the enemy's identifier
+//                // Generate a random position within the spawn radius
+//                Vector3 spawnPosition = Random.insideUnitSphere * spawnRadius;
+//                spawnPosition += transform.position;
+//                spawnPosition.y = 0; // Assuming you're spawning on a flat surface
 
-            // If the enemy does not exist in the dictionary or is not destroyed, spawn it.
-            Vector2 randomPosition = Random.insideUnitCircle.normalized * spawnRadius;
-            Vector3 spawnPosition = transform.position + new Vector3(randomPosition.x, .25f, randomPosition.y);
+//                // Instantiate the enemy
+//                GameObject enemy = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
 
-            if (spawnedEnemy == null)
-            {
-                GameObject enemy = Instantiate(listOfEnemyPrefabs[Random.Range(enemyPrefabMin, enemyPrefabMax)], spawnPosition, Quaternion.identity);
-                spawnedEnemy = enemy.GetComponent<EnemyAI>();
-                spawnedEnemy.refToSpawner = this;
-                enemy.name = enemyId; // Set the enemy's name to the consistent identifier
-            }
+//                // Set up references to each other
+//                spawnedEnemy = enemy.GetComponent<EnemyAI>();
+//                spawnedEnemy.name = this.name;
 
-            // Add the enemy to the GameData dictionary if it's not already there.
-            if (!GameData.enemies.ContainsKey(enemyId))
-            {
-                Debug.Log("First session of spawning");
-                GameData.enemies[enemyId] = false;
-            }
-            // if it exists in the dictionary slot
-            // respawn it, 
-            else if (GameObject.Find(enemyId) != null)
-            {
-                Debug.Log("Second session of spawning");
-                return; // Enemy already exists in the scene, don't spawn another.
-            }
-        }
-    }
+//                // add enemy and set as true for alive
+//                GameData.enemies.Add(spawnedEnemy, true);
+//        }
+
+//    }
 
 
-    // Call this method when the enemy is destroyed
-    public void OnEnemyDestroyed(string enemyId)
-    {
+//    public void RespawnEnemies()
+//    {
+//        Debug.Log("Destroying enemies");
+//        foreach(EnemyAI enemy in GameData.enemies.Keys)
+//        {
+//            if (GameData.enemies[enemy] == false)
+//            {
+//                Destroy(enemy.gameObject);
+//            }
+//        }
+//    }
 
-        GameData.enemies[enemyId] = true;
-    }
 
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, spawnRadius);
-    }
+//    private void OnLevelWasLoaded(int level)
+//    {
+//        if (level == 1)
+//        {
+//            RespawnEnemies();
+//        }
+//    }
 
 
-}
+//    // Call this method when the enemy is destroyed
+//    public void OnEnemyDefeated(EnemyAI enemyId)
+//    {
+//        GameData.enemies[enemyId] = false;
+//    }
+
+//    private void OnDrawGizmosSelected()
+//    {
+//        Gizmos.color = Color.red;
+//        Gizmos.DrawWireSphere(transform.position, spawnRadius);
+//    }
+//}

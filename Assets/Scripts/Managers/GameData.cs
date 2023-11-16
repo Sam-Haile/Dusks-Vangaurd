@@ -1,6 +1,7 @@
 using System.Collections.Generic;
-
+using UnityEngine;
 public static class GameData
 {
-    public static Dictionary<string, bool> enemies = new Dictionary<string, bool>();
+    public static List<GameObject> enemies = new List<GameObject>();
+    public static bool battleCompleted = false; // Flag to track if a battle has occurred
 }

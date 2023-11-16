@@ -60,8 +60,6 @@ public class BattleSystem : MonoBehaviour
 
     public Material outlineMaterial;
 
-    public Spawner refToSpawner;
-
     public int LastDamage { get; private set; }
 
     public enum BattleActionType
@@ -111,7 +109,6 @@ public class BattleSystem : MonoBehaviour
 
         levelUpManager = GetComponent<LevelUpManager>();
         
-        refToSpawner = playerCollision.collidedSpawner;
     }
 
     void Start()
@@ -907,9 +904,7 @@ public class BattleSystem : MonoBehaviour
         if (state == BattleState.WON)
         {
             dialogueText.text = "You won the battle!";
-
-            refToSpawner.OnEnemyDestroyed(refToSpawner.gameObject.name);
-            refToSpawner.canSpawn = false;
+            GameData.battleCompleted = true;
 
             StartCoroutine(levelUpManager.GainExp(playerUnit, levelUpManager.p1XpSlider, dialogueText));
             StartCoroutine(levelUpManager.GainExp(player2Unit, levelUpManager.p2XpSlider, dialogueText));

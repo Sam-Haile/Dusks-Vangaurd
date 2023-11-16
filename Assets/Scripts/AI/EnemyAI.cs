@@ -1,15 +1,14 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
 public class EnemyAI : MonoBehaviour
 {
-    public Spawner refToSpawner;
-
     // Serialized fields for enemy attributes
     public float minWalkTime = 0;
     public float maxWalkTime = 1f;
     [SerializeField] private float viewAngle;
-    [SerializeField] private float viewDistance;
+    [SerializeField] public float viewDistance;
     [SerializeField] private LayerMask playerLayer;
     [SerializeField] private float chaseSpeed;
     [SerializeField] private float speed;
@@ -30,7 +29,9 @@ public class EnemyAI : MonoBehaviour
     [HideInInspector] public bool isRunning;
     [HideInInspector] public bool isWalking;
 
-    public bool isSpawned = false;
+    public BoxCollider collider;
+    public bool isDefeated = false;
+    public string enemyID; // Unique ID for each enemy
 
     private void Awake()
     {
@@ -43,6 +44,8 @@ public class EnemyAI : MonoBehaviour
         //refToSpawner.canSpawn = false;
         // Initialize the home position
         homePosition = transform.position;
+        enemyID = gameObject.name + "_" + Guid.NewGuid().ToString();
+        //GameData.enemies.Add(this.gameObject);
     }
 
     private void Update()
@@ -108,10 +111,10 @@ public class EnemyAI : MonoBehaviour
             chaseCoroutine = null;
         }
 
-        int rotTime = Random.Range(1, 3);
-        int rotateWait = Random.Range(1, 4);
-        int rotateLorR = Random.Range(1, 2);
-        float walkTime = Random.Range(minWalkTime, maxWalkTime);
+        int rotTime = UnityEngine.Random.Range(1, 3);
+        int rotateWait = UnityEngine.Random.Range(1, 4);
+        int rotateLorR = UnityEngine.Random.Range(1, 2);
+        float walkTime = UnityEngine.Random.Range(minWalkTime, maxWalkTime);
 
 
         yield return new WaitForSeconds(walkTime);
@@ -249,14 +252,6 @@ public class EnemyAI : MonoBehaviour
     {
         // Ensure all coroutines are stopped when the script is disabled
         StopAllCoroutines();
-    }
-
-    private void OnDestroy()
-    {
-        if (refToSpawner != null)
-        {
-            refToSpawner.OnEnemyDestroyed(this.name);
-        }
     }
 
 #if UNITY_EDITOR 

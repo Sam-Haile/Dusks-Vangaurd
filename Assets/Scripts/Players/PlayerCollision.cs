@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -12,7 +13,7 @@ public class PlayerCollision : MonoBehaviour
 
     public Animator battleTransitionAnimator;
 
-    public Spawner collidedSpawner;
+    public bool canBattle = true;
 
     /// <summary>
     /// Save the players position in the main world
@@ -22,20 +23,21 @@ public class PlayerCollision : MonoBehaviour
     /// <param name="other"></param>
     private void OnTriggerEnter(Collider other)
     {
+
         EnemyAI enemyReference = other.GetComponent<EnemyAI>();
-        
-        if (!isBattleInitiated && enemyReference)
+
+        if (!isBattleInitiated && enemyReference && canBattle)
         {
             this.GetComponent<PlayerMovement>().enabled = false;
             beforeBattlePos = new Vector3(transform.position.x, transform.position.y + 1, transform.position.z);
             isBattleInitiated = true;
             enemyTag = other.gameObject.tag;
+            canBattle = false;
 
-            enemyReference.refToSpawner.OnEnemyDestroyed(enemyReference.refToSpawner.gameObject.name);
-
-            collidedSpawner = enemyReference.refToSpawner;
-
+            enemyReference.isDefeated = true;
+            enemyReference.collider.enabled = !enemyReference.isDefeated;
             StartCoroutine(LoadScene(other.gameObject));
+
         }
     }
 
@@ -43,7 +45,6 @@ public class PlayerCollision : MonoBehaviour
     {
         battleTransitionAnimator.SetTrigger("End");
         yield return new WaitForSeconds(1.25f);
-        Destroy(enemyToDestroy);
         SceneManager.LoadScene(2);
     }
 
@@ -53,9 +54,17 @@ public class PlayerCollision : MonoBehaviour
         if (level == 1 && isBattleInitiated)
         {
             battleTransitionAnimator.SetTrigger("Start");
+            StartCoroutine(BattleCooldown());
             this.transform.position = beforeBattlePos;
             isBattleInitiated = false; // Reset the flag after handling the scene load
         }
+    }
+
+    IEnumerator BattleCooldown()
+    {
+        Debug.Log("Cooldowns");
+        yield return new WaitForSeconds(3f);
+        canBattle = true;
     }
 
 }

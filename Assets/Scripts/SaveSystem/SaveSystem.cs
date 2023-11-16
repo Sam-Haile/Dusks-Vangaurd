@@ -40,13 +40,22 @@ public static class SaveSystem {
         }
     }
 
-    public static void SaveEnemies(Spawner[] spawners)
+    public static void SaveEnemy(string enemyId, bool isDefeated)
     {
         BinaryFormatter formatter = new BinaryFormatter();
-        string path = Application.persistentDataPath + "/active_enemies" + ".sve";
+        string path = Application.persistentDataPath + "/enemies.sve";
         FileStream stream = new FileStream(path, FileMode.Create);
 
-        EnemyData data = new EnemyData(spawners, GameData.enemies);
+        EnemyData data = new EnemyData();
+        // Assuming you have a way to get all the enemies' states
+        foreach (var enemy in GameData.enemies)
+        {
+            var enemyAI = enemy.GetComponent<EnemyAI>();
+            if (enemyAI != null)
+            {
+                data.AddEnemyState(enemyId, isDefeated);
+            }
+        }
 
         formatter.Serialize(stream, data);
         stream.Close();
@@ -54,45 +63,13 @@ public static class SaveSystem {
 
     public static EnemyData LoadEnemies()
     {
-        string path = Application.persistentDataPath + "/active_enemies" + ".sve";
+        string path = Application.persistentDataPath + "/enemies.sve";
         if (File.Exists(path))
         {
             BinaryFormatter formatter = new BinaryFormatter();
             FileStream stream = new FileStream(path, FileMode.Open);
 
             EnemyData data = formatter.Deserialize(stream) as EnemyData;
-            stream.Close();
-
-            return data;
-        }
-        else
-        {
-            Debug.LogError("Save file not found in " + path);
-            return null;
-        }
-    }
-
-    public static void SaveSettings(Slider volumeSlider, Slider sfxSlider, Toggle isFullscreen, TMP_Dropdown graphicsLevel)
-    {
-        BinaryFormatter formatter = new BinaryFormatter();
-        string path = Application.persistentDataPath + "/settings.sve";
-        FileStream stream = new FileStream(path, FileMode.Create);
-
-        SystemSettings data = new SystemSettings(volumeSlider, sfxSlider, isFullscreen, graphicsLevel);
-
-        formatter.Serialize(stream, data);
-        stream.Close();
-    }
-
-    public static SystemSettings LoadSettings()
-    {
-        string path = Application.persistentDataPath + "/settings.sve";
-        if (File.Exists(path))
-        {
-            BinaryFormatter formatter = new BinaryFormatter();
-            FileStream stream = new FileStream(path, FileMode.Open);
-
-            SystemSettings data = formatter.Deserialize(stream) as SystemSettings;
             stream.Close();
 
             return data;
