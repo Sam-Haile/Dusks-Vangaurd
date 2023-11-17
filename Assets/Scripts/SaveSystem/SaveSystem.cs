@@ -7,10 +7,11 @@ using TMPro;
 public static class SaveSystem {
 
 
-    public static void SavePlayer(PlayableCharacter player)
+    public static void SavePlayer(int saveSlotID, PlayableCharacter player)
     {
         BinaryFormatter formatter = new BinaryFormatter();
-        string path = Application.persistentDataPath + "/player_save_" + player.name + ".sve";
+        string fileNamePrefix = "/saveSlot_" + saveSlotID + "_" + player.name + ".sve";
+        string path = Application.persistentDataPath + fileNamePrefix;
         FileStream stream = new FileStream(path, FileMode.Create);
 
         PlayerData data = new PlayerData(player);
@@ -20,9 +21,11 @@ public static class SaveSystem {
     }
 
 
-    public static PlayerData LoadPlayer(string playerName)
+    public static PlayerData LoadPlayer(int saveSlotID, string playerName)
     {
-        string path = Application.persistentDataPath + "/player_save_" + playerName + ".sve";
+        string fileNamePrefix = "/saveSlot_" + saveSlotID + "_" + playerName + ".sve";
+
+        string path = Application.persistentDataPath + fileNamePrefix;
         if (File.Exists(path))
         {
             BinaryFormatter formatter = new BinaryFormatter();
@@ -40,10 +43,11 @@ public static class SaveSystem {
         }
     }
 
-    public static void SaveEnemy(string enemyId, bool isDefeated)
+    public static void SaveGameData(int saveSlotID, string enemyId, bool isDefeated)
     {
         BinaryFormatter formatter = new BinaryFormatter();
-        string path = Application.persistentDataPath + "/enemies.sve";
+        string fileNamePrefix = "/saveSlot_" + saveSlotID + "_enemies.sve";
+        string path = Application.persistentDataPath + fileNamePrefix;
         FileStream stream = new FileStream(path, FileMode.Create);
 
         EnemyData data = new EnemyData();
@@ -53,7 +57,13 @@ public static class SaveSystem {
             var enemyAI = enemy.GetComponent<EnemyAI>();
             if (enemyAI != null)
             {
-                data.AddEnemyState(enemyId, isDefeated);
+
+                Vector3 pos = enemy.transform.position;
+                Quaternion rot = enemy.transform.rotation;
+                float[] posArray = new float[] { pos.x, pos.y, pos.z };
+                float[] rotArray = new float[] { rot.x, rot.y, rot.z, rot.w };
+
+                data.AddEnemyState(enemyAI.enemyID, isDefeated, posArray, rotArray);
             }
         }
 
@@ -61,9 +71,10 @@ public static class SaveSystem {
         stream.Close();
     }
 
-    public static EnemyData LoadEnemies()
+    public static EnemyData LoadGameData(int saveSlotID)
     {
-        string path = Application.persistentDataPath + "/enemies.sve";
+        string fileNamePrefix = "/saveSlot_" + saveSlotID + "_enemies.sve";
+        string path = Application.persistentDataPath + fileNamePrefix;
         if (File.Exists(path))
         {
             BinaryFormatter formatter = new BinaryFormatter();

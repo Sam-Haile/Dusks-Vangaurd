@@ -12,14 +12,14 @@ public class LevelUpManager : MonoBehaviour
     public Slider p1XpSlider;
     public Slider p2XpSlider;
     public GameObject levelScreen;
-    public TextMeshProUGUI moneyFromBattle;
-    public TextMeshProUGUI currentMoney;
+    public TextMeshProUGUI goldFromBattle;
+    public TextMeshProUGUI currentGold;
     public TextMeshProUGUI expFromBattle;
-    [HideInInspector] public int totalMoney = 0;
+    [HideInInspector] public int totalGold = 0;
 
 
     public bool expDone = false;
-    public bool moneyDone = false;
+    public bool goldDone = false;
     public void LevelUp()
     {
         //Do level up stuff here
@@ -28,6 +28,7 @@ public class LevelUpManager : MonoBehaviour
 
     public int ExpToGain(Unit enemiesXP)
     {
+        Debug.Log(enemiesXP.experience);
         return enemiesXP.experience + (int)Random.Range(enemiesXP.experience * -.1f, enemiesXP.experience * .1f);
     }
 
@@ -36,22 +37,22 @@ public class LevelUpManager : MonoBehaviour
         slider.value = currentXp;
     }
 
-    public int MoneyToGain(Unit enemiesMoney)
+    public int GoldToGain(Unit enemiesGold)
     {
-        return enemiesMoney.money + (int)Random.Range(enemiesMoney.money * -.1f, enemiesMoney.money * .1f);
+        return enemiesGold.gold + (int)Random.Range(enemiesGold.gold * -.1f, enemiesGold.gold * .1f);
     }
-    public void GainXPAndMoney(Unit selectedEnemy)
+    public void GainXPAndGold(Unit selectedEnemy)
     {
         totalExp += ExpToGain(selectedEnemy);
-        totalMoney += MoneyToGain(selectedEnemy);
+        totalGold += GoldToGain(selectedEnemy);
     }
 
     private void UpdateStats(PlayableCharacter player)
     {
-        //Set money fields
-        moneyFromBattle.text = totalMoney.ToString();
+        //Set gold fields
+        goldFromBattle.text = totalGold.ToString();
 
-        currentMoney.text = player.money.ToString();
+        currentGold.text = player.gold.ToString();
         
         //Set EXP fields
         expFromBattle.text = totalExp.ToString();
@@ -112,7 +113,7 @@ public class LevelUpManager : MonoBehaviour
 
     }
 
-    public IEnumerator GainMoney(PlayableCharacter player)
+    public IEnumerator GainGold(PlayableCharacter player)
     {
         UpdateStats(player);
 
@@ -123,24 +124,24 @@ public class LevelUpManager : MonoBehaviour
 
         while (elapsedTime < duration)
         {
-            int moneyInterpolation = (int)Mathf.Lerp(totalMoney, 0f, elapsedTime / duration);
-            moneyFromBattle.text = moneyInterpolation.ToString();
+            int goldInterpolation = (int)Mathf.Lerp(totalGold, 0f, elapsedTime / duration);
+            goldFromBattle.text = goldInterpolation.ToString();
 
-            int totalMoneyInterpolation = (int)Mathf.Lerp(player.money, player.money + totalMoney, elapsedTime / duration);
-            currentMoney.text = totalMoneyInterpolation.ToString();
+            int totalGoldInterpolation = (int)Mathf.Lerp(player.gold, player.gold + totalGold, elapsedTime / duration);
+            currentGold.text = totalGoldInterpolation.ToString();
 
             elapsedTime += Time.deltaTime;
             yield return null;
         }
 
         // Ensure the values reach the exact target values in case of rounding errors
-        moneyFromBattle.text = "0";
-        currentMoney.text = (player.money + totalMoney).ToString();
+        goldFromBattle.text = "0";
+        currentGold.text = (player.gold + totalGold).ToString();
 
-        // Update the player's money to the new total
-        player.money += totalMoney;
+        // Update the player's gold to the new total
+        player.gold += totalGold;
 
-        moneyDone = true;
+        goldDone = true;
     }
 
 }

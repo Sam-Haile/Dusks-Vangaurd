@@ -19,7 +19,7 @@ public class Unit : MonoBehaviour
 	public int baseDefense; // For physical attacks
 	public int specialDefense; // For arcane attacks
     public int experience;
-	public int money;
+	public int gold;
 
 	public bool canUseMagic;
     public Weapon equippedWeapon;

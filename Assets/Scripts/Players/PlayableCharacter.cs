@@ -14,6 +14,9 @@ public class PlayableCharacter : Unit
 
     public Spellbook spellbook;
     public List<ParticleSystem> spellParticles;
+
+    public bool isActive;
+
     public void AddExperience(int exp, string text)
     {
         experience += exp;

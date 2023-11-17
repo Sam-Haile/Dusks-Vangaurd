@@ -1531,7 +1531,7 @@ MonoBehaviour:
   hpSlider2: {fileID: 0}
   mpSlider: {fileID: 0}
   mpSlider2: {fileID: 0}
-  money: {fileID: 0}
+  gold: {fileID: 0}
 --- !u!114 &198706833
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3917,7 +3917,7 @@ MonoBehaviour:
   hpSlider2: {fileID: 0}
   mpSlider: {fileID: 0}
   mpSlider2: {fileID: 0}
-  money: {fileID: 0}
+  gold: {fileID: 0}
 --- !u!114 &440684461
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10475,7 +10475,7 @@ MonoBehaviour:
   hpSlider2: {fileID: 0}
   mpSlider: {fileID: 0}
   mpSlider2: {fileID: 0}
-  money: {fileID: 0}
+  gold: {fileID: 0}
 --- !u!1 &1294803139
 GameObject:
   m_ObjectHideFlags: 0
@@ -14067,12 +14067,12 @@ MonoBehaviour:
   p1XpSlider: {fileID: 1701875934}
   p2XpSlider: {fileID: 67861822}
   levelScreen: {fileID: 1085008918}
-  moneyFromBattle: {fileID: 205842417}
-  currentMoney: {fileID: 411516465}
+  goldFromBattle: {fileID: 205842417}
+  currentGold: {fileID: 411516465}
   expFromBattle: {fileID: 77593272}
-  totalMoney: 0
+  totalGold: 0
   expDone: 0
-  moneyDone: 0
+  goldDone: 0
 --- !u!114 &1714929646
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14089,7 +14089,7 @@ MonoBehaviour:
   hpSlider2: {fileID: 1410154817}
   mpSlider: {fileID: 248090553}
   mpSlider2: {fileID: 1730719558}
-  money: {fileID: 1748817877}
+  gold: {fileID: 411516465}
 --- !u!1 &1715227581
 GameObject:
   m_ObjectHideFlags: 0

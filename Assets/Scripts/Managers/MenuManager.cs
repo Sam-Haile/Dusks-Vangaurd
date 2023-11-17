@@ -32,7 +32,14 @@ public class MenuManager : MonoBehaviour
     public GameObject loadingScreen;
     public Slider loadingBarFill;
 
+    private int selectedSaveOrLoadFile = -1;
+    public GameObject confirmationUI;
 
+
+    public GameObject[] saveSlots;
+    public LocationNameUpdater location;
+
+    public Animator battleTransition;
     private void Awake()
     {
         player1 = FindObjectOfType<PlayerMovement>().gameObject;
@@ -44,8 +51,6 @@ public class MenuManager : MonoBehaviour
         pauseGame = gameObject.GetComponent<PauseGame>();
         playerInfo = player1.GetComponent<Player>();
         player2Info = player2.GetComponent<Puck>();
-
-
     }
 
     private void OnEnable()
@@ -73,7 +78,7 @@ public class MenuManager : MonoBehaviour
         player1Stats[6].text = "Def: " + playerInfo.baseDefense.ToString() + (playerInfo.equippedArmor != null ?
                        " + (" + playerInfo.equippedArmor.defense + ")" : " + (0)");
         player1Stats[7].text = "Spc Def: " + playerInfo.specialDefense.ToString();
-        player1Stats[8].text = playerInfo.money.ToString();
+        player1Stats[8].text = playerInfo.gold.ToString();
         if (playerInfo.equippedWeapon != null)
         {
             player1Stats[9].text = "Weapon: " + playerInfo.equippedWeapon.itemName;
@@ -154,18 +159,67 @@ public class MenuManager : MonoBehaviour
         Time.timeScale = 1;
     }
 
-    public void OnSave()
+    public void OnSaveSlotSelected(int saveSlotId)
+    {
+        selectedSaveOrLoadFile = saveSlotId;
+        confirmationUI.SetActive(true);
+    }
+
+    public void OnConfirmSave()
+    {
+        if (selectedSaveOrLoadFile != -1)
+        {
+            int index = selectedSaveOrLoadFile - 1;
+
+            SaveSlot saveSlot = saveSlots[index].GetComponent<SaveSlot>();
+            if (saveSlot != null)
+                saveSlot.UpdateSaveSlot(location.locationNameText, playerInfo.isActive, player2Info.isActive, playerInfo.gold);
+
+            OnSave(selectedSaveOrLoadFile);
+            Debug.Log("Saved to file #" + selectedSaveOrLoadFile);
+            selectedSaveOrLoadFile = -1;
+        }
+        else
+        {
+            Debug.LogError("Could Not Save file. Save File: " + selectedSaveOrLoadFile);
+        }
+
+    }
+
+    public void OnLoadSlotSelected(int saveSlotId)
+    {
+        selectedSaveOrLoadFile = saveSlotId;
+        confirmationUI.SetActive(true);
+    }
+
+    public void OnConfirmLoad()
+    {
+        if (selectedSaveOrLoadFile != -1)
+        {
+            OnLoad(selectedSaveOrLoadFile);
+            Debug.Log("Load to file #" + selectedSaveOrLoadFile);
+            battleHud.UpdateAllStats(playerInfo);
+            battleHud.UpdateAllStats(player2Info);
+            selectedSaveOrLoadFile = -1;
+        }
+        else
+        {
+            Debug.LogError("Could Not Save file. Save File: " + selectedSaveOrLoadFile);
+        }
+    }
+
+    public void OnSave(int saveSlotID)
     {
         if (SceneManager.GetActiveScene().buildIndex == 1)
         {
-            SaveSystem.SavePlayer(player2Info);
-            SaveSystem.SavePlayer(playerInfo);
+            SaveSystem.SavePlayer(saveSlotID, playerInfo);
+            SaveSystem.SavePlayer(saveSlotID, player2Info);
 
             foreach (var enemy in GameData.enemies)
             {
                 EnemyAI enemyAI = enemy.GetComponent<EnemyAI>();
 
-                SaveSystem.SaveEnemy(enemyAI.enemyID, enemyAI.isDefeated);
+                SaveSystem.SaveGameData(saveSlotID, enemyAI.enemyID, enemyAI.isDefeated);
             }
         }
         else
@@ -174,51 +228,30 @@ public class MenuManager : MonoBehaviour
         }
     }
 
-    public void OnLoad()
+    public void OnLoad(int saveSlotID)
     {
+        battleTransition.SetTrigger("End");
         if (SceneManager.GetActiveScene().buildIndex == 1)
         {
-            LoadPlayer(player2Info);
-            LoadPlayer(playerInfo);
-            LoadEnemies();
-
-
+            LoadPlayer(saveSlotID, playerInfo);
+            LoadPlayer(saveSlotID, player2Info);
+            LoadGameData(saveSlotID);
             Time.timeScale = 1;
         }
         if (SceneManager.GetActiveScene().buildIndex == 2)
         {
             SceneManager.LoadScene(1);
             player2Info.gameObject.transform.localScale = new Vector3(2, 2, 2);
-            LoadPlayer(playerInfo);
-            LoadPlayer(player2Info);
+            LoadPlayer(saveSlotID, playerInfo);
+            LoadPlayer(saveSlotID, player2Info);
         }
+
+        StartCoroutine(BattleTranstion(0f));
     }
 
-
-
-    public void QuitToMenu(int sceneIndex)
+    public void LoadGameData(int saveSlotID, bool loadPositionAndRotationOnly = false)
     {
-        StartCoroutine(LoadSceneAsync(sceneIndex));
-    }
-    IEnumerator LoadSceneAsync(int sceneId)
-    {
-        Time.timeScale = 1.0f;
-        AsyncOperation operation = SceneManager.LoadSceneAsync(sceneId);
-        loadingScreen.SetActive(true);
-
-        while (!operation.isDone)
-        {
-            float progressValue = Mathf.Clamp01(operation.progress / 0.9f);
-
-            loadingBarFill.value = progressValue;
-
-            yield return null;
-        }
-    }
-
-    private void LoadEnemies()
-    {
-        EnemyData data = SaveSystem.LoadEnemies();
+        EnemyData data = SaveSystem.LoadGameData(saveSlotID);
 
         if (data != null)
         {
@@ -227,43 +260,64 @@ public class MenuManager : MonoBehaviour
                 enemy.gameObject.SetActive(true);
 
                 EnemyAI enemyAI = enemy.GetComponent<EnemyAI>();
-                Debug.Log(enemyAI);
-                if (enemyAI != null && data.enemies.TryGetValue(enemyAI.enemyID, out bool isDefeated))
+                if (enemyAI != null)
                 {
-                    enemyAI.isDefeated = isDefeated;
-                }
-                else
-                {
-                    Debug.LogError("Enemy not found in saved data: " + enemyAI.enemyID);
+                    if (loadPositionAndRotationOnly)
+                    {
+                        // Load only position and rotation
+                        if (data.enemyPositions.TryGetValue(enemyAI.enemyID, out float[] posArray) &&
+                            data.enemyRotations.TryGetValue(enemyAI.enemyID, out float[] rotArray))
+                        {
+                            enemy.transform.position = new Vector3(posArray[0], posArray[1], posArray[2]);
+                            enemy.transform.rotation = new Quaternion(rotArray[0], rotArray[1], rotArray[2], rotArray[3]);
+                        }
+                    }
+                    else
+                    {
+                        if (data.enemies.TryGetValue(enemyAI.enemyID, out bool isDefeated))
+                        {
+                            enemyAI.isDefeated = isDefeated;
+                            float[] posArray = data.enemyPositions[enemyAI.enemyID];
+                            float[] rotArray = data.enemyRotations[enemyAI.enemyID];
+                            enemy.transform.position = new Vector3(posArray[0], posArray[1], posArray[2]);
+                            enemy.transform.rotation = new Quaternion(rotArray[0], rotArray[1], rotArray[2], rotArray[3]);
+                        }
+                        else
+                        {
+                            Debug.LogError("Enemy not found in saved data: " + enemyAI.enemyID);
+                        }
+                    }
+
                 }
             }
         }
     }
 
-
-
-
-    private void LoadPlayer(PlayableCharacter player)
+    private void LoadPlayer(int saveSlotID, PlayableCharacter player)
     {
-        PlayerData data = SaveSystem.LoadPlayer(player.name);
+        PlayerData data = SaveSystem.LoadPlayer(saveSlotID, player.name);
 
         player.unitName = data.unitName;
         player.unitLevel = data.unitLevel;
         player.maxHP = data.maxHP;
         player.currentHP = data.currentHP;
+        player.maxMP = data.maxMP;
+        player.currentMP = data.currentMP;
         player.baseAttack = data.baseAttack;
+        player.baseArcane = data.baseArcane;
         player.baseDefense = data.baseDefense;
         player.specialDefense = data.specialDefense;
         player.experience = data.experience;
-        player.money = data.money;
+        player.gold = data.gold;
         player.expToNextLevel = data.expToNextLevel;
+        player.isActive = data.active;
 
         Vector3 position;
         Vector3 rotation;
 
         if (player.GetComponent<CharacterController>() != null)
             player.GetComponent<CharacterController>().enabled = false;
-        
+
         //Load the position
         position.x = data.position[0];
         position.y = data.position[1];
@@ -293,14 +347,42 @@ public class MenuManager : MonoBehaviour
             uiCanvas.SetActive(true);
 
 
-            battleHud.SetHUD(player1.GetComponent<Unit>(), player2.GetComponent<Unit>());
+            battleHud.SetHUD();
         }
 
-        if(level == 2) {
+        if (level == 2)
+        {
             uiCanvas.SetActive(false);
         }
     }
-    
+
+    IEnumerator BattleTranstion(float waitTime)
+    {
+        yield return new WaitForSeconds(waitTime);
+        battleTransition.SetTrigger("Start");
+    }
+
+    public void QuitToMenu(int sceneIndex)
+    {
+        StartCoroutine(LoadSceneAsync(sceneIndex));
+    }
+
+    IEnumerator LoadSceneAsync(int sceneId)
+    {
+        Time.timeScale = 1.0f;
+        AsyncOperation operation = SceneManager.LoadSceneAsync(sceneId);
+        loadingScreen.SetActive(true);
+
+        while (!operation.isDone)
+        {
+            float progressValue = Mathf.Clamp01(operation.progress / 0.9f);
+
+            loadingBarFill.value = progressValue;
+
+            yield return null;
+        }
+    }
+
     public void OnQuit()
     {
         Application.Quit();

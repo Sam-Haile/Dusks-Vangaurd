@@ -907,7 +907,7 @@ MonoBehaviour:
   baseDefense: 3
   specialDefense: 1
   experience: 100
-  money: 10
+  gold: 75
   canUseMagic: 0
   equippedWeapon: {fileID: 0}
   equippedArmor: {fileID: 0}
@@ -924,7 +924,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b3a858775768d9645b4214ed810f65d6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  refToSpawner: {fileID: 0}
   minWalkTime: 0
   maxWalkTime: 1
   viewAngle: 63.4
@@ -939,6 +938,9 @@ MonoBehaviour:
   isTurning: 0
   isRunning: 0
   isWalking: 0
+  collider: {fileID: 0}
+  isDefeated: 0
+  enemyID: 
 --- !u!114 &9092626903895844974
 MonoBehaviour:
   m_ObjectHideFlags: 0

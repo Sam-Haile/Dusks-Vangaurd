@@ -15,6 +15,8 @@ public class PlayerCollision : MonoBehaviour
 
     public bool canBattle = true;
 
+    public MenuManager menuManager;
+
     /// <summary>
     /// Save the players position in the main world
     /// Destroy the enemy and its spawner
@@ -53,6 +55,7 @@ public class PlayerCollision : MonoBehaviour
     {
         if (level == 1 && isBattleInitiated)
         {
+            //menuManager.LoadGameData()
             battleTransitionAnimator.SetTrigger("Start");
             StartCoroutine(BattleCooldown());
             this.transform.position = beforeBattlePos;
@@ -62,7 +65,6 @@ public class PlayerCollision : MonoBehaviour
 
     IEnumerator BattleCooldown()
     {
-        Debug.Log("Cooldowns");
         yield return new WaitForSeconds(3f);
         canBattle = true;
     }

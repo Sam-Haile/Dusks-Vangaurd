@@ -13,12 +13,13 @@ public class PlayerData
     public int baseDefense; 
     public int specialDefense;
     public int experience;
-    public int money;
+    public int gold;
     
     public int expToNextLevel;
     public float[] position;
     public float[] rotation;
 
+    public bool active;
     public PlayerData(PlayableCharacter player) 
     {
         unitName = player.unitName;
@@ -32,8 +33,9 @@ public class PlayerData
         baseDefense = player.baseDefense;
         specialDefense = player.specialDefense;
         experience = player.experience;
-        money = player.money;
+        gold = player.gold;
         expToNextLevel = player.expToNextLevel;
+        active = player.isActive; 
 
         position = new float[3];
         position[0] = player.transform.position.x;
@@ -45,6 +47,8 @@ public class PlayerData
         rotation[0] = player.transform.rotation.eulerAngles.x;
         rotation[1] = player.transform.rotation.eulerAngles.y;
         rotation[2] = player.transform.rotation.eulerAngles.z;
+
+        active = player.isActive;
     }
 
 

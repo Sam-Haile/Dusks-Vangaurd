@@ -203,7 +203,8 @@ public class BattleSystem : MonoBehaviour
         else
             dialogueText.text = num + " " + enemyUnit.unitName + "s approach...";
 
-        battleHUD.SetHUD(playerUnit, player2Unit);
+        battleHUD.UpdateAllStats(playerUnit);
+        battleHUD.UpdateAllStats(player2Unit);
 
         yield return new WaitForSeconds(4f);
 
@@ -449,8 +450,8 @@ public class BattleSystem : MonoBehaviour
             OnEnemyAction(BattleActionType.Die, selectedEnemy);
             dialogueText.text = selectedEnemy.unitName + " has been defeated!";
 
-            // Gain xp/money 
-            levelUpManager.GainXPAndMoney(selectedEnemy);
+            // Gain xp/gold 
+            levelUpManager.GainXPAndGold(selectedEnemy);
 
             // Slowly shrink enemy
             Vector3 initialScale = selectedEnemy.transform.localScale;
@@ -733,7 +734,6 @@ public class BattleSystem : MonoBehaviour
         player2Unit.transform.localScale = new Vector3(2, 2, 2);
         OnPlayerAction(BattleActionType.End, playerUnit);
         OnPlayerAction(BattleActionType.End, player2Unit);
-        battleHUD.SetHUD(playerUnit, player2Unit);
         playerController.enabled = true;
         SceneManager.LoadScene(sceneIndex);
     }
@@ -822,10 +822,10 @@ public class BattleSystem : MonoBehaviour
         }
 
 
-        if (levelUpManager.expDone && levelUpManager.moneyDone)
+        if (levelUpManager.expDone && levelUpManager.goldDone)
         {
             levelUpManager.expDone = false;
-            levelUpManager.moneyDone = false;
+            levelUpManager.goldDone = false;
             StartCoroutine(LoadWorld(1));
         }
     }
@@ -908,7 +908,7 @@ public class BattleSystem : MonoBehaviour
 
             StartCoroutine(levelUpManager.GainExp(playerUnit, levelUpManager.p1XpSlider, dialogueText));
             StartCoroutine(levelUpManager.GainExp(player2Unit, levelUpManager.p2XpSlider, dialogueText));
-            StartCoroutine(levelUpManager.GainMoney(playerUnit));
+            StartCoroutine(levelUpManager.GainGold(playerUnit));
         }
         else if (state == BattleState.FLEE)
         {

@@ -7,9 +7,7 @@ public class SpawnEnemies : MonoBehaviour
 
     private void Awake()
     {
-        // Optionally, populate the list if not done through the Unity Inspector
-        // This can be done by finding all objects of type EnemyAI, for example
-        //PopulateEnemyList();
+        PopulateEnemyList();
     }
 
     private void Start()
@@ -20,19 +18,18 @@ public class SpawnEnemies : MonoBehaviour
 
     private void Update()
     {
-        Debug.Log(GameData.enemies.Count);
         UpdateEnemyActiveStates();
     }
 
     // This method populates the enemy list with all EnemyAI objects in the scene
-    //private void PopulateEnemyList()
-    //{
-    //    EnemyAI[] enemyObjects = FindObjectsOfType<EnemyAI>();
-    //    foreach (var enemyObject in enemyObjects)
-    //    {
-    //        enemies.Add(enemyObject.gameObject);
-    //    }
-    //}
+    private void PopulateEnemyList()
+    {
+        EnemyAI[] enemyObjects = FindObjectsOfType<EnemyAI>();
+        foreach (var enemyObject in enemyObjects)
+        {
+            enemies.Add(enemyObject.gameObject);
+        }
+    }
 
     public void AddEnemiesToList()
     {

@@ -7,6 +7,10 @@ public class PauseGame : MonoBehaviour
 {
 
     public GameObject pauseMenu;
+    public GameObject pausePanel;
+    public GameObject saveLoadMenu;
+    public GameObject pointer;
+
     public GameObject settingsMenu;
     public GameObject[] pauseOptions;
 
@@ -32,8 +36,12 @@ public class PauseGame : MonoBehaviour
         {
 
             pauseMenu.SetActive(!pauseMenu.activeSelf);
+
             if (!pauseMenu.activeSelf)
             {
+                saveLoadMenu.SetActive(false);
+                pointer.SetActive(false);
+                pausePanel.SetActive(true);
                 isPaused = false;
                 if (!menuManager.menuScreenActive)
                     Time.timeScale = 1;
@@ -43,7 +51,9 @@ public class PauseGame : MonoBehaviour
                 isPaused = true;
 
                 //reset the pause menu if left on the settings
+                pointer.SetActive(false);
                 settingsMenu.SetActive(false);
+                saveLoadMenu.SetActive(false);
                 foreach (GameObject button in pauseOptions)
                 {
                     button.SetActive(true);
