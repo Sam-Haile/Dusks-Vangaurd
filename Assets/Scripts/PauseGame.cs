@@ -34,7 +34,6 @@ public class PauseGame : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-
             pauseMenu.SetActive(!pauseMenu.activeSelf);
 
             if (!pauseMenu.activeSelf)

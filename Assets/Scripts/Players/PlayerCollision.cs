@@ -37,26 +37,25 @@ public class PlayerCollision : MonoBehaviour
             canBattle = false;
 
             enemyReference.isDefeated = true;
-            enemyReference.collider.enabled = !enemyReference.isDefeated;
-            StartCoroutine(LoadScene(other.gameObject));
+            enemyReference.GetComponent<Collider>().enabled = !enemyReference.isDefeated;
+            StartCoroutine(LoadScene());
 
         }
     }
 
-    IEnumerator LoadScene(GameObject enemyToDestroy)
+    IEnumerator LoadScene()
     {
         battleTransitionAnimator.SetTrigger("End");
         yield return new WaitForSeconds(1.25f);
         SceneManager.LoadScene(2);
     }
 
-
     public void OnLevelWasLoaded(int level)
     {
         if (level == 1 && isBattleInitiated)
         {
             //menuManager.LoadGameData()
-            battleTransitionAnimator.SetTrigger("Start");
+            //battleTransitionAnimator.SetTrigger("Start");
             StartCoroutine(BattleCooldown());
             this.transform.position = beforeBattlePos;
             isBattleInitiated = false; // Reset the flag after handling the scene load

@@ -28,7 +28,6 @@ public class LevelUpManager : MonoBehaviour
 
     public int ExpToGain(Unit enemiesXP)
     {
-        Debug.Log(enemiesXP.experience);
         return enemiesXP.experience + (int)Random.Range(enemiesXP.experience * -.1f, enemiesXP.experience * .1f);
     }
 

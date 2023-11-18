@@ -8,11 +8,11 @@ public class EnemyAI : MonoBehaviour
     public float minWalkTime = 0;
     public float maxWalkTime = 1f;
     [SerializeField] private float viewAngle;
-    [SerializeField] public float viewDistance;
+     public float viewDistance;
     [SerializeField] private LayerMask playerLayer;
     [SerializeField] private float chaseSpeed;
-    [SerializeField] private float speed;
-    [SerializeField] private float rotationSpeed = 200.0f;
+     public float speed;
+     public float rotationSpeed = 200.0f;
     [SerializeField] private float wanderRadius = 10.0f;  // Radius within which to stay
 
     // Private variables for enemy behavior
@@ -29,14 +29,14 @@ public class EnemyAI : MonoBehaviour
     [HideInInspector] public bool isRunning;
     [HideInInspector] public bool isWalking;
 
-    public BoxCollider collider;
+    public BoxCollider boxCollider;
     public bool isDefeated = false;
     public string enemyID; // Unique ID for each enemy
 
     private void Awake()
     {
         // Find the player in the scene
-        player = FindObjectOfType<PlayerCollision>()?.transform;
+        player = FindObjectOfType<PlayerCollision>().transform;
     }
 
     private void Start()
@@ -63,7 +63,7 @@ public class EnemyAI : MonoBehaviour
             wanderCoroutine = StartCoroutine(Wander());
         }
         // If the enemy can chase the player, start the HandleChasing coroutine
-        if (chaseCoroutine == null)
+        if (chaseCoroutine ==null)
         {
             chaseCoroutine = StartCoroutine(HandleChasing());
         }
