@@ -17,6 +17,7 @@ public class LevelUpManager : MonoBehaviour
     public TextMeshProUGUI expFromBattle;
     [HideInInspector] public int totalGold = 0;
 
+    public GameObject continueButton;
 
     public bool expDone = false;
     public bool goldDone = false;
@@ -24,6 +25,16 @@ public class LevelUpManager : MonoBehaviour
     {
         //Do level up stuff here
         Debug.Log("LEVEL UP TIME");
+    }
+
+    private void Update()
+    {
+        if (expDone && goldDone)
+        {
+            expDone = false;
+            goldDone = false;
+            continueButton.SetActive(true);
+        }
     }
 
     public int ExpToGain(Unit enemiesXP)

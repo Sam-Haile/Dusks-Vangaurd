@@ -17,6 +17,10 @@ public class PlayerCollision : MonoBehaviour
 
     public MenuManager menuManager;
 
+    public delegate void BattleTriggered();
+    public static BattleTriggered OnBattleTriggered;
+
+
     /// <summary>
     /// Save the players position in the main world
     /// Destroy the enemy and its spawner
@@ -33,6 +37,7 @@ public class PlayerCollision : MonoBehaviour
             this.GetComponent<PlayerMovement>().enabled = false;
             beforeBattlePos = new Vector3(transform.position.x, transform.position.y + 1, transform.position.z);
             isBattleInitiated = true;
+            OnBattleTriggered?.Invoke();
             enemyTag = other.gameObject.tag;
             canBattle = false;
 
@@ -42,6 +47,7 @@ public class PlayerCollision : MonoBehaviour
 
         }
     }
+
 
     IEnumerator LoadScene()
     {
@@ -54,8 +60,7 @@ public class PlayerCollision : MonoBehaviour
     {
         if (level == 1 && isBattleInitiated)
         {
-            //menuManager.LoadGameData()
-            //battleTransitionAnimator.SetTrigger("Start");
+            battleTransitionAnimator.SetTrigger("Start");
             StartCoroutine(BattleCooldown());
             this.transform.position = beforeBattlePos;
             isBattleInitiated = false; // Reset the flag after handling the scene load
@@ -64,7 +69,7 @@ public class PlayerCollision : MonoBehaviour
 
     IEnumerator BattleCooldown()
     {
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(1.5f);
         canBattle = true;
     }
 

@@ -73,8 +73,9 @@ public class BattleSystem : MonoBehaviour
         Healed,
         Run,
         Die,
-        End
+        Won
     }
+
 
     // Event for handling battle animations
     public delegate void PlayerActionHandler(BattleActionType actionType, PlayableCharacter player);
@@ -82,6 +83,10 @@ public class BattleSystem : MonoBehaviour
 
     public delegate void EnemyActionHandler(BattleActionType actionType, Unit enemy);
     public static event EnemyActionHandler OnEnemyAction;
+
+    public delegate void BattleStateHandler(BattleState actionType);
+    public static event BattleStateHandler OnBattleState;
+
 
     public delegate int DamageCalculationDelegate(int damageStat, Unit selectedEnemy, Weapon equippedWeapon);
 
@@ -172,7 +177,7 @@ public class BattleSystem : MonoBehaviour
 
         List<string> keys = new List<string>(enemyDictionary.Keys);
 
-        int num = 1;
+        int num = NumOfEnemies();
 
         if (num == 1)
         {
@@ -732,8 +737,8 @@ public class BattleSystem : MonoBehaviour
         playerCollision.battleTransitionAnimator.SetTrigger("End");
         yield return new WaitForSeconds(2f);
         player2Unit.transform.localScale = new Vector3(2, 2, 2);
-        OnPlayerAction(BattleActionType.End, playerUnit);
-        OnPlayerAction(BattleActionType.End, player2Unit);
+        OnPlayerAction(BattleActionType.Won, playerUnit);
+        OnPlayerAction(BattleActionType.Won, player2Unit);
         playerController.enabled = true;
         SceneManager.LoadScene(sceneIndex);
     }
@@ -826,7 +831,7 @@ public class BattleSystem : MonoBehaviour
         {
             levelUpManager.expDone = false;
             levelUpManager.goldDone = false;
-            StartCoroutine(LoadWorld(1));
+            levelUpManager.continueButton.SetActive(true);
         }
     }
 
@@ -904,6 +909,7 @@ public class BattleSystem : MonoBehaviour
         if (state == BattleState.WON)
         {
             dialogueText.text = "You won the battle!";
+            OnBattleState(BattleState.WON);
             GameData.battleCompleted = true;
 
             StartCoroutine(levelUpManager.GainExp(playerUnit, levelUpManager.p1XpSlider, dialogueText));
@@ -921,6 +927,11 @@ public class BattleSystem : MonoBehaviour
             StartCoroutine(LoadWorld(0));
         }
 
+    }
+
+    public void LoadWorldMethod(int sceneIndex)
+    {
+        StartCoroutine(LoadWorld(sceneIndex));
     }
     #endregion
 

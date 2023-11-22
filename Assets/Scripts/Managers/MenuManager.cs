@@ -130,27 +130,26 @@ public class MenuManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        /*Inventory system is outside the scope of my MVP and will be worked on at a later time*/
-        //if (!pauseGame.isPaused)
-        //{
-        //    if (Input.GetKeyDown(KeyCode.Tab) && SceneManager.GetActiveScene().buildIndex != 2)
-        //    {
-        //        UpdateStats();
-        //        OnInvOpened?.Invoke();
+        if (!pauseGame.isPaused)
+        {
+            if (Input.GetKeyDown(KeyCode.Tab) && SceneManager.GetActiveScene().buildIndex != 2)
+            {
+                UpdateStats();
+                OnInvOpened?.Invoke();
 
-        //        statsMenu.SetActive(!statsMenu.activeSelf);
-        //        if (!statsMenu.activeSelf)
-        //        {
-        //            Time.timeScale = 1;
-        //            menuScreenActive = false;
-        //        }
-        //        else
-        //        {
-        //            menuScreenActive = true;
-        //            Time.timeScale = 0;
-        //        }
-        //    }
-        //}
+                statsMenu.SetActive(!statsMenu.activeSelf);
+                if (!statsMenu.activeSelf)
+                {
+                    Time.timeScale = 1;
+                    menuScreenActive = false;
+                }
+                else
+                {
+                    menuScreenActive = true;
+                    Time.timeScale = 0;
+                }
+            }
+        }
     }
 
     public void OnResume()
@@ -246,7 +245,7 @@ public class MenuManager : MonoBehaviour
             LoadPlayer(saveSlotID, player2Info);
         }
 
-        StartCoroutine(BattleTranstion(0f));
+        StartCoroutine(BattleTranstion(2f));
     }
 
     public void LoadGameData(int saveSlotID, bool loadPositionAndRotationOnly = false)

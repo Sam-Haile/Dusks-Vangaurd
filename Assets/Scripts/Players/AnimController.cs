@@ -23,6 +23,17 @@ public class AnimController : MonoBehaviour
     public float num;
     private bool hasBattled = false;
 
+
+    private void OnEnable()
+    {
+        BattleSystem.OnPlayerAction += HandlePlayerAction;
+    }
+
+    private void OnDisable()
+    {
+        BattleSystem.OnPlayerAction -= HandlePlayerAction;
+    }
+
     public float GetNumValue()
     {
         return num;
@@ -32,7 +43,6 @@ public class AnimController : MonoBehaviour
     {
         playerAnimator = player1.GetComponent<Animator>();
         player2Animator = player2.GetComponent<Animator>();
-
     }
 
     private void Start()
@@ -50,21 +60,12 @@ public class AnimController : MonoBehaviour
         else
         {
             SetBool("isMoving", false);
-            //timeIdle += Time.deltaTime;
-
-            //if(timeIdle >= 7)
-            //{
-            //    //playerAnimator.SetTrigger("lookAround");
-            //    timeIdle = 0;
-            //}
         }
 
         if (playerMovement.isSprinting)
             SetBool("isSprinting", true);
         else
             SetBool("isSprinting", false);
-
-
     }
 
     public void SetBool(string tag, bool flag)
@@ -75,7 +76,6 @@ public class AnimController : MonoBehaviour
 
     private void OnLevelWasLoaded(int level)
     {
-
         // If it's a battle, swtich the animation controllers
         if (level == 2)
         {
@@ -101,20 +101,8 @@ public class AnimController : MonoBehaviour
         }
     }
 
-
-    private void OnEnable()
-    {
-        BattleSystem.OnPlayerAction += HandlePlayerAction;
-    }
-
-    private void OnDisable()
-    {
-        BattleSystem.OnPlayerAction -= HandlePlayerAction;
-    }
-
     private void HandlePlayerAction(BattleActionType actionType, PlayableCharacter player)
     {
-
         dmgAnimator = player.damageNumbers.GetComponent<Animator>();
         dmgText = player.damageNumbers.GetComponent<TextMeshPro>();
 
@@ -139,7 +127,6 @@ public class AnimController : MonoBehaviour
                 }
                 else if (player.tag == "Puck")
                     player2Animator.SetTrigger("damaged");
-
                 StartCoroutine(ApplyDamageOrHeal(2, player, Color.red));
                 break;
             case BattleActionType.Healed:
@@ -175,7 +162,7 @@ public class AnimController : MonoBehaviour
                 else if (player.tag == "Puck")
                     player2Animator.SetTrigger("die");
                 break;
-            case BattleActionType.End:
+            case BattleActionType.Won:
                 if(player.tag == "Player")
                     playerAnimator.SetTrigger("battleEnd");
                 else if (player.tag == "Puck")
