@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-
+    public static PlayerMovement instance;
     private CharacterController character;
 
     [HideInInspector] public float walkSpeed = 2f;
@@ -17,15 +17,30 @@ public class PlayerMovement : MonoBehaviour
     public int rotationSpeed;
     [SerializeField]
     public Quaternion targetRotation;
-    
+
     float horizontalMovement;
-    float verticalMovement; 
+    float verticalMovement;
     [SerializeField]
     public Queue<Vector3> breadcrumbs = new Queue<Vector3>();
     private Vector3 destination = Vector3.zero;
     public Vector3 lastBreadcrumbPosition;
 
     public float num;
+    public bool move;
+
+    private void Awake()
+    {
+        // Ensure that there's only one instance
+        if (instance == null)
+            instance = this;
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        DontDestroyOnLoad(gameObject); 
+    }
 
     void Start()
     {
@@ -37,35 +52,38 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        horizontalMovement = Input.GetAxis("Horizontal");
-        verticalMovement = Input.GetAxis("Vertical");
-
-        //Get cameras forward and right vectors
-        Vector3 camFwdVec = Camera.main.transform.forward;
-        camFwdVec.y = 0;
-
-        Vector3 camRghtVec = Camera.main.transform.right;
-        camRghtVec.y = 0;
-
-        //Adjust destination vector based on the camera's forward and right vectors
-        destination = camRghtVec * horizontalMovement + camFwdVec * verticalMovement;
-        destination.Normalize();
-        destination *= moveSpeed;
-
-        if(destination.magnitude > .1f)
+        if (move)
         {
-            Quaternion lookRotation = Quaternion.LookRotation(destination);
-            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * rotationSpeed);
+            horizontalMovement = Input.GetAxis("Horizontal");
+            verticalMovement = Input.GetAxis("Vertical");
+
+            //Get cameras forward and right vectors
+            Vector3 camFwdVec = Camera.main.transform.forward;
+            camFwdVec.y = 0;
+
+            Vector3 camRghtVec = Camera.main.transform.right;
+            camRghtVec.y = 0;
+
+            //Adjust destination vector based on the camera's forward and right vectors
+            destination = camRghtVec * horizontalMovement + camFwdVec * verticalMovement;
+            destination.Normalize();
+            destination *= moveSpeed;
+
+            if (destination.magnitude > .1f)
+            {
+                Quaternion lookRotation = Quaternion.LookRotation(destination);
+                transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * rotationSpeed);
+            }
+
+            destination.y -= gravity * Time.deltaTime; //Apply gravity
+
+            character.Move(destination * Time.deltaTime); //Move character
+
+            Sprint();
+            DropBreadCrumbs();
+            HandleAnimations();
         }
 
-        destination.y -= gravity * Time.deltaTime; //Apply gravity
-
-        character.Move(destination * Time.deltaTime); //Move character
-
-        Sprint();
-        DropBreadCrumbs();
-        HandleAnimations();
-       
     }
 
     private void Sprint()
@@ -74,7 +92,7 @@ public class PlayerMovement : MonoBehaviour
         {
             moveSpeed = walkSpeed * sprintMultiplier;
 
-            if(destination.x != 0 && destination.z != 0)
+            if (destination.x != 0 && destination.z != 0)
                 isSprinting = true;
         }
         else

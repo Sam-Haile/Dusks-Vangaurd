@@ -37,12 +37,12 @@ public class MonsterAnimController : MonoBehaviour
 
     private void OnEnable()
     {
-        BattleSystem.OnEnemyAction += HandleEnemyAction;
+        BattleSystem.OnBattleAction += HandleEnemyAction;
     }
 
     private void OnDisable()
     {
-        BattleSystem.OnEnemyAction -= HandleEnemyAction;
+        BattleSystem.OnBattleAction -= HandleEnemyAction;
     }
 
     private void HandleEnemyAction(BattleActionType actionType, Unit enemy)

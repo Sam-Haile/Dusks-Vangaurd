@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class NPCAI : MonoBehaviour
 {
-    private DialogueTrigger dialogueTrigger;
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float rotationSpeed = 5f;
 
@@ -24,8 +23,7 @@ public class NPCAI : MonoBehaviour
 
     private void Start()
     {
-        player = FindObjectOfType<Player>().transform;
-        dialogueTrigger = GetComponent<DialogueTrigger>();
+        player = Player.instance.transform;
     }
 
     private void Update()
@@ -33,7 +31,7 @@ public class NPCAI : MonoBehaviour
         UpdateDirectionToPlayer();
 
         // Only start the Walk coroutine if it's not already running and if canWalk is true
-        if (DetectPlayer() || dialogueTrigger.isTalking)
+        if (DetectPlayer())
         {
             canWalk = false;
             if (walkCoroutine != null)
@@ -42,11 +40,11 @@ public class NPCAI : MonoBehaviour
                 walkCoroutine = null;
             }
         }
-        else if (!DetectPlayer() && !dialogueTrigger.isTalking && canWalk && walkCoroutine == null)
+        else if (!DetectPlayer() && canWalk && walkCoroutine == null)
         {
             walkCoroutine = StartCoroutine(Walk());
         }
-        else if(!DetectPlayer() && !dialogueTrigger.isTalking)
+        else if(!DetectPlayer())
         {
             canWalk = true;
         }
@@ -90,29 +88,6 @@ public class NPCAI : MonoBehaviour
     private void UpdateDirectionToPlayer()
     {
         directionToPlayer = (player.position - transform.position).normalized;
-    }
-
-    /// <summary>
-    /// NPC's who can be spoken to will stop moving
-    /// </summary>
-    /// <returns></returns>
-    IEnumerator Talk()
-    {
-        while (DialogueManager.instance.isActive)
-        {
-            // Calculate the direction and velocity
-            Vector3 direction = player.position - transform.position;
-            //direction.Normalize();
-
-            // Move and face towards the player
-            if (direction != Vector3.zero)
-            {
-                Vector3 lookDirection = new Vector3(direction.x, 0, direction.z);
-                Quaternion toRotation = Quaternion.LookRotation(lookDirection, Vector3.up);
-                transform.rotation = Quaternion.Lerp(transform.rotation, toRotation, moveSpeed * Time.deltaTime);
-            }
-            yield return null;
-        }
     }
 
     /// <summary>

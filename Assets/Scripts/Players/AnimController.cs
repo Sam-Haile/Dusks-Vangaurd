@@ -26,12 +26,12 @@ public class AnimController : MonoBehaviour
 
     private void OnEnable()
     {
-        BattleSystem.OnPlayerAction += HandlePlayerAction;
+        OnBattleAction += HandlePlayerAction;
     }
 
     private void OnDisable()
     {
-        BattleSystem.OnPlayerAction -= HandlePlayerAction;
+        OnBattleAction -= HandlePlayerAction;
     }
 
     public float GetNumValue()
@@ -66,6 +66,7 @@ public class AnimController : MonoBehaviour
             SetBool("isSprinting", true);
         else
             SetBool("isSprinting", false);
+
     }
 
     public void SetBool(string tag, bool flag)
@@ -101,7 +102,7 @@ public class AnimController : MonoBehaviour
         }
     }
 
-    private void HandlePlayerAction(BattleActionType actionType, PlayableCharacter player)
+    private void HandlePlayerAction(BattleActionType actionType, Unit player)
     {
         dmgAnimator = player.damageNumbers.GetComponent<Animator>();
         dmgText = player.damageNumbers.GetComponent<TextMeshPro>();
@@ -185,7 +186,7 @@ public class AnimController : MonoBehaviour
     /// <param name="waitTime"></param>
     /// <param name="player"></param>
     /// <returns></returns>
-    IEnumerator ApplyDamageOrHeal(float waitTime, PlayableCharacter player, Color textColor)
+    IEnumerator ApplyDamageOrHeal(float waitTime, Unit player, Color textColor)
     {
         dmgText.color = textColor;
         player.damageNumbers.SetActive(true);

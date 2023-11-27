@@ -6,7 +6,6 @@ public class Follow : MonoBehaviour
 {
     public Transform targetPos;
     private float maxDistance = .5f;
-    public PlayerMovement playerMovement;
     private Vector3 direction;
     private Vector3 movement;
     private Quaternion rotation;
@@ -42,7 +41,7 @@ public class Follow : MonoBehaviour
         if (follow)
         {
             direction = (targetPos.position - this.transform.position).normalized;
-            movement = direction * playerMovement.moveSpeed * Time.deltaTime;
+            movement = direction * PlayerMovement.instance.moveSpeed * Time.deltaTime;
 
             direction.y = 0;
 

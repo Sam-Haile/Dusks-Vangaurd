@@ -5,7 +5,6 @@ using UnityEngine;
 public class PlayerAudio : MonoBehaviour
 {
 
-    PlayerMovement playerMovement;
     [SerializeField] private AudioSource _audioSource, _effectsSource;
 
     public List<AudioClip> audioClips;
@@ -13,7 +12,6 @@ public class PlayerAudio : MonoBehaviour
 
     private void Start()
     {
-        playerMovement = GetComponent<PlayerMovement>();
         _audioSource = GetComponent<AudioSource>();
 
         foreach (var clip in audioClips)

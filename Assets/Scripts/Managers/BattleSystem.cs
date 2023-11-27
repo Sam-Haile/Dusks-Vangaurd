@@ -1,13 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+// Used for the general state of the battle
 public enum BattleState { START, PLAYERTURN, SECONDPLAYERTURN, ENEMYTURN, WON, LOST, FLEE }
+
+// Used for specific enemy and player actions
+public enum BattleActionType{ Start, Attack, Gaurd, StopGaurding, Arcane, Damaged, Healed, Run, Die, Won }
 
 public class BattleSystem : MonoBehaviour
 {
@@ -26,14 +28,12 @@ public class BattleSystem : MonoBehaviour
     public Transform[] enemyBattleStations;
     public GameObject[] enemyPrefabList;
     [HideInInspector] public List<Unit> activeEnemies;
-    //public List<BattleHUD> enemyHUD;
     private float shrinkDuration = 1f;
     Unit enemyUnit;
 
     // Player1 Instantiation fields
     public Transform playerBattleStation;
     private PlayableCharacter playerUnit;
-    private CharacterController playerController;
     private PlayerCollision playerCollision;
     private PlayerMovement playerMovement;
     private int initialDefenseP1;
@@ -42,8 +42,8 @@ public class BattleSystem : MonoBehaviour
 
     // Player2 Instantiation fields
     public Transform player2BattleStation;
-    PlayableCharacter player2Unit;
-    Follow player2FollowScript;
+    private PlayableCharacter player2Unit;
+    private Follow player2FollowScript;
     private int initialDefenseP2;
     private bool isPlayer2Dead;
 
@@ -62,31 +62,14 @@ public class BattleSystem : MonoBehaviour
 
     public int LastDamage { get; private set; }
 
-    public enum BattleActionType
-    {
-        Start,
-        Attack,
-        Gaurd,
-        StopGaurding,
-        Arcane,
-        Damaged,
-        Healed,
-        Run,
-        Die,
-        Won
-    }
 
+    // Event for handling player and enemy animations
+    public delegate void BattleActionHandler(BattleActionType actionType, Unit unit);
+    public static event BattleActionHandler OnBattleAction;
 
-    // Event for handling battle animations
-    public delegate void PlayerActionHandler(BattleActionType actionType, PlayableCharacter player);
-    public static event PlayerActionHandler OnPlayerAction;
-
-    public delegate void EnemyActionHandler(BattleActionType actionType, Unit enemy);
-    public static event EnemyActionHandler OnEnemyAction;
-
+    // Event for handling general battle audio/animation
     public delegate void BattleStateHandler(BattleState actionType);
     public static event BattleStateHandler OnBattleState;
-
 
     public delegate int DamageCalculationDelegate(int damageStat, Unit selectedEnemy, Weapon equippedWeapon);
 
@@ -96,24 +79,20 @@ public class BattleSystem : MonoBehaviour
 
     private void Awake()
     {
-        playerPos = FindObjectOfType<Player>().transform;
+        playerPos = Player.instance.transform;
         playerPos.position = playerBattleStation.position;
 
         playerUnit = playerPos.GetComponent<PlayableCharacter>();
-        playerMovement = playerPos.GetComponent<PlayerMovement>();
-        playerController = playerPos.GetComponent<CharacterController>();
-        playerCollision = playerPos.GetComponent<PlayerCollision>();
+        playerMovement = PlayerMovement.instance;
+        playerCollision = PlayerCollision.instance;
 
         player2Unit = Puck.instance;
         player2FollowScript = player2Unit.GetComponent<Follow>();
 
         foreach (GameObject enemy in enemyPrefabList)
-        {
             enemyDictionary.Add(enemy.tag, enemy);
-        }
 
         levelUpManager = GetComponent<LevelUpManager>();
-        
     }
 
     void Start()
@@ -152,7 +131,6 @@ public class BattleSystem : MonoBehaviour
     /// </summary>
     private void SetupPlayers()
     {
-        playerController.enabled = false;
         playerMovement.isMoving = false;
         playerMovement.enabled = false;
         playerPos.rotation = Quaternion.Euler(0, 0, 0);
@@ -195,12 +173,12 @@ public class BattleSystem : MonoBehaviour
             InstantiateEnemies(enemyDictionary[keys[Random.Range(0, keys.Count)]], 0);
         }
 
-        OnPlayerAction(BattleActionType.Start, playerUnit); //Start battle animations
+        OnBattleAction(BattleActionType.Start, playerUnit); //Start battle animations
 
         // foreach enemy, play the start animation
         foreach (Unit enemy in activeEnemies)
         {
-            OnEnemyAction(BattleActionType.Start, enemy);
+            OnBattleAction(BattleActionType.Start, enemy);
         }
 
         if (num == 1)
@@ -442,7 +420,7 @@ public class BattleSystem : MonoBehaviour
         LastDamage = damage;
         isDead = selectedUnit.TakeDamage(damage);
         StartCoroutine(RotatePlayer(player, selectedEnemy));
-        OnEnemyAction(BattleActionType.Damaged, selectedEnemy);
+        OnBattleAction(BattleActionType.Damaged, selectedEnemy);
 
 
         dialogueText.text = selectedEnemy.unitName + " takes " + damage + " damage.";
@@ -452,7 +430,7 @@ public class BattleSystem : MonoBehaviour
         // If an enemy dies
         if (isDead)
         {
-            OnEnemyAction(BattleActionType.Die, selectedEnemy);
+            OnBattleAction(BattleActionType.Die, selectedEnemy);
             dialogueText.text = selectedEnemy.unitName + " has been defeated!";
 
             // Gain xp/gold 
@@ -513,7 +491,7 @@ public class BattleSystem : MonoBehaviour
         switch (state)
         {
             case BattleState.PLAYERTURN:
-                OnPlayerAction(BattleActionType.Gaurd, playerUnit);
+                OnBattleAction(BattleActionType.Gaurd, playerUnit);
                 playerUnit.baseDefense *= 2;
                 SetButtonsActive(false);
                 dialogueText.text = "Guts brace himself";
@@ -530,7 +508,7 @@ public class BattleSystem : MonoBehaviour
                 }
                 break;
             case BattleState.SECONDPLAYERTURN:
-                OnPlayerAction(BattleActionType.Gaurd, player2Unit);
+                OnBattleAction(BattleActionType.Gaurd, player2Unit);
                 player2Unit.baseDefense *= 2;
                 SetButtonsActive(false);
                 dialogueText.text = "Puck braces himself";
@@ -558,12 +536,12 @@ public class BattleSystem : MonoBehaviour
             case BattleState.PLAYERTURN:
                 StartCoroutine(PlayerAction(playerUnit, selectedUnit, damageStat, DetermineDamage));
                 SetHighlightable(false);
-                OnPlayerAction(BattleActionType.Attack, playerUnit);
+                OnBattleAction(BattleActionType.Attack, playerUnit);
                 break;
             case BattleState.SECONDPLAYERTURN:
                 StartCoroutine(PlayerAction(player2Unit, selectedUnit, damageStat, DetermineDamage));
                 SetHighlightable(false);
-                OnPlayerAction(BattleActionType.Attack, player2Unit);
+                OnBattleAction(BattleActionType.Attack, player2Unit);
                 break;
             default:
                 break;
@@ -588,11 +566,11 @@ public class BattleSystem : MonoBehaviour
             {
                 case BattleState.PLAYERTURN:
                     StartCoroutine(PlayerAction(playerUnit, selectedUnit, damageStat, DetermineDamageArcane));
-                    OnPlayerAction(BattleActionType.Arcane, playerUnit);
+                    OnBattleAction(BattleActionType.Arcane, playerUnit);
                     break;
                 case BattleState.SECONDPLAYERTURN:
                     StartCoroutine(PlayerAction(player2Unit, selectedUnit, damageStat, DetermineDamageArcane));
-                    OnPlayerAction(BattleActionType.Arcane, player2Unit);
+                    OnBattleAction(BattleActionType.Arcane, player2Unit);
                     break;
                 default:
                     break;
@@ -613,7 +591,7 @@ public class BattleSystem : MonoBehaviour
             case BattleState.PLAYERTURN:
                 LastDamage = healingAmnt;
                 Debug.Log("Healiong for " + healingAmnt);
-                OnPlayerAction(BattleActionType.Healed, playerUnit);
+                OnBattleAction(BattleActionType.Healed, playerUnit);
                 battleHUD.SetMP(playerUnit);
                 dialogueText.text = "You feel renewed strength!";
                 yield return new WaitForSeconds(2f);
@@ -623,7 +601,7 @@ public class BattleSystem : MonoBehaviour
             case BattleState.SECONDPLAYERTURN:
                 LastDamage = healingAmnt;
                 Debug.Log("Healiong for " + healingAmnt);
-                OnPlayerAction(BattleActionType.Healed, playerUnit);
+                OnBattleAction(BattleActionType.Healed, playerUnit);
                 battleHUD.SetMP(player2Unit);
                 state = BattleState.ENEMYTURN;
                 StartCoroutine(EnemyTurn());
@@ -680,7 +658,7 @@ public class BattleSystem : MonoBehaviour
             else
                 dmg = DetermineDamageArcane(enemy.baseArcane, target, null);
 
-            OnEnemyAction(BattleActionType.Attack, enemy);
+            OnBattleAction(BattleActionType.Attack, enemy);
 
             if (target == playerUnit)
                 DealDamage(playerUnit, dmg); // Apply damage to P1          
@@ -699,8 +677,8 @@ public class BattleSystem : MonoBehaviour
 
         // Reset defense after gaurding is complete
         ResetStats();
-        OnPlayerAction(BattleActionType.StopGaurding, playerUnit);
-        OnPlayerAction(BattleActionType.StopGaurding, player2Unit);
+        OnBattleAction(BattleActionType.StopGaurding, playerUnit);
+        OnBattleAction(BattleActionType.StopGaurding, player2Unit);
 
         if (!isPlayerDead)
             state = BattleState.PLAYERTURN;
@@ -713,14 +691,14 @@ public class BattleSystem : MonoBehaviour
     {
         LastDamage = damage;
         isPlayerDead = player.TakeDamage(damage);
-        OnPlayerAction(BattleActionType.Damaged, player);
+        OnBattleAction(BattleActionType.Damaged, player);
         battleHUD.SetHP(player);
         dialogueText.text = player.unitName + " takes " + damage + " damage!";
 
         // if the hit kills the player, play the death animation
         if (player.currentHP <= 0)
         {
-            OnPlayerAction(BattleActionType.Die, player);
+            OnBattleAction(BattleActionType.Die, player);
         }
     }
     #endregion
@@ -737,9 +715,8 @@ public class BattleSystem : MonoBehaviour
         playerCollision.battleTransitionAnimator.SetTrigger("End");
         yield return new WaitForSeconds(2f);
         player2Unit.transform.localScale = new Vector3(2, 2, 2);
-        OnPlayerAction(BattleActionType.Won, playerUnit);
-        OnPlayerAction(BattleActionType.Won, player2Unit);
-        playerController.enabled = true;
+        OnBattleAction(BattleActionType.Won, playerUnit);
+        OnBattleAction(BattleActionType.Won, player2Unit);
         SceneManager.LoadScene(sceneIndex);
     }
 
@@ -824,14 +801,6 @@ public class BattleSystem : MonoBehaviour
                 }
                 highlight = null;
             }
-        }
-
-
-        if (levelUpManager.expDone && levelUpManager.goldDone)
-        {
-            levelUpManager.expDone = false;
-            levelUpManager.goldDone = false;
-            levelUpManager.continueButton.SetActive(true);
         }
     }
 

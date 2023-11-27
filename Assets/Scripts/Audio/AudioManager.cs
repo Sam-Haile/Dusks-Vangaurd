@@ -17,7 +17,7 @@ public class AudioManager : MonoBehaviour
     {
         PlayerCollision.OnBattleTriggered += PlayBattleMusic;
         OnBattleState += SetBattleMusic;
-        OnEnemyAction += HandleEnemyAction;
+        OnBattleAction += HandleEnemyAction;
 
     }
 
@@ -25,7 +25,7 @@ public class AudioManager : MonoBehaviour
     {
         PlayerCollision.OnBattleTriggered -= PlayBattleMusic;
         OnBattleState -= SetBattleMusic;
-        OnEnemyAction -= HandleEnemyAction;
+        OnBattleAction -= HandleEnemyAction;
     }
 
     void Awake()
@@ -82,8 +82,6 @@ public class AudioManager : MonoBehaviour
             _audioSource.PlayOneShot(clip);
         }
     }
-
-
 
     private void SetBattleMusic(BattleState actionType)
     {

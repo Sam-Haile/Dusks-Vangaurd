@@ -7,6 +7,8 @@ using UnityEngine.UI;
 
 public class LevelUpManager : MonoBehaviour
 {
+    public static LevelUpManager instance;
+
     //EXP Screen Fields
     [HideInInspector] public int totalExp;
     public Slider p1XpSlider;
@@ -21,10 +23,20 @@ public class LevelUpManager : MonoBehaviour
 
     public bool expDone = false;
     public bool goldDone = false;
-    public void LevelUp()
+    private void Awake()
     {
-        //Do level up stuff here
-        Debug.Log("LEVEL UP TIME");
+        // Ensure that there's only one instance
+        if (instance == null)
+        {
+            instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        DontDestroyOnLoad(gameObject); 
     }
 
     private void Update()
@@ -35,6 +47,12 @@ public class LevelUpManager : MonoBehaviour
             goldDone = false;
             continueButton.SetActive(true);
         }
+    }
+
+    public void LevelUp()
+    {
+        //Do level up stuff here
+        Debug.Log("LEVEL UP TIME");
     }
 
     public int ExpToGain(Unit enemiesXP)

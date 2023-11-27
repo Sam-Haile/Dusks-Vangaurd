@@ -20,15 +20,15 @@ public class ParticleManager : MonoBehaviour
 
     private void OnEnable()
     {
-        BattleSystem.OnPlayerAction += HandleParticles;
+        BattleSystem.OnBattleAction += HandleParticles;
     }
 
     private void OnDisable()
     {
-        BattleSystem.OnPlayerAction -= HandleParticles;
+        BattleSystem.OnBattleAction -= HandleParticles;
     }
 
-    private void HandleParticles(BattleActionType actionType, PlayableCharacter player)
+    private void HandleParticles(BattleActionType actionType, Unit player)
     {
         switch (actionType)
         {

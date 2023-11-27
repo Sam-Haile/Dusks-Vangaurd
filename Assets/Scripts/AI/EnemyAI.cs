@@ -36,7 +36,7 @@ public class EnemyAI : MonoBehaviour
     private void Awake()
     {
         // Find the player in the scene
-        player = FindObjectOfType<PlayerCollision>().transform;
+        player = PlayerCollision.instance.transform;
     }
 
     private void Start()
