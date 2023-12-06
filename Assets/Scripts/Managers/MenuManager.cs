@@ -9,21 +9,14 @@ using UnityEngine.UI;
 public class MenuManager : MonoBehaviour
 {
     public GameObject statsMenu;
-    public GameObject player1;
-    public GameObject player2;
 
-    private PlayableCharacter playerInfo;
-    private PlayableCharacter player2Info;
+
     public static event Action OnInvOpened;
+    public PlayableCharacter[] players = new PlayableCharacter[4];
+    public HudInfo[] hudInfos = new HudInfo[4]; // Max 4 players in a battle
 
-    public List<TextMeshProUGUI> player1Stats;
-    public List<TextMeshProUGUI> player2Stats;
-    public Image player1Weapon;
-    public Image player2Weapon;
-    public Image player1Armor;
-    public Image player2Armor;
     private PauseGame pauseGame;
-    public bool menuScreenActive;
+    [HideInInspector] public bool menuScreenActive;
     public Inventory invManager;
 
     public GameObject uiCanvas;
@@ -34,120 +27,56 @@ public class MenuManager : MonoBehaviour
 
     private int selectedSaveOrLoadFile = -1;
     public GameObject confirmationUI;
-
-
     public GameObject[] saveSlots;
     public LocationNameUpdater location;
 
     public Animator battleTransition;
-    private void Awake()
-    {
-        player1 = FindObjectOfType<PlayerMovement>().gameObject;
-        player2 = FindObjectOfType<Follow>().gameObject;
-    }
 
     private void Start()
     {
         pauseGame = gameObject.GetComponent<PauseGame>();
-        playerInfo = player1.GetComponent<Player>();
-        player2Info = player2.GetComponent<Puck>();
+
+        for (int i = 0; i < players.Length; i++)
+            PartyManager.instance.AddPlayerToList(players[i]);
     }
 
     private void OnEnable()
     {
-        statsMenu.SetActive(false);
-        playerInfo = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayableCharacter>();
-        player2Info = GameObject.FindGameObjectWithTag("Puck").GetComponent<PlayableCharacter>();
-        playerInfo.OnStatsChanged += UpdateStats;
-        player2Info.OnStatsChanged += UpdateStats;
+        foreach(PlayableCharacter player in players)
+            player.OnStatsChanged += UpdateStats;
+
         invManager.OnItemEquipped += UpdateStats;
-        UpdateStats();
     }
 
     public void UpdateStats()
     {
-        player1Stats[0].text = playerInfo.unitName.ToString();
-        player1Stats[1].text = "Lvl. " + playerInfo.unitLevel.ToString();
-        player1Stats[2].text = "EXP: " + playerInfo.experience.ToString();
-        player1Stats[3].text = "HP: " + playerInfo.currentHP.ToString() + "/" + playerInfo.maxHP.ToString();
-
-
-        player1Stats[4].text = "Atk: " + playerInfo.baseAttack.ToString() + (playerInfo.equippedWeapon != null ?
-                      " + (" + playerInfo.equippedWeapon.attack + ")" : " + (0)");
-        player1Stats[5].text = "Arc: " + playerInfo.baseArcane.ToString();
-        player1Stats[6].text = "Def: " + playerInfo.baseDefense.ToString() + (playerInfo.equippedArmor != null ?
-                       " + (" + playerInfo.equippedArmor.defense + ")" : " + (0)");
-        player1Stats[7].text = "Spc Def: " + playerInfo.specialDefense.ToString();
-        player1Stats[8].text = playerInfo.gold.ToString();
-        if (playerInfo.equippedWeapon != null)
+        for (int i = 0; i < hudInfos.Length; i++)
         {
-            player1Stats[9].text = "Weapon: " + playerInfo.equippedWeapon.itemName;
-            player1Weapon.sprite = playerInfo.equippedWeapon.itemIcon;
+            if (i < players.Length)
+               hudInfos[i].UpdateInventory(players[i]);
+            else
+               hudInfos[i].gameObject.SetActive(false);
         }
-        else
-            player1Stats[9].text = "Weapon: N/A";
-
-        if (playerInfo.equippedArmor != null)
-        {
-            player1Stats[10].text = "Armor: " + playerInfo.equippedArmor.itemName;
-            player1Armor.sprite = playerInfo.equippedArmor.itemIcon;
-        }
-        else
-            player1Stats[10].text = "Armor: N/A";
-
-
-        player2Stats[0].text = player2Info.unitName.ToString();
-        player2Stats[1].text = "Lvl. " + player2Info.unitLevel.ToString();
-        player2Stats[2].text = "EXP: " + player2Info.experience.ToString();
-        player2Stats[3].text = "HP: " + player2Info.currentHP.ToString() + "/" + player2Info.maxHP.ToString();
-        player2Stats[4].text = "Atk: " + player2Info.baseAttack.ToString() + (player2Info.equippedWeapon != null ?
-                      " + (" + player2Info.equippedWeapon.attack + ")" : " + (0)");
-        player2Stats[5].text = "Arc: " + player2Info.baseArcane.ToString();
-        player2Stats[6].text = "Def: " + player2Info.baseDefense.ToString() + (player2Info.equippedArmor != null ?
-                       " + (" + player2Info.equippedArmor.defense + ")" : " + (0)");
-        player2Stats[7].text = "Spc Def: " + player2Info.specialDefense.ToString();
-        if (player2Info.equippedWeapon != null)
-        {
-            player2Stats[8].text = "Weapon: " + player2Info.equippedWeapon.itemName;
-            player2Weapon.sprite = player2Info.equippedWeapon.itemIcon;
-
-        }
-        else
-        {
-            player2Stats[8].text = "Weapon: N/A";
-        }
-
-        if (player2Info.equippedArmor != null)
-        {
-            player2Stats[9].text = "Armor: " + player2Info.equippedArmor.itemName;
-            player2Armor.sprite = player2Info.equippedArmor.itemIcon;
-        }
-        else
-            player2Stats[9].text = "Armor: N/A";
     }
-
 
     // Update is called once per frame
     void Update()
     {
-        if (!pauseGame.isPaused)
+        if (Input.GetKeyDown(KeyCode.Tab))
         {
-            if (Input.GetKeyDown(KeyCode.Tab) && SceneManager.GetActiveScene().buildIndex != 2)
-            {
-                UpdateStats();
-                OnInvOpened?.Invoke();
+            UpdateStats();
+            OnInvOpened?.Invoke();
 
-                statsMenu.SetActive(!statsMenu.activeSelf);
-                if (!statsMenu.activeSelf)
-                {
-                    Time.timeScale = 1;
-                    menuScreenActive = false;
-                }
-                else
-                {
-                    menuScreenActive = true;
-                    Time.timeScale = 0;
-                }
+            statsMenu.SetActive(!statsMenu.activeSelf);
+            if (!statsMenu.activeSelf)
+            {
+                Time.timeScale = 1;
+                menuScreenActive = false;
+            }
+            else
+            {
+                menuScreenActive = true;
+                Time.timeScale = 0;
             }
         }
     }
@@ -172,7 +101,7 @@ public class MenuManager : MonoBehaviour
 
             SaveSlot saveSlot = saveSlots[index].GetComponent<SaveSlot>();
             if (saveSlot != null)
-                saveSlot.UpdateSaveSlot(location.locationNameText, playerInfo.isActive, player2Info.isActive, playerInfo.gold);
+                saveSlot.UpdateSaveSlot(location.locationNameText, players[0].isActive, players[1].isActive, players[0].gold);
 
             OnSave(selectedSaveOrLoadFile);
             Debug.Log("Saved to file #" + selectedSaveOrLoadFile);
@@ -197,8 +126,10 @@ public class MenuManager : MonoBehaviour
         {
             OnLoad(selectedSaveOrLoadFile);
             Debug.Log("Load to file #" + selectedSaveOrLoadFile);
-            battleHud.UpdateAllStats(playerInfo);
-            battleHud.UpdateAllStats(player2Info);
+            foreach (PlayableCharacter player in players)
+            {
+                battleHud.UpdateAllStats(player);
+            }
             selectedSaveOrLoadFile = -1;
         }
         else
@@ -211,8 +142,10 @@ public class MenuManager : MonoBehaviour
     {
         if (SceneManager.GetActiveScene().buildIndex == 1)
         {
-            SaveSystem.SavePlayer(saveSlotID, playerInfo);
-            SaveSystem.SavePlayer(saveSlotID, player2Info);
+            foreach (PlayableCharacter player in players)
+            {
+                SaveSystem.SavePlayer(saveSlotID, player);
+            }
 
             foreach (var enemy in GameData.enemies)
             {
@@ -232,17 +165,28 @@ public class MenuManager : MonoBehaviour
         battleTransition.SetTrigger("End");
         if (SceneManager.GetActiveScene().buildIndex == 1)
         {
-            LoadPlayer(saveSlotID, playerInfo);
-            LoadPlayer(saveSlotID, player2Info);
+            foreach(PlayableCharacter player in players)
+            {
+                LoadPlayer(saveSlotID, player);
+            }
+
             LoadGameData(saveSlotID);
             Time.timeScale = 1;
         }
         if (SceneManager.GetActiveScene().buildIndex == 2)
         {
             SceneManager.LoadScene(1);
-            player2Info.gameObject.transform.localScale = new Vector3(2, 2, 2);
-            LoadPlayer(saveSlotID, playerInfo);
-            LoadPlayer(saveSlotID, player2Info);
+
+            foreach (PlayableCharacter player in players)
+            {
+                LoadPlayer(saveSlotID, player);
+
+                if(player.tag == "Puck")
+                {
+                    player.gameObject.transform.localScale = new Vector3(2, 2, 2);
+                }
+            }
+
         }
 
         StartCoroutine(BattleTranstion(2f));
@@ -334,17 +278,18 @@ public class MenuManager : MonoBehaviour
 
     public void OnLevelWasLoaded(int level)
     {
-        Vector3 beforeBattlePos = player1.GetComponent<PlayerCollision>().beforeBattlePos;
+        Vector3 beforeBattlePos = players[0].GetComponent<PlayerCollision>().beforeBattlePos;
 
         if (level == 1)
         {
-            player1.transform.position = beforeBattlePos;
-            player2.transform.position = beforeBattlePos;
+            foreach (PlayableCharacter player in players)
+            {
+                player.transform.position = beforeBattlePos;
+            }
 
-            player1.GetComponent<PlayerMovement>().enabled = true;
-            player2.GetComponent<Follow>().enabled = true;
+            players[0].GetComponent<PlayerMovement>().enabled = true;
+            players[1].GetComponent<Follow>().enabled = true;
             uiCanvas.SetActive(true);
-
 
             battleHud.SetHUD();
         }
@@ -389,6 +334,9 @@ public class MenuManager : MonoBehaviour
 
     private void OnDisable()
     {
-        playerInfo.OnStatsChanged -= UpdateStats;
+        foreach (PlayableCharacter player in players)
+        {
+            player.OnStatsChanged -= UpdateStats;
+        }
     }
 }

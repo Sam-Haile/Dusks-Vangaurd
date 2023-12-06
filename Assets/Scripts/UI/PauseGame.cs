@@ -10,6 +10,7 @@ public class PauseGame : MonoBehaviour
     public GameObject pausePanel;
     public GameObject saveLoadMenu;
     public GameObject pointer;
+    public GameObject inventoryMenu;
 
     public GameObject settingsMenu;
     public GameObject[] pauseOptions;
@@ -25,6 +26,7 @@ public class PauseGame : MonoBehaviour
     public bool isPaused;
 
     private MenuManager menuManager;
+
     private void Start()
     {
         menuManager = GetComponent<MenuManager>();
@@ -34,6 +36,7 @@ public class PauseGame : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
+            Cursor.lockState = CursorLockMode.None;
             pauseMenu.SetActive(!pauseMenu.activeSelf);
 
             if (!pauseMenu.activeSelf)
@@ -48,7 +51,6 @@ public class PauseGame : MonoBehaviour
             else
             {
                 isPaused = true;
-
                 //reset the pause menu if left on the settings
                 pointer.SetActive(false);
                 settingsMenu.SetActive(false);
@@ -61,6 +63,7 @@ public class PauseGame : MonoBehaviour
                 Time.timeScale = 0;
             }
         }
+
     }
 
 
@@ -68,12 +71,7 @@ public class PauseGame : MonoBehaviour
     {
         pauseMenu?.SetActive(false);
         Time.timeScale = 1;
-    }
-
-    // Use this to save game and quit out of application
-    public void OnApplicationQuit()
-    {
-
+        Cursor.lockState = CursorLockMode.None;
     }
 
     public void OnMenu()

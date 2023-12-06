@@ -11,8 +11,8 @@ public class LevelUpManager : MonoBehaviour
 
     //EXP Screen Fields
     [HideInInspector] public int totalExp;
-    public Slider p1XpSlider;
-    public Slider p2XpSlider;
+    public Slider[] xpSliders = new Slider[4]; // Max 4 players in a battle
+
     public GameObject levelScreen;
     public TextMeshProUGUI goldFromBattle;
     public TextMeshProUGUI currentGold;
@@ -92,7 +92,7 @@ public class LevelUpManager : MonoBehaviour
     /// Apply the XP to players after a battle ends in victory
     /// </summary>
     /// <returns></returns>
-    public IEnumerator GainExp(PlayableCharacter player, Slider xpSlider, Text dialogueText)
+    public IEnumerator GainExp(PlayableCharacter player, Slider xpSlider)
     {
         //expFromBattle.text = totalExp.ToString();
         float startValue = (float)player.experience / (float)player.expToNextLevel;
@@ -135,7 +135,7 @@ public class LevelUpManager : MonoBehaviour
 
         // Ensure the slider value reaches the exact target value in case of rounding errors
         SetXP(targetValue, xpSlider);
-        player.AddExperience(totalExp, dialogueText.text);
+        player.AddExperience(totalExp);
 
         expDone = true;
 

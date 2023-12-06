@@ -1,12 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
 // Used for the general state of the battle
-public enum BattleState { START, PLAYERTURN, SECONDPLAYERTURN, ENEMYTURN, WON, LOST, FLEE }
+public enum BattleState { START, PLAYERTURN, ENEMYTURN, WON, LOST, FLEE }
 
 // Used for specific enemy and player actions
 public enum BattleActionType{ Start, Attack, Gaurd, StopGaurding, Arcane, Damaged, Healed, Run, Die, Won }
@@ -23,6 +25,7 @@ public class BattleSystem : MonoBehaviour
     private bool canSelect;
 
     // Enemy Instantiation fields
+    PartyManager partyManager = PartyManager.instance;
     public Dictionary<string, GameObject> enemyDictionary = new Dictionary<string, GameObject>();
     string enemyTag = PlayerCollision.enemyTag;
     public Transform[] enemyBattleStations;
@@ -32,20 +35,16 @@ public class BattleSystem : MonoBehaviour
     Unit enemyUnit;
 
     // Player1 Instantiation fields
-    public Transform playerBattleStation;
-    private PlayableCharacter playerUnit;
+    public Transform[] playerBattleStations;
+    private int[] baseDefenses;
+    private int currentPlayerIndex;
     private PlayerCollision playerCollision;
     private PlayerMovement playerMovement;
-    private int initialDefenseP1;
-    private bool isPlayerDead;
     private Transform playerPos;
 
     // Player2 Instantiation fields
-    public Transform player2BattleStation;
-    private PlayableCharacter player2Unit;
     private Follow player2FollowScript;
-    private int initialDefenseP2;
-    private bool isPlayer2Dead;
+
 
     public Text dialogueText;
     public List<Button> buttons;
@@ -79,15 +78,11 @@ public class BattleSystem : MonoBehaviour
 
     private void Awake()
     {
-        playerPos = Player.instance.transform;
-        playerPos.position = playerBattleStation.position;
+        Cursor.lockState = CursorLockMode.None;
 
-        playerUnit = playerPos.GetComponent<PlayableCharacter>();
+        //playerPos = Player.instance.transform;
         playerMovement = PlayerMovement.instance;
         playerCollision = PlayerCollision.instance;
-
-        player2Unit = Puck.instance;
-        player2FollowScript = player2Unit.GetComponent<Follow>();
 
         foreach (GameObject enemy in enemyPrefabList)
             enemyDictionary.Add(enemy.tag, enemy);
@@ -97,6 +92,7 @@ public class BattleSystem : MonoBehaviour
 
     void Start()
     {
+        currentPlayerIndex = 0; // Start with the first player
         state = BattleState.START;
         playerCollision.battleTransitionAnimator.SetTrigger("Start");
         StartCoroutine(SetupBattle());
@@ -131,20 +127,56 @@ public class BattleSystem : MonoBehaviour
     /// </summary>
     private void SetupPlayers()
     {
-        playerMovement.isMoving = false;
-        playerMovement.enabled = false;
-        playerPos.rotation = Quaternion.Euler(0, 0, 0);
-        initialDefenseP1 = playerUnit.baseDefense;
 
-        player2FollowScript.fairyDust.enabled = false;
-        player2FollowScript.enabled = false;
-        player2Unit.gameObject.transform.position = player2BattleStation.transform.position;
-        player2Unit.transform.rotation = Quaternion.Euler(0, 0, 0);
-        player2Unit.transform.localScale = new Vector3(5, 5, 5);
-        initialDefenseP2 = player2Unit.baseDefense;
+        for (int i = 0; i < partyManager.partyMembers.Count; i++) 
+        {
+            PlayableCharacter member = PartyManager.instance.partyMembers[i];
 
-        battleHUD.SetHP(playerUnit);
-        battleHUD.SetHP(player2Unit);
+            // Spawn players at specific points depending on the number of party members
+            switch (partyManager.partyMembers.Count)
+            {
+                case 1:
+                    // Position each character based on their index and party size
+                    member.transform.position = playerBattleStations[3].position;
+                    break;
+                case 2:
+                    member.transform.position = playerBattleStations[2].position;
+                    member.transform.position = playerBattleStations[4].position;
+                    break;
+                case 3:
+
+                    member.transform.position = playerBattleStations[1].position;
+                    member.transform.position = playerBattleStations[3].position;
+                    member.transform.position = playerBattleStations[5].position;
+                    break;
+                case 4:
+                    member.transform.position = playerBattleStations[0].position;
+                    member.transform.position = playerBattleStations[2].position;
+                    member.transform.position = playerBattleStations[4].position;
+                    member.transform.position = playerBattleStations[6].position;
+                    break;
+                default:
+                    break;
+            }
+
+            
+            member.transform.rotation = Quaternion.Euler(0, 0, 0);
+
+            // Character specific changes
+            if(member.tag == "Guts")
+            {
+                playerMovement.isMoving = false;
+                playerMovement.enabled = false;
+            }
+            else if (member.tag == "Puck")
+            {
+                member.transform.localScale = new Vector3(3, 3, 3);
+                player2FollowScript.enabled = false;
+            }
+
+        }
+
+        battleHUD.UpdateHUDs();
     }
 
     IEnumerator SetupBattle()
@@ -173,26 +205,43 @@ public class BattleSystem : MonoBehaviour
             InstantiateEnemies(enemyDictionary[keys[Random.Range(0, keys.Count)]], 0);
         }
 
-        OnBattleAction(BattleActionType.Start, playerUnit); //Start battle animations
+        foreach (PlayableCharacter player in partyManager.partyMembers)
+            OnBattleAction(BattleActionType.Start, player);
 
         // foreach enemy, play the start animation
         foreach (Unit enemy in activeEnemies)
-        {
             OnBattleAction(BattleActionType.Start, enemy);
-        }
 
-        if (num == 1)
-            dialogueText.text = enemyUnit.unitName + " approaches...";
-        else
-            dialogueText.text = num + " " + enemyUnit.unitName + "s approach...";
 
-        battleHUD.UpdateAllStats(playerUnit);
-        battleHUD.UpdateAllStats(player2Unit);
+        //if (num == 1)
+        ////dialogueText.text = enemyUnit.unitName + " approaches...";
+        //else
+        ////dialogueText.text = num + " " + enemyUnit.unitName + "s approach...";
+        foreach (PlayableCharacter player in partyManager.partyMembers)
+            battleHUD.UpdateAllStats(player);
 
         yield return new WaitForSeconds(4f);
 
         state = BattleState.PLAYERTURN;
         PlayerTurn();
+    }
+
+    private void AdvanceTurn()
+    {
+        // Increment the current player index and check if it exceeds the party size
+        currentPlayerIndex = (currentPlayerIndex + 1) % PartyManager.instance.partyMembers.Count;
+
+        // If we've looped back to the first player, it's the enemy's turn
+        if (currentPlayerIndex == 0)
+        {
+            state = BattleState.ENEMYTURN;
+            StartCoroutine(EnemyTurn());
+        }
+        else
+        {
+            state = BattleState.PLAYERTURN;
+            PlayerTurn(); // Handle the next player's turn
+        }
     }
 
 
@@ -213,7 +262,7 @@ public class BattleSystem : MonoBehaviour
     /// </summary>
     void PlayerTurn()
     {
-        dialogueText.text = "";
+        ////dialogueText.text = "";
         SetButtonsActive(true);
     }
 
@@ -223,18 +272,15 @@ public class BattleSystem : MonoBehaviour
     /// </summary>
     public void OnAttackButton()
     {
-        if (state != BattleState.PLAYERTURN && state != BattleState.SECONDPLAYERTURN)
+        if (state != BattleState.PLAYERTURN)
             return;
 
-        dialogueText.text = "Who?";
+        ////dialogueText.text = "Who?";
 
         switch (state)
         {
             case BattleState.PLAYERTURN:
-                StartCoroutine(WaitForAttackSelection(playerUnit.baseAttack));
-                break;
-            case BattleState.SECONDPLAYERTURN:
-                StartCoroutine(WaitForAttackSelection(player2Unit.baseAttack));
+                StartCoroutine(WaitForAttackSelection(partyManager.partyMembers[currentPlayerIndex].baseAttack));
                 break;
         }
     }
@@ -245,7 +291,7 @@ public class BattleSystem : MonoBehaviour
     /// </summary>
     public void OnFleeButton()
     {
-        if (state != BattleState.PLAYERTURN && state != BattleState.SECONDPLAYERTURN)
+        if (state != BattleState.PLAYERTURN)
             return;
 
         StartCoroutine(PlayerFlee());
@@ -259,9 +305,10 @@ public class BattleSystem : MonoBehaviour
     {
         if (state == BattleState.PLAYERTURN)
         {
-            for (int i = 0; i < playerUnit.spellbook.spells.Count; i++)
+            PlayableCharacter currentPlayer = partyManager.partyMembers[currentPlayerIndex];
+            for (int i = 0; i < currentPlayer.spellbook.spells.Count; i++)
             {
-                Spell spell = playerUnit.spellbook.spells[i];
+                Spell spell = currentPlayer.spellbook.spells[i];
                 spells[i].GetComponent<Text>().text = spell.spellName;
 
                 // Add a listener to the button click event
@@ -269,28 +316,12 @@ public class BattleSystem : MonoBehaviour
                 int index = i;
                 spells[i].onClick.AddListener(() =>
                 {
-                    selectedSpell = playerUnit.spellbook.spells[index];
-                    spellDamage = playerUnit.spellbook.CastSpell(selectedSpell.spellName, playerUnit);
+                    selectedSpell = currentPlayer.spellbook.spells[index];
+                    spellDamage = currentPlayer.spellbook.CastSpell(selectedSpell.spellName, currentPlayer);
                 });
             }
         }
-        else if (state == BattleState.SECONDPLAYERTURN)
-        {
-            for (int i = 0; i < player2Unit.spellbook.spells.Count; i++)
-            {
-                Spell spell = player2Unit.spellbook.spells[i];
-                spells[i].GetComponent<Text>().text = spell.spellName;
 
-                // Add a listener to the button click event
-                spells[i].onClick.RemoveAllListeners(); // Remove existing listeners to avoid duplicates
-                int index = i;
-                spells[i].onClick.AddListener(() =>
-                {
-                    selectedSpell = player2Unit.spellbook.spells[index];
-                    spellDamage = player2Unit.spellbook.CastSpell(selectedSpell.spellName, player2Unit);
-                });
-            }
-        }
     }
 
     /// <summary>
@@ -299,15 +330,14 @@ public class BattleSystem : MonoBehaviour
     /// </summary>
     public void OnArcaneButton()
     {
-        if (state != BattleState.PLAYERTURN && state != BattleState.SECONDPLAYERTURN)
+        if (state != BattleState.PLAYERTURN)
             return;
 
         if (state == BattleState.PLAYERTURN)
         {
-            StartCoroutine(WaitForArcaneSelection(playerUnit.baseArcane));
+            StartCoroutine(WaitForArcaneSelection(partyManager.partyMembers[currentPlayerIndex].baseArcane));
         }
-        else if (state == BattleState.SECONDPLAYERTURN)
-            StartCoroutine(WaitForArcaneSelection(player2Unit.baseArcane));
+
     }
 
     /// <summary>
@@ -316,7 +346,7 @@ public class BattleSystem : MonoBehaviour
     /// </summary>
     public void OnGaurdButton()
     {
-        if (state != BattleState.PLAYERTURN && state != BattleState.SECONDPLAYERTURN)
+        if (state != BattleState.PLAYERTURN)
             return;
 
         StartCoroutine(PlayerGaurd());
@@ -327,8 +357,8 @@ public class BattleSystem : MonoBehaviour
     /// </summary>
     private void ResetStats()
     {
-        playerUnit.baseDefense = initialDefenseP1;
-        player2Unit.baseDefense = initialDefenseP2;
+        for (int i = 0; i < partyManager.partyMembers.Count; i++)
+            partyManager.partyMembers[i].baseDefense = baseDefenses[i];
     }
 
     /// <summary>
@@ -344,7 +374,7 @@ public class BattleSystem : MonoBehaviour
         {
             if (enemy.tag == "Boss")
             {
-                dialogueText.text = "You cannot flee this battle.";
+                ////dialogueText.text = "You cannot flee this battle.";
                 yield return new WaitForSeconds(2f);
                 state = BattleState.ENEMYTURN;
                 StartCoroutine(EnemyTurn());
@@ -360,7 +390,7 @@ public class BattleSystem : MonoBehaviour
         }
         else
         {
-            dialogueText.text = "Could not flee!";
+            ////dialogueText.text = "Could not flee!";
             yield return new WaitForSeconds(2f);
             state = BattleState.ENEMYTURN;
 
@@ -413,7 +443,7 @@ public class BattleSystem : MonoBehaviour
         SetButtonsActive(false);
         backButtons[0].gameObject.SetActive(false);
         backButtons[1].gameObject.SetActive(false);
-        battleHUD.SetMP(player);
+        battleHUD.UpdateAllStats(player);
 
         // Determine the damage and if the enemy is dead
         damage = damageCalculation(damageStat, selectedEnemy, player.equippedWeapon);
@@ -423,63 +453,54 @@ public class BattleSystem : MonoBehaviour
         OnBattleAction(BattleActionType.Damaged, selectedEnemy);
 
 
-        dialogueText.text = selectedEnemy.unitName + " takes " + damage + " damage.";
+        ////dialogueText.text = selectedEnemy.unitName + " takes " + damage + " damage.";
         yield return new WaitForSeconds(2f);
 
         // If an enemy dies
         // If an enemy dies
         if (isDead)
+            HandleEnemyDefeat(selectedEnemy);
+
+        AdvanceTurn();
+    }
+
+    private void HandleEnemyDefeat(Unit enemy)
+    {
+        OnBattleAction(BattleActionType.Die, enemy);
+        levelUpManager.GainXPAndGold(enemy);
+
+        // Slowly shrink enemy
+        StartCoroutine(ShrinkAndDestroyEnemy(enemy));
+
+        if (activeEnemies.Count == 0)
         {
-            OnBattleAction(BattleActionType.Die, selectedEnemy);
-            dialogueText.text = selectedEnemy.unitName + " has been defeated!";
-
-            // Gain xp/gold 
-            levelUpManager.GainXPAndGold(selectedEnemy);
-
-            // Slowly shrink enemy
-            Vector3 initialScale = selectedEnemy.transform.localScale;
-            Vector3 finalScale = Vector3.zero;
-            float elapsedTime = 0f;
-
-            yield return new WaitForSeconds(2.5f);
-
-            while (elapsedTime < shrinkDuration)
-            {
-                selectedEnemy.transform.localScale = Vector3.Lerp(initialScale, finalScale, elapsedTime / shrinkDuration);
-                elapsedTime += Time.deltaTime;
-                yield return null;
-            }
-
-            selectedEnemy.transform.localScale = finalScale;
-
-            yield return new WaitForSeconds(1f);
-
-            activeEnemies.Remove(selectedEnemy);
-            Destroy(selectedEnemy.gameObject);
-
-            // If all the enemies are defeated, end encounter
-            if (activeEnemies.Count == 0)
-            {
-                state = BattleState.WON;
-                EndBattle();
-            }
-        }
-        // if the battle is not over,
-        // and players turn is over,
-        // and player 2 is not dead
-        if (state == BattleState.PLAYERTURN && !isPlayer2Dead)
-        {
-            state = BattleState.SECONDPLAYERTURN;
-            PlayerTurn();
-        }
-        // if the second player has moved
-        else if (state == BattleState.SECONDPLAYERTURN)
-        {
-            state = BattleState.ENEMYTURN;
-            StartCoroutine(EnemyTurn());
+            state = BattleState.WON;
+            EndBattle();
         }
 
-        selectedUnit = null;
+    }
+
+    IEnumerator ShrinkAndDestroyEnemy(Unit enemy)
+    {
+        Vector3 initialScale = enemy.transform.localScale;
+        Vector3 finalScale = Vector3.zero;
+        float elapsedTime = 0f;
+
+        yield return new WaitForSeconds(2.5f);
+
+        while (elapsedTime < shrinkDuration)
+        {
+            enemy.transform.localScale = Vector3.Lerp(initialScale, finalScale, elapsedTime / shrinkDuration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        enemy.transform.localScale = finalScale;
+
+        yield return new WaitForSeconds(1f);
+
+        activeEnemies.Remove(enemy);
+        Destroy(enemy.gameObject);
     }
 
     /// <summary>
@@ -488,35 +509,14 @@ public class BattleSystem : MonoBehaviour
     /// <returns></returns>
     IEnumerator PlayerGaurd()
     {
-        switch (state)
-        {
-            case BattleState.PLAYERTURN:
-                OnBattleAction(BattleActionType.Gaurd, playerUnit);
-                playerUnit.baseDefense *= 2;
-                SetButtonsActive(false);
-                dialogueText.text = "Guts brace himself";
-                yield return new WaitForSeconds(2f);
-                if (!isPlayer2Dead)
-                {
-                    state = BattleState.SECONDPLAYERTURN;
-                    PlayerTurn();
-                }
-                else
-                {
-                    state = BattleState.ENEMYTURN;
-                    StartCoroutine(EnemyTurn());
-                }
-                break;
-            case BattleState.SECONDPLAYERTURN:
-                OnBattleAction(BattleActionType.Gaurd, player2Unit);
-                player2Unit.baseDefense *= 2;
-                SetButtonsActive(false);
-                dialogueText.text = "Puck braces himself";
-                yield return new WaitForSeconds(2f);
-                state = BattleState.ENEMYTURN;
-                StartCoroutine(EnemyTurn());
-                break;
-        }
+        PlayableCharacter currentPlayer = partyManager.partyMembers[currentPlayerIndex];
+
+        OnBattleAction(BattleActionType.Gaurd, currentPlayer);
+        currentPlayer.baseDefense *= 2;
+        SetButtonsActive(false);
+        yield return new WaitForSeconds(2f);
+
+        AdvanceTurn();
     }
 
     /// <summary>
@@ -527,25 +527,14 @@ public class BattleSystem : MonoBehaviour
     IEnumerator WaitForAttackSelection(int damageStat)
     {
         while (selectedUnit == null)
-        {
             yield return null;
-        }
 
-        switch (state)
-        {
-            case BattleState.PLAYERTURN:
-                StartCoroutine(PlayerAction(playerUnit, selectedUnit, damageStat, DetermineDamage));
-                SetHighlightable(false);
-                OnBattleAction(BattleActionType.Attack, playerUnit);
-                break;
-            case BattleState.SECONDPLAYERTURN:
-                StartCoroutine(PlayerAction(player2Unit, selectedUnit, damageStat, DetermineDamage));
-                SetHighlightable(false);
-                OnBattleAction(BattleActionType.Attack, player2Unit);
-                break;
-            default:
-                break;
-        }
+        PlayableCharacter currentPlayer = partyManager.partyMembers[currentPlayerIndex];
+
+        StartCoroutine(PlayerAction(currentPlayer, selectedUnit, damageStat, DetermineDamage));
+        SetHighlightable(false);
+        OnBattleAction(BattleActionType.Attack, currentPlayer);
+
     }
 
     IEnumerator WaitForArcaneSelection(int damageStat)
@@ -562,19 +551,9 @@ public class BattleSystem : MonoBehaviour
             selectedSpell.spellVFX.transform.position = selectedUnit.transform.position;
             selectedSpell.spellVFX.Play();
 
-            switch (state)
-            {
-                case BattleState.PLAYERTURN:
-                    StartCoroutine(PlayerAction(playerUnit, selectedUnit, damageStat, DetermineDamageArcane));
-                    OnBattleAction(BattleActionType.Arcane, playerUnit);
-                    break;
-                case BattleState.SECONDPLAYERTURN:
-                    StartCoroutine(PlayerAction(player2Unit, selectedUnit, damageStat, DetermineDamageArcane));
-                    OnBattleAction(BattleActionType.Arcane, player2Unit);
-                    break;
-                default:
-                    break;
-            }
+            PlayableCharacter currentPlayer = partyManager.partyMembers[currentPlayerIndex];
+            StartCoroutine(PlayerAction(currentPlayer, selectedUnit, damageStat, DetermineDamageArcane));
+
         }
     }
 
@@ -584,31 +563,14 @@ public class BattleSystem : MonoBehaviour
 
         selectedPlayer.Heal(healingAmnt);
 
-        battleHUD.SetHP(selectedPlayer);
+        battleHUD.UpdateAllStats(selectedPlayer);
 
-        switch (state)
-        {
-            case BattleState.PLAYERTURN:
-                LastDamage = healingAmnt;
-                Debug.Log("Healiong for " + healingAmnt);
-                OnBattleAction(BattleActionType.Healed, playerUnit);
-                battleHUD.SetMP(playerUnit);
-                dialogueText.text = "You feel renewed strength!";
-                yield return new WaitForSeconds(2f);
-                state = BattleState.SECONDPLAYERTURN;
-                PlayerTurn();
-                break;
-            case BattleState.SECONDPLAYERTURN:
-                LastDamage = healingAmnt;
-                Debug.Log("Healiong for " + healingAmnt);
-                OnBattleAction(BattleActionType.Healed, playerUnit);
-                battleHUD.SetMP(player2Unit);
-                state = BattleState.ENEMYTURN;
-                StartCoroutine(EnemyTurn());
-                break;
-        }
-
-
+        PlayableCharacter currentPlayer = partyManager.partyMembers[currentPlayerIndex];
+        LastDamage = healingAmnt;
+        OnBattleAction(BattleActionType.Healed, currentPlayer);
+        battleHUD.UpdateAllStats(currentPlayer);
+        yield return new WaitForSeconds(2f);
+        AdvanceTurn();
     }
     #endregion
 
@@ -621,85 +583,84 @@ public class BattleSystem : MonoBehaviour
     IEnumerator EnemyTurn()
     {
         SetButtonsActive(false);
+        UpdatePlayerStates();
 
-        if (playerUnit.currentHP == 0)
-            isPlayerDead = true;
-        else if (player2Unit.currentHP == 0)
-            isPlayer2Dead = true;
 
         foreach (Unit enemy in activeEnemies)
         {
-            int attackType = 0;
+            // If the enemy can use magic, give them a chance of doing so
+            int attackType = enemy.canUseMagic ? Random.Range(0, 2) : 0;
             yield return new WaitForSeconds(1.5f);
 
-            // If the enemy can use magic, give them a chance of doing so
-            if (enemy.canUseMagic)
-                attackType = Random.Range(0, 2);
-            //dialogueText.text = enemyUnit.unitName + " attacks!";
-
-            int dmg;
-            Unit target;   //The target the enemy will attack
-
-            if (isPlayerDead)                                           //If P1 is dead attack P2
-                target = player2Unit;
-            else if (isPlayer2Dead)                                     //If P2 is dead attack P1
-                target = playerUnit;
-            else if (playerUnit.currentHP < .15 * playerUnit.maxHP)     //If P1s health is <15% attack P1
-                target = playerUnit;
-            else if (player2Unit.currentHP < .15 * player2Unit.maxHP)   //If P2s health is <15% attack P2
-                target = player2Unit;
-            else                                                        //If none of the above cases apply, choose randomly
-                target = Random.Range(0, 2) == 0 ? playerUnit : player2Unit;
-
-
-            // Use a formula to determine the amount of damage to deal
-            if (attackType == 0)
-                dmg = DetermineDamage(enemy.baseAttack, target, null);
-            else
-                dmg = DetermineDamageArcane(enemy.baseArcane, target, null);
+            ////dialogueText.text = enemyUnit.unitName + " attacks!";
+            
+            // Select target from active players
+            PlayableCharacter target = SelectTarget();
+            int dmg = attackType == 0 ? DetermineDamage(enemy.baseAttack, target, null)
+                                  : DetermineDamageArcane(enemy.baseArcane, target, null);
 
             OnBattleAction(BattleActionType.Attack, enemy);
+            DealDamage(target, dmg);
 
-            if (target == playerUnit)
-                DealDamage(playerUnit, dmg); // Apply damage to P1          
-            else if (target == player2Unit)
-                DealDamage(player2Unit, dmg); // Apply damage to P2
 
-            yield return new WaitForSeconds(2f);
-
-            // If both players die, end battle
-            if (isPlayerDead && isPlayer2Dead)
+            if (AllPlayersDefeated())
             {
                 state = BattleState.LOST;
                 EndBattle();
+                yield break; // Exit the coroutine
             }
+
+            // Reset defense after gaurding is complete
+            ResetStats();
+            //OnBattleAction(BattleActionType.StopGaurding, playerUnit);
+            //OnBattleAction(BattleActionType.StopGaurding, player2Unit);
+
+            AdvanceTurn();
         }
-
-        // Reset defense after gaurding is complete
-        ResetStats();
-        OnBattleAction(BattleActionType.StopGaurding, playerUnit);
-        OnBattleAction(BattleActionType.StopGaurding, player2Unit);
-
-        if (!isPlayerDead)
-            state = BattleState.PLAYERTURN;
-        else
-            state = BattleState.SECONDPLAYERTURN;
-
-        PlayerTurn();
     }
+
+
+    private void UpdatePlayerStates()
+    {
+        foreach (var player in PartyManager.instance.partyMembers)
+        {
+            if (player.currentHP == 0)
+                player.isDead = true;
+        }
+    }
+
+    private PlayableCharacter SelectTarget()
+    {
+        // Ensure there is at least one alive player
+        if (partyManager.partyMembers.All(player => player.isDead))
+            return null; // Or handle this case appropriately
+
+        PlayableCharacter target;
+        do
+        {
+            target = PartyManager.instance.partyMembers[Random.Range(0, PartyManager.instance.partyMembers.Count)];
+        } while (target.isDead);
+
+        return target;
+    }
+
+    private bool AllPlayersDefeated()
+    {
+        // Check if all players are defeated
+        return PartyManager.instance.partyMembers.All(player => player.isDead);
+    }
+
     private void DealDamage(PlayableCharacter player, int damage)
     {
         LastDamage = damage;
-        isPlayerDead = player.TakeDamage(damage);
+        bool isDead = player.TakeDamage(damage);
         OnBattleAction(BattleActionType.Damaged, player);
-        battleHUD.SetHP(player);
-        dialogueText.text = player.unitName + " takes " + damage + " damage!";
+        battleHUD.UpdateAllStats(player);
+        ////dialogueText.text = player.unitName + " takes " + damage + " damage!";
 
         // if the hit kills the player, play the death animation
-        if (player.currentHP <= 0)
-        {
+        if (isDead)
             OnBattleAction(BattleActionType.Die, player);
-        }
     }
     #endregion
 
@@ -714,9 +675,16 @@ public class BattleSystem : MonoBehaviour
         yield return new WaitForSeconds(.5f);
         playerCollision.battleTransitionAnimator.SetTrigger("End");
         yield return new WaitForSeconds(2f);
-        player2Unit.transform.localScale = new Vector3(2, 2, 2);
-        OnBattleAction(BattleActionType.Won, playerUnit);
-        OnBattleAction(BattleActionType.Won, player2Unit);
+
+        foreach(var player in partyManager.partyMembers)
+        {
+            OnBattleAction(BattleActionType.Won, player);
+         
+            if(player.tag == "Puck")
+                player.transform.localScale = new Vector3(2, 2, 2);
+        }
+
+        Cursor.lockState = CursorLockMode.Locked;
         SceneManager.LoadScene(sceneIndex);
     }
 
@@ -869,30 +837,35 @@ public class BattleSystem : MonoBehaviour
     {
         if (state == BattleState.FLEE || state == BattleState.WON)
         {
-            if (isPlayerDead)
-                playerUnit.currentHP = 1;
-            if (isPlayer2Dead)
-                player2Unit.currentHP = 1;
+            foreach(PlayableCharacter player in partyManager.partyMembers)
+            {
+                if (player.isDead)
+                {
+                    player.currentHP = 1;
+                    player.isDead = false;
+                }
+            }
         }
 
         if (state == BattleState.WON)
         {
-            dialogueText.text = "You won the battle!";
+            ////dialogueText.text = "You won the battle!";
             OnBattleState(BattleState.WON);
             GameData.battleCompleted = true;
+            
+            for(int i = 0; i < partyManager.partyMembers.Count; i++)
+                StartCoroutine(levelUpManager.GainExp(partyManager.partyMembers[i], levelUpManager.xpSliders[i]));
 
-            StartCoroutine(levelUpManager.GainExp(playerUnit, levelUpManager.p1XpSlider, dialogueText));
-            StartCoroutine(levelUpManager.GainExp(player2Unit, levelUpManager.p2XpSlider, dialogueText));
-            StartCoroutine(levelUpManager.GainGold(playerUnit));
+            StartCoroutine(levelUpManager.GainGold(partyManager.partyMembers[0]));
         }
         else if (state == BattleState.FLEE)
         {
-            dialogueText.text = "You fled the battle!";
+            ////dialogueText.text = "You fled the battle!";
             StartCoroutine(LoadWorld(1));
         }
         else if (state == BattleState.LOST)
         {
-            dialogueText.text = "You were defeated.";
+            ////dialogueText.text = "You were defeated.";
             StartCoroutine(LoadWorld(0));
         }
 

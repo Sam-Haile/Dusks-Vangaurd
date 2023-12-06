@@ -295,10 +295,10 @@ MonoBehaviour:
         type: 0
         typeString: 
       - title: Sequence
-        value: 'Timeline(speed, My Timeline, 0);
+        value: 'Timeline(speed, MainTimeline, 0);
 
-          Timeline(speed, Enemy
-          Timeline, 0);
+          Timeline(speed, EnemyTimeline,
+          0);
 
           //AudioWait(Grunt1)'
         type: 0
@@ -465,10 +465,10 @@ MonoBehaviour:
         type: 0
         typeString: 
       - title: Sequence
-        value: 'Timeline(speed, My Timeline, 1);
+        value: 'Timeline(speed, MainTimeline, 1);
 
-          Timeline(speed, Enemy
-          Timeline, 1);
+          Timeline(speed, EnemyTimeline,
+          1);
 
           SetActive(Dialogue Panel, false);'
         type: 0
@@ -494,7 +494,7 @@ MonoBehaviour:
         height: 30
     entryGroups: []
     canvasScrollPosition: {x: 0, y: 0}
-    canvasZoom: 0.73000026
+    canvasZoom: 0.7900002
   - id: 2
     fields:
     - title: Title
@@ -623,10 +623,10 @@ MonoBehaviour:
         type: 0
         typeString: 
       - title: Sequence
-        value: 'Timeline(speed, My Timeline, 0);
+        value: 'Timeline(speed, MainTimeline, 0);
 
-          Timeline(speed, Enemy
-          Timeline, 0);
+          Timeline(speed, EnemyTimeline,
+          0);
 
           //AudioWait(Guts1)'
         type: 0
@@ -683,7 +683,7 @@ MonoBehaviour:
         type: 0
         typeString: 
       - title: Sequence
-        value: AudioWait(Barkeep1)
+        value: 
         type: 0
         typeString: 
       conversationID: 2
@@ -707,7 +707,7 @@ MonoBehaviour:
           m_Calls: []
       canvasRect:
         serializedVersion: 2
-        x: 609.38885
+        x: 604.9933
         y: 334.63406
         width: 160
         height: 30
@@ -738,10 +738,10 @@ MonoBehaviour:
         type: 0
         typeString: 
       - title: Sequence
-        value: 'Timeline(speed, My Timeline, 1);
+        value: 'Timeline(speed, MainTimeline, 1);
 
-          Timeline(speed, Enemy
-          Timeline, 1);
+          Timeline(speed, EnemyTimeline,
+          1);
 
           SetActive(Dialogue Panel, false);'
         type: 0

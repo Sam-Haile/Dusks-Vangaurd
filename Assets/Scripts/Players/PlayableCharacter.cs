@@ -17,18 +17,21 @@ public class PlayableCharacter : Unit
 
     public bool isActive;
 
-    public void AddExperience(int exp, string text)
+    public GameObject uiHUD;
+    public bool isDead = false;
+
+    public void AddExperience(int exp)
     {
         experience += exp;
 
         // Check for level up
         if (experience >= expToNextLevel)
         {
-            LevelUp(text);
+            LevelUp();
         }
     }
 
-    public void LevelUp(string text)
+    public void LevelUp()
     {
         unitLevel++;
 

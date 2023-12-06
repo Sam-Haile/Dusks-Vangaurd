@@ -19,11 +19,12 @@ TagManager:
   - Skeleton_I
   - Skeleton_J
   - Boss
+  - Soldier_A
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Enviornment
   - Water
   - UI
   - Player

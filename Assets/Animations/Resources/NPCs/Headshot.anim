@@ -66095,7 +66095,7 @@ AnimationClip:
     m_AdditiveReferencePoseTime: 0
     m_StartTime: 0
     m_StopTime: 4.8333335
-    m_OrientationOffsetY: 180
+    m_OrientationOffsetY: 0
     m_Level: 0
     m_CycleOffset: 0
     m_HasAdditiveReferencePose: 0
@@ -66108,7 +66108,7 @@ AnimationClip:
     m_KeepOriginalPositionY: 1
     m_KeepOriginalPositionXZ: 0
     m_HeightFromFeet: 0
-    m_Mirror: 1
+    m_Mirror: 0
   m_EditorCurves:
   - serializedVersion: 2
     curve:
