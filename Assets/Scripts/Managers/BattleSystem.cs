@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using static UnityEditor.Experimental.GraphView.GraphView;
 
 // Used for the general state of the battle
 public enum BattleState { START, PLAYERTURN, ENEMYTURN, WON, LOST, FLEE }
@@ -25,27 +24,19 @@ public class BattleSystem : MonoBehaviour
     private bool canSelect;
 
     // Enemy Instantiation fields
-    PartyManager partyManager = PartyManager.instance;
-    public Dictionary<string, GameObject> enemyDictionary = new Dictionary<string, GameObject>();
+    List<PlayableCharacter> partyManager;
+    public Dictionary<string, GameObject> enemyDictionary;
     string enemyTag = PlayerCollision.enemyTag;
     public Transform[] enemyBattleStations;
     public GameObject[] enemyPrefabList;
-    [HideInInspector] public List<Unit> activeEnemies;
+    public List<Unit> activeEnemies;
     private float shrinkDuration = 1f;
     Unit enemyUnit;
 
-    // Player1 Instantiation fields
+    // Player Instantiation fields
     public Transform[] playerBattleStations;
     private int[] baseDefenses;
     private int currentPlayerIndex;
-    private PlayerCollision playerCollision;
-    private PlayerMovement playerMovement;
-    private Transform playerPos;
-
-    // Player2 Instantiation fields
-    private Follow player2FollowScript;
-
-
     public Text dialogueText;
     public List<Button> buttons;
     private BattleState state;
@@ -78,11 +69,10 @@ public class BattleSystem : MonoBehaviour
 
     private void Awake()
     {
-        Cursor.lockState = CursorLockMode.None;
+        List<PlayableCharacter> partyManager = PartyManager.instance.partyMembers;
+        Dictionary<string, GameObject> enemyDictionary = new Dictionary<string, GameObject>();
 
-        //playerPos = Player.instance.transform;
-        playerMovement = PlayerMovement.instance;
-        playerCollision = PlayerCollision.instance;
+        Cursor.lockState = CursorLockMode.None;
 
         foreach (GameObject enemy in enemyPrefabList)
             enemyDictionary.Add(enemy.tag, enemy);
@@ -94,7 +84,7 @@ public class BattleSystem : MonoBehaviour
     {
         currentPlayerIndex = 0; // Start with the first player
         state = BattleState.START;
-        playerCollision.battleTransitionAnimator.SetTrigger("Start");
+        PlayerCollision.instance.battleTransitionAnimator.SetTrigger("Start");
         StartCoroutine(SetupBattle());
         levelUpManager.totalExp = 0;
     }
@@ -127,56 +117,48 @@ public class BattleSystem : MonoBehaviour
     /// </summary>
     private void SetupPlayers()
     {
-
-        for (int i = 0; i < partyManager.partyMembers.Count; i++) 
+        Debug.Log(partyManager.Count);
+        for (int i = 0; i < partyManager.Count; i++) 
         {
             PlayableCharacter member = PartyManager.instance.partyMembers[i];
+            Debug.Log(member.unitName);
 
-            // Spawn players at specific points depending on the number of party members
-            switch (partyManager.partyMembers.Count)
-            {
-                case 1:
-                    // Position each character based on their index and party size
-                    member.transform.position = playerBattleStations[3].position;
-                    break;
-                case 2:
-                    member.transform.position = playerBattleStations[2].position;
-                    member.transform.position = playerBattleStations[4].position;
-                    break;
-                case 3:
+            // Calculate the position index based on the number of party members
+            int positionIndex = CalculatePositionIndex(partyManager.Count, i);
+            Debug.Log(positionIndex);
 
-                    member.transform.position = playerBattleStations[1].position;
-                    member.transform.position = playerBattleStations[3].position;
-                    member.transform.position = playerBattleStations[5].position;
-                    break;
-                case 4:
-                    member.transform.position = playerBattleStations[0].position;
-                    member.transform.position = playerBattleStations[2].position;
-                    member.transform.position = playerBattleStations[4].position;
-                    member.transform.position = playerBattleStations[6].position;
-                    break;
-                default:
-                    break;
-            }
+            // Position each character based on the calculated index
+            member.transform.position = playerBattleStations[positionIndex].position;
 
-            
             member.transform.rotation = Quaternion.Euler(0, 0, 0);
 
             // Character specific changes
             if(member.tag == "Guts")
             {
-                playerMovement.isMoving = false;
-                playerMovement.enabled = false;
+                PlayerMovement.instance.isMoving = false;
+                PlayerMovement.instance.enabled = false;
             }
             else if (member.tag == "Puck")
             {
                 member.transform.localScale = new Vector3(3, 3, 3);
-                player2FollowScript.enabled = false;
+                Puck.instance.GetComponent<Follow>().enabled = false;
             }
 
         }
 
         battleHUD.UpdateHUDs();
+    }
+
+    private int CalculatePositionIndex(int partyCount, int memberIndex)
+    {
+        switch (partyCount)
+        {
+            case 1: return 3; // Center
+            case 2: return memberIndex == 0 ? 2 : 4; // Left and Right
+            case 3: return 1 + memberIndex * 2; // Spread out
+            case 4: return memberIndex * 2; // Evenly spaced
+            default: return -1; // Error case or handle as needed
+        }
     }
 
     IEnumerator SetupBattle()
@@ -205,7 +187,7 @@ public class BattleSystem : MonoBehaviour
             InstantiateEnemies(enemyDictionary[keys[Random.Range(0, keys.Count)]], 0);
         }
 
-        foreach (PlayableCharacter player in partyManager.partyMembers)
+        foreach (PlayableCharacter player in partyManager)
             OnBattleAction(BattleActionType.Start, player);
 
         // foreach enemy, play the start animation
@@ -217,7 +199,7 @@ public class BattleSystem : MonoBehaviour
         ////dialogueText.text = enemyUnit.unitName + " approaches...";
         //else
         ////dialogueText.text = num + " " + enemyUnit.unitName + "s approach...";
-        foreach (PlayableCharacter player in partyManager.partyMembers)
+        foreach (PlayableCharacter player in partyManager)
             battleHUD.UpdateAllStats(player);
 
         yield return new WaitForSeconds(4f);
@@ -280,7 +262,7 @@ public class BattleSystem : MonoBehaviour
         switch (state)
         {
             case BattleState.PLAYERTURN:
-                StartCoroutine(WaitForAttackSelection(partyManager.partyMembers[currentPlayerIndex].baseAttack));
+                StartCoroutine(WaitForAttackSelection(partyManager[currentPlayerIndex].baseAttack));
                 break;
         }
     }
@@ -305,7 +287,7 @@ public class BattleSystem : MonoBehaviour
     {
         if (state == BattleState.PLAYERTURN)
         {
-            PlayableCharacter currentPlayer = partyManager.partyMembers[currentPlayerIndex];
+            PlayableCharacter currentPlayer = partyManager[currentPlayerIndex];
             for (int i = 0; i < currentPlayer.spellbook.spells.Count; i++)
             {
                 Spell spell = currentPlayer.spellbook.spells[i];
@@ -335,7 +317,7 @@ public class BattleSystem : MonoBehaviour
 
         if (state == BattleState.PLAYERTURN)
         {
-            StartCoroutine(WaitForArcaneSelection(partyManager.partyMembers[currentPlayerIndex].baseArcane));
+            StartCoroutine(WaitForArcaneSelection(partyManager[currentPlayerIndex].baseArcane));
         }
 
     }
@@ -357,8 +339,8 @@ public class BattleSystem : MonoBehaviour
     /// </summary>
     private void ResetStats()
     {
-        for (int i = 0; i < partyManager.partyMembers.Count; i++)
-            partyManager.partyMembers[i].baseDefense = baseDefenses[i];
+        for (int i = 0; i < partyManager.Count; i++)
+            partyManager[i].baseDefense = baseDefenses[i];
     }
 
     /// <summary>
@@ -509,7 +491,7 @@ public class BattleSystem : MonoBehaviour
     /// <returns></returns>
     IEnumerator PlayerGaurd()
     {
-        PlayableCharacter currentPlayer = partyManager.partyMembers[currentPlayerIndex];
+        PlayableCharacter currentPlayer = partyManager[currentPlayerIndex];
 
         OnBattleAction(BattleActionType.Gaurd, currentPlayer);
         currentPlayer.baseDefense *= 2;
@@ -529,7 +511,7 @@ public class BattleSystem : MonoBehaviour
         while (selectedUnit == null)
             yield return null;
 
-        PlayableCharacter currentPlayer = partyManager.partyMembers[currentPlayerIndex];
+        PlayableCharacter currentPlayer = partyManager[currentPlayerIndex];
 
         StartCoroutine(PlayerAction(currentPlayer, selectedUnit, damageStat, DetermineDamage));
         SetHighlightable(false);
@@ -551,7 +533,7 @@ public class BattleSystem : MonoBehaviour
             selectedSpell.spellVFX.transform.position = selectedUnit.transform.position;
             selectedSpell.spellVFX.Play();
 
-            PlayableCharacter currentPlayer = partyManager.partyMembers[currentPlayerIndex];
+            PlayableCharacter currentPlayer = partyManager[currentPlayerIndex];
             StartCoroutine(PlayerAction(currentPlayer, selectedUnit, damageStat, DetermineDamageArcane));
 
         }
@@ -565,7 +547,7 @@ public class BattleSystem : MonoBehaviour
 
         battleHUD.UpdateAllStats(selectedPlayer);
 
-        PlayableCharacter currentPlayer = partyManager.partyMembers[currentPlayerIndex];
+        PlayableCharacter currentPlayer = partyManager[currentPlayerIndex];
         LastDamage = healingAmnt;
         OnBattleAction(BattleActionType.Healed, currentPlayer);
         battleHUD.UpdateAllStats(currentPlayer);
@@ -622,7 +604,7 @@ public class BattleSystem : MonoBehaviour
 
     private void UpdatePlayerStates()
     {
-        foreach (var player in PartyManager.instance.partyMembers)
+        foreach (var player in partyManager)
         {
             if (player.currentHP == 0)
                 player.isDead = true;
@@ -632,7 +614,7 @@ public class BattleSystem : MonoBehaviour
     private PlayableCharacter SelectTarget()
     {
         // Ensure there is at least one alive player
-        if (partyManager.partyMembers.All(player => player.isDead))
+        if (partyManager.All(player => player.isDead))
             return null; // Or handle this case appropriately
 
         PlayableCharacter target;
@@ -673,10 +655,10 @@ public class BattleSystem : MonoBehaviour
     IEnumerator LoadWorld(int sceneIndex)
     {
         yield return new WaitForSeconds(.5f);
-        playerCollision.battleTransitionAnimator.SetTrigger("End");
+        PlayerCollision.instance.battleTransitionAnimator.SetTrigger("End");
         yield return new WaitForSeconds(2f);
 
-        foreach(var player in partyManager.partyMembers)
+        foreach(var player in partyManager)
         {
             OnBattleAction(BattleActionType.Won, player);
          
@@ -837,7 +819,7 @@ public class BattleSystem : MonoBehaviour
     {
         if (state == BattleState.FLEE || state == BattleState.WON)
         {
-            foreach(PlayableCharacter player in partyManager.partyMembers)
+            foreach(PlayableCharacter player in partyManager)
             {
                 if (player.isDead)
                 {
@@ -853,10 +835,10 @@ public class BattleSystem : MonoBehaviour
             OnBattleState(BattleState.WON);
             GameData.battleCompleted = true;
             
-            for(int i = 0; i < partyManager.partyMembers.Count; i++)
-                StartCoroutine(levelUpManager.GainExp(partyManager.partyMembers[i], levelUpManager.xpSliders[i]));
+            for(int i = 0; i < partyManager.Count; i++)
+                StartCoroutine(levelUpManager.GainExp(partyManager[i], levelUpManager.xpSliders[i]));
 
-            StartCoroutine(levelUpManager.GainGold(partyManager.partyMembers[0]));
+            StartCoroutine(levelUpManager.GainGold(partyManager[0]));
         }
         else if (state == BattleState.FLEE)
         {
