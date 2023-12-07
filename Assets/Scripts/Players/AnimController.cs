@@ -1,15 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using static BattleSystem;
 
 public class AnimController : MonoBehaviour
 {
+
     public List<PlayableCharacter> partyManager;
     Animator[] animators;
-
 
     public GameObject swordBack;
     public GameObject swordHand;
@@ -22,22 +21,18 @@ public class AnimController : MonoBehaviour
     public float num;
     private bool hasBattled = false;
 
-    private void OnEnable()
-    {
-        OnBattleAction += HandlePlayerAction;
-    }
-
-    private void OnDisable()
-    {
-        OnBattleAction -= HandlePlayerAction;
-    }
-
     public float GetNumValue()
     {
         return num;
     }
-    private void Awake()
+    private void OnEnable()
     {
+        BattleSystem.OnBattleAction += HandlePlayerAction;
+    }
+
+    private void OnDisable()
+    {
+        BattleSystem.OnBattleAction -= HandlePlayerAction;
     }
 
     private void Start()
@@ -120,6 +115,12 @@ public class AnimController : MonoBehaviour
                 case BattleActionType.Start:
                     player.GetComponent<Animator>().SetTrigger("battle");
                     break;
+                case BattleActionType.Run:
+                    player.GetComponent<Animator>().SetTrigger("run");
+                    break;
+                case BattleActionType.RunBack:
+                    player.GetComponent<Animator>().SetTrigger("runBack");
+                    break;
                 case BattleActionType.Attack:
                     num = ReturnRandomFloat();
                     player.GetComponent<Animator>().SetTrigger("attack");
@@ -141,8 +142,8 @@ public class AnimController : MonoBehaviour
                 case BattleActionType.Arcane:
                     player.GetComponent<Animator>().SetTrigger("arcane");
                     break;
-                case BattleActionType.Run:
-                    player.GetComponent<Animator>().SetTrigger("run");
+                case BattleActionType.Flee:
+                    player.GetComponent<Animator>().SetTrigger("flee");
                     break;
                 case BattleActionType.Die:
                     player.GetComponent<Animator>().SetTrigger("die");
@@ -180,4 +181,7 @@ public class AnimController : MonoBehaviour
         dmgText.color = Color.red;
         player.damageNumbers.SetActive(false);
     }
+
+
+
 }

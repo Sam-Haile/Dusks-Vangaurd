@@ -31,6 +31,8 @@ public class Unit : MonoBehaviour
 
 	public GameObject damageNumbers;
 
+	[HideInInspector] public int battleIndex;
+
     public int CurrentHealth //Update the UI when a stat changes
     {
         get { return currentHP; }

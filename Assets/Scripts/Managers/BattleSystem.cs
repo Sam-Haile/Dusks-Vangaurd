@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -10,7 +11,8 @@ using UnityEngine.UI;
 public enum BattleState { START, PLAYERTURN, ENEMYTURN, WON, LOST, FLEE }
 
 // Used for specific enemy and player actions
-public enum BattleActionType{ Start, Attack, Gaurd, StopGaurding, Arcane, Damaged, Healed, Run, Die, Won }
+public enum BattleActionType{ Start, Attack, Run, RunBack, Gaurd, StopGaurding, Arcane, Damaged, Healed, Flee, Die, Won }
+public enum CameraActionType{ GoToStart, GoToPos}
 
 public class BattleSystem : MonoBehaviour
 {
@@ -30,11 +32,14 @@ public class BattleSystem : MonoBehaviour
     public Transform[] enemyBattleStations;
     public GameObject[] enemyPrefabList;
     public List<Unit> activeEnemies;
+    public int[] activeBattleStationIndex;
+
     private float shrinkDuration = 1f;
     Unit enemyUnit;
 
     // Player Instantiation fields
     public Transform[] playerBattleStations;
+
     private int[] baseDefenses;
     private int currentPlayerIndex;
     public Text dialogueText;
@@ -52,17 +57,18 @@ public class BattleSystem : MonoBehaviour
 
     public int LastDamage { get; private set; }
 
-
     // Event for handling player and enemy animations
     public delegate void BattleActionHandler(BattleActionType actionType, Unit unit, UnitType unitType);
     public static event BattleActionHandler OnBattleAction;
+
+    public delegate void CameraActionHandler(CameraActionType actionType, int cameraPos);
+    public static event CameraActionHandler OnCameraAction;
 
     // Event for handling general battle audio/animation
     public delegate void BattleStateHandler(BattleState actionType);
     public static event BattleStateHandler OnBattleState;
 
     public delegate int DamageCalculationDelegate(int damageStat, Unit selectedEnemy, Weapon equippedWeapon);
-
     #endregion
 
     #region Battle Setup
@@ -132,13 +138,11 @@ public class BattleSystem : MonoBehaviour
             member.transform.position = playerBattleStations[positionIndex].position;
 
             member.transform.rotation = Quaternion.Euler(0, 0, 0);
-
+            member.battleIndex = positionIndex;
             // Character specific changes
-            if(member.tag == "Guts")
+            if(member.tag == "Player")
             {
                 member.GetComponent<CharacterController>().enabled = false;
-                PlayerMovement.instance.isMoving = false;
-                PlayerMovement.instance.enabled = false;
             }
             else if (member.tag == "Puck")
             {
@@ -214,6 +218,11 @@ public class BattleSystem : MonoBehaviour
         // Increment the current player index and check if it exceeds the party size
         currentPlayerIndex = (currentPlayerIndex + 1) % PartyManager.instance.partyMembers.Count;
 
+        if (activeEnemies.Count == 0)
+        {
+            state = BattleState.WON;
+            EndBattle();
+        }
         // If we've looped back to the first player, it's the enemy's turn
         if (currentPlayerIndex == 0)
         {
@@ -235,6 +244,7 @@ public class BattleSystem : MonoBehaviour
         enemyUnit = enemyGameObj.GetComponent<Unit>();
         enemyUnit.GetComponent<EnemyAI>().enabled = false;
         activeEnemies.Add(enemyUnit);
+        enemyUnit.battleIndex = battleStationIndex;
     }
     #endregion
 
@@ -441,32 +451,37 @@ public class BattleSystem : MonoBehaviour
         ////dialogueText.text = selectedEnemy.unitName + " takes " + damage + " damage.";
         yield return new WaitForSeconds(2f);
 
-        // If an enemy dies
+        PlayableCharacter currentPlayer = partyManager[currentPlayerIndex];
+
+        OnCameraAction(CameraActionType.GoToStart, 5);
+        StartCoroutine(MoveOverTimeWithJump(currentPlayer.gameObject, playerBattleStations[currentPlayer.battleIndex].transform.position, .5f, 2f)); // Assuming 1f is the jump height
+        OnBattleAction(BattleActionType.RunBack, currentPlayer, UnitType.Player);
+        
+        
         // If an enemy dies
         if (isDead)
             HandleEnemyDefeat(selectedEnemy);
+        else
+            AdvanceTurn();
 
-        AdvanceTurn();
+
+
+
     }
 
     private void HandleEnemyDefeat(Unit enemy)
     {
+
         OnBattleAction(BattleActionType.Die, enemy, UnitType.Enemy);
         levelUpManager.GainXPAndGold(enemy);
 
         // Slowly shrink enemy
         StartCoroutine(ShrinkAndDestroyEnemy(enemy));
-
-        if (activeEnemies.Count == 0)
-        {
-            state = BattleState.WON;
-            EndBattle();
-        }
-
     }
 
     IEnumerator ShrinkAndDestroyEnemy(Unit enemy)
     {
+        activeEnemies.Remove(enemy);
         Vector3 initialScale = enemy.transform.localScale;
         Vector3 finalScale = Vector3.zero;
         float elapsedTime = 0f;
@@ -482,10 +497,17 @@ public class BattleSystem : MonoBehaviour
 
         enemy.transform.localScale = finalScale;
 
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(.25f);
 
-        activeEnemies.Remove(enemy);
         Destroy(enemy.gameObject);
+
+        if (activeEnemies.Count == 0)
+        {
+            state = BattleState.WON;
+            EndBattle();
+        }
+        else
+            AdvanceTurn();
     }
 
     /// <summary>
@@ -516,9 +538,16 @@ public class BattleSystem : MonoBehaviour
 
         PlayableCharacter currentPlayer = partyManager[currentPlayerIndex];
 
-        currentPlayer.transform.position = new Vector3(selectedUnit.transform.position.x,
-            selectedUnit.transform.position.y,
+        Debug.Log("Running");
+        OnBattleAction(BattleActionType.Run, currentPlayer, UnitType.Player);
+        OnCameraAction(CameraActionType.GoToPos, selectedUnit.battleIndex);
+
+        Vector3 enemyAttackPos = new Vector3(
+            selectedUnit.transform.position.x,
+            currentPlayer.transform.position.y,
             selectedUnit.transform.position.z - 3);
+
+        StartCoroutine(MoveOverTime(currentPlayer.gameObject, enemyAttackPos, .5f));
 
         StartCoroutine(PlayerAction(currentPlayer, selectedUnit, damageStat, DetermineDamage));
         SetHighlightable(false);
@@ -526,6 +555,33 @@ public class BattleSystem : MonoBehaviour
         selectedUnit = null;
     }
 
+    private IEnumerator MoveOverTime(GameObject objectToMove, Vector3 targetPos, float time)
+    {
+        float elapsedTime = 0;
+        Vector3 startingPos = objectToMove.transform.position;  
+
+        while (elapsedTime < time)
+        {
+            objectToMove.transform.position = Vector3.Lerp(startingPos, targetPos, elapsedTime/time);
+            elapsedTime += Time.deltaTime;
+            yield return new WaitForEndOfFrame();
+        }
+
+        objectToMove.transform.position = targetPos;
+    }
+
+    private IEnumerator MoveOverTimeWithJump(GameObject objectToMove, Vector3 targetPos, float time, float jumpHeight)
+    {
+        Vector3 halfway = (objectToMove.transform.position + targetPos) / 2;
+        halfway.y += jumpHeight; // Adjust the height of the jump
+
+        // Ascend to the highest point
+        yield return StartCoroutine(MoveOverTime(objectToMove, halfway, time / 2));
+
+        // Descend to the target position
+        yield return StartCoroutine(MoveOverTime(objectToMove, targetPos, time / 2));
+
+    }
     IEnumerator WaitForArcaneSelection(int damageStat)
     {
         while (selectedUnit == null)
@@ -686,7 +742,9 @@ public class BattleSystem : MonoBehaviour
     /// </summary>
     void Update()
     {
-        Debug.Log("Turn index = " + currentPlayerIndex + " State: " + state);
+        //Debug.Log("Turn index = " + currentPlayerIndex + " State: " + state);
+        Debug.Log(activeEnemies.Count);
+
 
         if (canSelect)
         {

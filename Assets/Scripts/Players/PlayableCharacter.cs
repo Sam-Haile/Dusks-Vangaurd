@@ -19,7 +19,7 @@ public class PlayableCharacter : Unit
 
     public GameObject uiHUD;
     public bool isDead = false;
-
+    
     public void AddExperience(int exp)
     {
         experience += exp;
