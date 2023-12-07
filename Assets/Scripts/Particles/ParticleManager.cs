@@ -28,44 +28,50 @@ public class ParticleManager : MonoBehaviour
         BattleSystem.OnBattleAction -= HandleParticles;
     }
 
-    private void HandleParticles(BattleActionType actionType, Unit player)
+    private void HandleParticles(BattleActionType actionType, Unit player, UnitType u)
     {
-        switch (actionType)
+        if (u == UnitType.Player)
         {
-            case BattleActionType.Start:
-                if(player.tag == "Player") { }
+
+            switch (actionType)
+            {
+                case BattleActionType.Start:
+                    if (player.tag == "Player") { }
                     //StartCoroutine(PlayParticles(battleStart, 1.25f, 3f));
-                break;
-            case BattleActionType.Attack:
-                if (player.tag == "Player")
-                {
-                    animControllerNum = animController.GetNumValue();
-                    if (animControllerNum < .33)
-                        StartCoroutine(PlayParticles(attack1Particles, 1.15f, 1f));
-                    else if (animControllerNum > .33 && animControllerNum < .66)
+                    break;
+                case BattleActionType.Attack:
+                    if (player.tag == "Player")
                     {
-                        StartCoroutine(PlayParticles(attack1Particles, 1.15f, 1f));
-                        StartCoroutine(PlayParticles(attack2Particles, 1.75f, 1f));
+                        animControllerNum = animController.GetNumValue();
+                        if (animControllerNum < .33)
+                            StartCoroutine(PlayParticles(attack1Particles, 1.15f, 1f));
+                        else if (animControllerNum > .33 && animControllerNum < .66)
+                        {
+                            StartCoroutine(PlayParticles(attack1Particles, 1.15f, 1f));
+                            StartCoroutine(PlayParticles(attack2Particles, 1.75f, 1f));
+                        }
+                        else
+                        {
+                            StartCoroutine(PlayParticles(attack1Particles, 1.15f, 1f));
+                            StartCoroutine(PlayParticles(attack2Particles, 1.75f, 1f));
+                            StartCoroutine(PlayParticles(attack3Particles, 2.5f, 3f));
+                        }
                     }
-                    else
-                    {
-                        StartCoroutine(PlayParticles(attack1Particles, 1.15f, 1f));
-                        StartCoroutine(PlayParticles(attack2Particles, 1.75f, 1f));
-                        StartCoroutine(PlayParticles(attack3Particles, 2.5f, 3f));
-                    }
-                }
-                break;
-            case BattleActionType.Gaurd:
-                break;
-            case BattleActionType.Arcane:
-                break;
-            case BattleActionType.Run:
-                break;
-            case BattleActionType.Die:
-                break;
-            default:
-                break;
+                    break;
+                case BattleActionType.Gaurd:
+                    break;
+                case BattleActionType.Arcane:
+                    break;
+                case BattleActionType.Run:
+                    break;
+                case BattleActionType.Die:
+                    break;
+                default:
+                    break;
+            }
         }
+        else
+            return;
     }
 
     IEnumerator PlayParticles(GameObject particles, float initialWait, float finalWaitTime)

@@ -91,9 +91,6 @@ public class PlayerMovement : MonoBehaviour
         {
             Cursor.lockState = CursorLockMode.None;
         }
-
-
-
     }
 
     private void Sprint()

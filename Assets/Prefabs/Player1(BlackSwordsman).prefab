@@ -3083,6 +3083,7 @@ GameObject:
   - component: {fileID: 7073134603520019164}
   - component: {fileID: 8781634695809454460}
   - component: {fileID: 532949334529715864}
+  - component: {fileID: 7422548034942314850}
   - component: {fileID: 2401043929616921658}
   - component: {fileID: 5129127498540216737}
   - component: {fileID: 6370780200122125763}
@@ -3091,7 +3092,6 @@ GameObject:
   - component: {fileID: 5845723025173162145}
   - component: {fileID: 3940405424059655151}
   - component: {fileID: 817279901911531858}
-  - component: {fileID: 7422548034942314850}
   - component: {fileID: 2676105969565321252}
   - component: {fileID: 2338728265233004148}
   m_Layer: 6
@@ -3122,7 +3122,7 @@ Transform:
   - {fileID: 7406209079149598229}
   - {fileID: 6513245713352194081}
   m_Father: {fileID: 0}
-  m_RootOrder: 7
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &1632825595282978997
 MeshFilter:
@@ -3223,161 +3223,6 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &2401043929616921658
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3418300893015003589}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9a61e498084017a48ad80299d0cb36cc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  beforeBattlePos: {x: 0, y: 0, z: 0}
-  battleTransitionAnimator: {fileID: 0}
-  canBattle: 1
-  menuManager: {fileID: 0}
-  currentSceneName: 
---- !u!114 &5129127498540216737
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3418300893015003589}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6d7ee851894013b4485dbab453eb5ff1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  spells: []
---- !u!114 &6370780200122125763
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3418300893015003589}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8fd41c8beda753f47ab596931db48878, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  walkSpeed: 0.2
-  moveSpeed: 1
-  sprintMultiplier: 2.5
-  isSprinting: 0
-  isMoving: 0
-  rotationSpeed: 720
-  targetRotation: {x: 0, y: 0, z: 0, w: 0}
-  lastBreadcrumbPosition: {x: 0, y: 0, z: 0}
-  num: 1
-  move: 1
---- !u!114 &4921632835312548513
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3418300893015003589}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 21ad133e1cb166f4e89d2cf7b8a3258b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  unitName: Guts
-  unitLevel: 1
-  maxHP: 30
-  currentHP: 30
-  maxMP: 100
-  currentMP: 100
-  baseAttack: 50
-  baseArcane: 1
-  baseDefense: 10
-  specialDefense: 6
-  experience: 25
-  gold: 150
-  canUseMagic: 0
-  equippedWeapon: {fileID: 0}
-  equippedArmor: {fileID: 0}
-  damageNumbers: {fileID: 6619777397155789245}
-  expToNextLevel: 100
-  weaponSlot: {fileID: 0}
-  armorSlot: {fileID: 0}
-  spellbook: {fileID: 5129127498540216737}
-  spellParticles:
-  - {fileID: 0}
-  isActive: 1
---- !u!114 &4388358348536205919
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3418300893015003589}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 41c48faf47a752c4899f2f8f1c13b9ac, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  player1: {fileID: 3418300893015003589}
-  player2: {fileID: 0}
-  swordBack: {fileID: 5888223671860001070}
-  swordHand: {fileID: 673257405258245389}
-  num: 0
---- !u!114 &5845723025173162145
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3418300893015003589}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 669011397b286e7489cb9e307725f17a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  attack1Particles: {fileID: 7412332649259093941}
-  attack2Particles: {fileID: 6518525985717166465}
-  attack3Particles: {fileID: 3997889441967855240}
-  battleStart: {fileID: 7002532670206513736}
---- !u!114 &3940405424059655151
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3418300893015003589}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  outlineMode: 1
-  outlineColor: {r: 1, g: 1, b: 1, a: 1}
-  outlineWidth: 1
-  precomputeOutline: 0
-  bakeKeys: []
-  bakeValues: []
-  materialName: PlayerMat
---- !u!114 &817279901911531858
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3418300893015003589}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8a863f69ecca2a4489a7760d3911254b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _audioSource: {fileID: 7422548034942314850}
-  _effectsSource: {fileID: 7422548034942314850}
-  audioClips:
-  - {fileID: 8300000, guid: 1349b094988443e4eb378bdc3880e892, type: 3}
 --- !u!82 &7422548034942314850
 AudioSource:
   m_ObjectHideFlags: 0
@@ -3474,6 +3319,163 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &2401043929616921658
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3418300893015003589}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a61e498084017a48ad80299d0cb36cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  beforeBattlePos: {x: 0, y: 0, z: 0}
+  battleTransitionAnimator: {fileID: 0}
+  canBattle: 1
+  menuManager: {fileID: 0}
+  currentSceneName: 
+--- !u!114 &5129127498540216737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3418300893015003589}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d7ee851894013b4485dbab453eb5ff1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spells: []
+--- !u!114 &6370780200122125763
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3418300893015003589}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fd41c8beda753f47ab596931db48878, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  walkSpeed: 0.2
+  moveSpeed: 1
+  sprintMultiplier: 2.5
+  isSprinting: 0
+  isMoving: 0
+  rotationSpeed: 720
+  targetRotation: {x: 0, y: 0, z: 0, w: 0}
+  lastBreadcrumbPosition: {x: 0, y: 0, z: 0}
+  num: 1
+  move: 1
+--- !u!114 &4921632835312548513
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3418300893015003589}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21ad133e1cb166f4e89d2cf7b8a3258b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  unitName: Guts
+  unitLevel: 1
+  maxHP: 30
+  currentHP: 30
+  maxMP: 100
+  currentMP: 100
+  baseAttack: 50
+  baseArcane: 1
+  baseDefense: 10
+  specialDefense: 6
+  experience: 25
+  gold: 150
+  canUseMagic: 0
+  equippedWeapon: {fileID: 0}
+  equippedArmor: {fileID: 0}
+  damageNumbers: {fileID: 6619777397155789245}
+  expToNextLevel: 100
+  weaponSlot: {fileID: 0}
+  armorSlot: {fileID: 0}
+  spellbook: {fileID: 5129127498540216737}
+  spellParticles:
+  - {fileID: 0}
+  isActive: 1
+  uiHUD: {fileID: 0}
+  isDead: 0
+--- !u!114 &4388358348536205919
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3418300893015003589}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41c48faf47a752c4899f2f8f1c13b9ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player1: {fileID: 3418300893015003589}
+  player2: {fileID: 0}
+  swordBack: {fileID: 5888223671860001070}
+  swordHand: {fileID: 673257405258245389}
+  num: 0
+--- !u!114 &5845723025173162145
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3418300893015003589}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 669011397b286e7489cb9e307725f17a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  attack1Particles: {fileID: 7412332649259093941}
+  attack2Particles: {fileID: 6518525985717166465}
+  attack3Particles: {fileID: 3997889441967855240}
+  battleStart: {fileID: 7002532670206513736}
+--- !u!114 &3940405424059655151
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3418300893015003589}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outlineMode: 1
+  outlineColor: {r: 1, g: 1, b: 1, a: 1}
+  outlineWidth: 1
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []
+  materialName: PlayerMat
+--- !u!114 &817279901911531858
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3418300893015003589}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a863f69ecca2a4489a7760d3911254b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _audioSource: {fileID: 7422548034942314850}
+  _effectsSource: {fileID: 7422548034942314850}
+  audioClips:
+  - {fileID: 8300000, guid: 1349b094988443e4eb378bdc3880e892, type: 3}
 --- !u!114 &2676105969565321252
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,16 +1,15 @@
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using static BattleSystem;
 
 public class AnimController : MonoBehaviour
 {
-    public GameObject player1;
-    public GameObject player2;
+    public List<PlayableCharacter> partyManager;
+    Animator[] animators;
 
-    private PlayerMovement playerMovement;
-    private Animator playerAnimator;
-    private Animator player2Animator;
 
     public GameObject swordBack;
     public GameObject swordHand;
@@ -22,7 +21,6 @@ public class AnimController : MonoBehaviour
 
     public float num;
     private bool hasBattled = false;
-
 
     private void OnEnable()
     {
@@ -38,41 +36,51 @@ public class AnimController : MonoBehaviour
     {
         return num;
     }
-
     private void Awake()
     {
-        playerAnimator = player1.GetComponent<Animator>();
-        player2Animator = player2.GetComponent<Animator>();
     }
 
     private void Start()
     {
-        playerMovement = player1.GetComponent<PlayerMovement>();
+        partyManager = PartyManager.instance.partyMembers;
+        animators = new Animator[partyManager.Count];
+
+        for (int i = 0; i < partyManager.Count; i++)
+        {
+            animators[i] = partyManager[i].GetComponent<Animator>();
+        }
     }
 
+    // Updates animation state in overworld
     private void Update()
     {
-        if (playerMovement.isMoving)
-        {
-            SetBool("isMoving", true);
-            playerAnimator.SetBool("lookAround", true);
-        }
-        else
-        {
-            SetBool("isMoving", false);
-        }
-
-        if (playerMovement.isSprinting)
-            SetBool("isSprinting", true);
-        else
-            SetBool("isSprinting", false);
-
+        UpdateAnimations();
     }
 
-    public void SetBool(string tag, bool flag)
+    private void UpdateAnimations()
     {
-        playerAnimator.SetBool(tag, flag);
-        player2Animator.SetBool(tag, flag);
+        if (PlayerMovement.instance.isMoving)
+            SetAnimationBools("isMoving", true);
+        else
+            SetAnimationBools("isMoving", false);
+
+        if (PlayerMovement.instance.isSprinting)
+            SetAnimationBools("isSprinting", true);
+        else
+            SetAnimationBools("isSprinting", false);
+    }
+
+
+    public void SetAnimationBools(string tag, bool flag)
+    {
+        foreach (Animator animator in animators)
+            animator.SetBool(tag, flag);
+    }
+
+    public void SetAnimationTriggers(string tag)
+    {
+        foreach (Animator animator in animators)
+            animator.SetTrigger(tag);
     }
 
     private void OnLevelWasLoaded(int level)
@@ -82,96 +90,72 @@ public class AnimController : MonoBehaviour
         {
             battleSystem = FindAnyObjectByType<BattleSystem>();
             hasBattled = true;
-            playerAnimator.SetTrigger("battle");
-            player2Animator.SetTrigger("battle");
             swordBack.SetActive(false);
             swordHand.SetActive(true);
         }
-        else if(level == 1)
+        else if (level == 1)
         {
             swordBack.SetActive(true);
             swordHand.SetActive(false);
 
             if (hasBattled)
             {
-                playerAnimator.SetTrigger("battleEnd");
-                player2Animator.SetTrigger("battleEnd");
+                SetAnimationTriggers("battleEnd");
             }
 
             hasBattled = false;
         }
     }
 
-    private void HandlePlayerAction(BattleActionType actionType, Unit player)
+    private void HandlePlayerAction(BattleActionType actionType, Unit player, UnitType u)
     {
         dmgAnimator = player.damageNumbers.GetComponent<Animator>();
         dmgText = player.damageNumbers.GetComponent<TextMeshPro>();
 
-        switch (actionType)
+        if (u == UnitType.Player)
         {
-            case BattleActionType.Start:
-                
-                break;
-            case BattleActionType.Attack:
-                if(player.tag == "Player")
-                {
+
+            switch (actionType)
+            {
+                case BattleActionType.Start:
+                    player.GetComponent<Animator>().SetTrigger("battle");
+                    break;
+                case BattleActionType.Attack:
                     num = ReturnRandomFloat();
-                    playerAnimator.SetTrigger("attack");
-                    playerAnimator.SetFloat("attackAnim", num);
-                }
-                else if(player.tag == "Puck")
-                    player2Animator.SetTrigger("attack");
-                break;
-            case BattleActionType.Damaged:
-                if (player.tag == "Player"){
-                    playerAnimator.SetTrigger("damaged");
-                }
-                else if (player.tag == "Puck")
-                    player2Animator.SetTrigger("damaged");
-                StartCoroutine(ApplyDamageOrHeal(2, player, Color.red));
-                break;
-            case BattleActionType.Healed:
-                StartCoroutine(ApplyDamageOrHeal(2, player, Color.green));
-                break;
-            case BattleActionType.Gaurd:
-                if (player.tag == "Player")
-                    playerAnimator.SetTrigger("gaurd");
-                else if (player.tag == "Puck")
-                    player2Animator.SetTrigger("gaurd");
-                break;
-            case BattleActionType.StopGaurding:
-                if (player.tag == "Player")
-                    playerAnimator.SetTrigger("stopGaurding");
-                else if (player.tag == "Puck")
-                    player2Animator.SetTrigger("stopGaurding");
-                break;
-            case BattleActionType.Arcane:
-                if (player.tag == "Player")
-                    playerAnimator.SetTrigger("arcane");
-                else if (player.tag == "Puck")
-                    player2Animator.SetTrigger("arcane");
-                break;
-            case BattleActionType.Run:
-                if (player.tag == "Player")
-                    playerAnimator.SetTrigger("run");
-                else if (player.tag == "Player")
-                    player2Animator.SetTrigger("run");
-                break;
-            case BattleActionType.Die:
-                if (player.tag == "Player")
-                    playerAnimator.SetTrigger("die");
-                else if (player.tag == "Puck")
-                    player2Animator.SetTrigger("die");
-                break;
-            case BattleActionType.Won:
-                if(player.tag == "Player")
-                    playerAnimator.SetTrigger("battleEnd");
-                else if (player.tag == "Puck")
-                    player2Animator.SetTrigger("battleEnd");
-                break;
-            default:
-                break;
+                    player.GetComponent<Animator>().SetTrigger("attack");
+                    player.GetComponent<Animator>().SetFloat("attackAnim", num);
+                    break;
+                case BattleActionType.Damaged:
+                    player.GetComponent<Animator>().SetTrigger("damaged");
+                    StartCoroutine(ApplyDamageOrHeal(2, player, Color.red));
+                    break;
+                case BattleActionType.Healed:
+                    StartCoroutine(ApplyDamageOrHeal(2, player, Color.green));
+                    break;
+                case BattleActionType.Gaurd:
+                    player.GetComponent<Animator>().SetTrigger("gaurd");
+                    break;
+                case BattleActionType.StopGaurding:
+                    player.GetComponent<Animator>().SetTrigger("stopGaurding");
+                    break;
+                case BattleActionType.Arcane:
+                    player.GetComponent<Animator>().SetTrigger("arcane");
+                    break;
+                case BattleActionType.Run:
+                    player.GetComponent<Animator>().SetTrigger("run");
+                    break;
+                case BattleActionType.Die:
+                    player.GetComponent<Animator>().SetTrigger("die");
+                    break;
+                case BattleActionType.Won:
+                    player.GetComponent<Animator>().SetTrigger("battleEnd");
+                    break;
+                default:
+                    break;
+            }
         }
+        else
+            return;
     }
 
 

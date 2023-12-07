@@ -100,7 +100,7 @@ public class AudioManager : MonoBehaviour
 
     // Play sound effects depending on the enemies action,
     // probably should move this to its own script like the players for each enemies unique sound effects
-    private void HandleEnemyAction(BattleActionType actionType, Unit enemy)
+    private void HandleEnemyAction(BattleActionType actionType, Unit enemy, UnitType u)
     {
         switch (actionType)
         {

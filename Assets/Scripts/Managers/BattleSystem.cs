@@ -54,7 +54,7 @@ public class BattleSystem : MonoBehaviour
 
 
     // Event for handling player and enemy animations
-    public delegate void BattleActionHandler(BattleActionType actionType, Unit unit);
+    public delegate void BattleActionHandler(BattleActionType actionType, Unit unit, UnitType unitType);
     public static event BattleActionHandler OnBattleAction;
 
     // Event for handling general battle audio/animation
@@ -69,15 +69,19 @@ public class BattleSystem : MonoBehaviour
 
     private void Awake()
     {
-        List<PlayableCharacter> partyManager = PartyManager.instance.partyMembers;
-        Dictionary<string, GameObject> enemyDictionary = new Dictionary<string, GameObject>();
+        partyManager = PartyManager.instance.partyMembers;
+        enemyDictionary = new Dictionary<string, GameObject>();
+        baseDefenses = new int[partyManager.Count];
 
         Cursor.lockState = CursorLockMode.None;
 
         foreach (GameObject enemy in enemyPrefabList)
             enemyDictionary.Add(enemy.tag, enemy);
 
-        levelUpManager = GetComponent<LevelUpManager>();
+        for(int i = 0; i < partyManager.Count; i++)
+            partyManager[i].baseDefense = baseDefenses[i];
+
+            levelUpManager = GetComponent<LevelUpManager>();
     }
 
     void Start()
@@ -117,15 +121,12 @@ public class BattleSystem : MonoBehaviour
     /// </summary>
     private void SetupPlayers()
     {
-        Debug.Log(partyManager.Count);
         for (int i = 0; i < partyManager.Count; i++) 
         {
             PlayableCharacter member = PartyManager.instance.partyMembers[i];
-            Debug.Log(member.unitName);
 
             // Calculate the position index based on the number of party members
             int positionIndex = CalculatePositionIndex(partyManager.Count, i);
-            Debug.Log(positionIndex);
 
             // Position each character based on the calculated index
             member.transform.position = playerBattleStations[positionIndex].position;
@@ -135,6 +136,7 @@ public class BattleSystem : MonoBehaviour
             // Character specific changes
             if(member.tag == "Guts")
             {
+                member.GetComponent<CharacterController>().enabled = false;
                 PlayerMovement.instance.isMoving = false;
                 PlayerMovement.instance.enabled = false;
             }
@@ -143,7 +145,6 @@ public class BattleSystem : MonoBehaviour
                 member.transform.localScale = new Vector3(3, 3, 3);
                 Puck.instance.GetComponent<Follow>().enabled = false;
             }
-
         }
 
         battleHUD.UpdateHUDs();
@@ -188,11 +189,11 @@ public class BattleSystem : MonoBehaviour
         }
 
         foreach (PlayableCharacter player in partyManager)
-            OnBattleAction(BattleActionType.Start, player);
+            OnBattleAction(BattleActionType.Start, player, UnitType.Player);
 
         // foreach enemy, play the start animation
         foreach (Unit enemy in activeEnemies)
-            OnBattleAction(BattleActionType.Start, enemy);
+            OnBattleAction(BattleActionType.Start, enemy, UnitType.Enemy);
 
 
         //if (num == 1)
@@ -340,7 +341,9 @@ public class BattleSystem : MonoBehaviour
     private void ResetStats()
     {
         for (int i = 0; i < partyManager.Count; i++)
+        {
             partyManager[i].baseDefense = baseDefenses[i];
+        }
     }
 
     /// <summary>
@@ -432,7 +435,7 @@ public class BattleSystem : MonoBehaviour
         LastDamage = damage;
         isDead = selectedUnit.TakeDamage(damage);
         StartCoroutine(RotatePlayer(player, selectedEnemy));
-        OnBattleAction(BattleActionType.Damaged, selectedEnemy);
+        OnBattleAction(BattleActionType.Damaged, selectedEnemy, UnitType.Enemy);
 
 
         ////dialogueText.text = selectedEnemy.unitName + " takes " + damage + " damage.";
@@ -448,7 +451,7 @@ public class BattleSystem : MonoBehaviour
 
     private void HandleEnemyDefeat(Unit enemy)
     {
-        OnBattleAction(BattleActionType.Die, enemy);
+        OnBattleAction(BattleActionType.Die, enemy, UnitType.Enemy);
         levelUpManager.GainXPAndGold(enemy);
 
         // Slowly shrink enemy
@@ -493,7 +496,7 @@ public class BattleSystem : MonoBehaviour
     {
         PlayableCharacter currentPlayer = partyManager[currentPlayerIndex];
 
-        OnBattleAction(BattleActionType.Gaurd, currentPlayer);
+        OnBattleAction(BattleActionType.Gaurd, currentPlayer, UnitType.Player);
         currentPlayer.baseDefense *= 2;
         SetButtonsActive(false);
         yield return new WaitForSeconds(2f);
@@ -513,10 +516,14 @@ public class BattleSystem : MonoBehaviour
 
         PlayableCharacter currentPlayer = partyManager[currentPlayerIndex];
 
+        currentPlayer.transform.position = new Vector3(selectedUnit.transform.position.x,
+            selectedUnit.transform.position.y,
+            selectedUnit.transform.position.z - 3);
+
         StartCoroutine(PlayerAction(currentPlayer, selectedUnit, damageStat, DetermineDamage));
         SetHighlightable(false);
-        OnBattleAction(BattleActionType.Attack, currentPlayer);
-
+        OnBattleAction(BattleActionType.Attack, currentPlayer, UnitType.Player);
+        selectedUnit = null;
     }
 
     IEnumerator WaitForArcaneSelection(int damageStat)
@@ -549,7 +556,7 @@ public class BattleSystem : MonoBehaviour
 
         PlayableCharacter currentPlayer = partyManager[currentPlayerIndex];
         LastDamage = healingAmnt;
-        OnBattleAction(BattleActionType.Healed, currentPlayer);
+        OnBattleAction(BattleActionType.Healed, currentPlayer, UnitType.Player);
         battleHUD.UpdateAllStats(currentPlayer);
         yield return new WaitForSeconds(2f);
         AdvanceTurn();
@@ -567,7 +574,6 @@ public class BattleSystem : MonoBehaviour
         SetButtonsActive(false);
         UpdatePlayerStates();
 
-
         foreach (Unit enemy in activeEnemies)
         {
             // If the enemy can use magic, give them a chance of doing so
@@ -575,13 +581,13 @@ public class BattleSystem : MonoBehaviour
             yield return new WaitForSeconds(1.5f);
 
             ////dialogueText.text = enemyUnit.unitName + " attacks!";
-            
+
             // Select target from active players
             PlayableCharacter target = SelectTarget();
             int dmg = attackType == 0 ? DetermineDamage(enemy.baseAttack, target, null)
                                   : DetermineDamageArcane(enemy.baseArcane, target, null);
 
-            OnBattleAction(BattleActionType.Attack, enemy);
+            OnBattleAction(BattleActionType.Attack, enemy, UnitType.Enemy);
             DealDamage(target, dmg);
 
 
@@ -592,17 +598,18 @@ public class BattleSystem : MonoBehaviour
                 yield break; // Exit the coroutine
             }
 
-            // Reset defense after gaurding is complete
-            ResetStats();
-            //OnBattleAction(BattleActionType.StopGaurding, playerUnit);
-            //OnBattleAction(BattleActionType.StopGaurding, player2Unit);
-
-            AdvanceTurn();
         }
+
+        // Reset defense after gaurding is complete
+        ResetStats();
+        foreach (PlayableCharacter player in partyManager)
+            OnBattleAction(BattleActionType.StopGaurding, player, UnitType.Player);
+        currentPlayerIndex = 0;
+        state = BattleState.PLAYERTURN;
+        PlayerTurn(); // Handle the next player's turn    }
     }
 
-
-    private void UpdatePlayerStates()
+        private void UpdatePlayerStates()
     {
         foreach (var player in partyManager)
         {
@@ -636,13 +643,13 @@ public class BattleSystem : MonoBehaviour
     {
         LastDamage = damage;
         bool isDead = player.TakeDamage(damage);
-        OnBattleAction(BattleActionType.Damaged, player);
+        OnBattleAction(BattleActionType.Damaged, player, UnitType.Player);
         battleHUD.UpdateAllStats(player);
         ////dialogueText.text = player.unitName + " takes " + damage + " damage!";
 
         // if the hit kills the player, play the death animation
         if (isDead)
-            OnBattleAction(BattleActionType.Die, player);
+            OnBattleAction(BattleActionType.Die, player, UnitType.Player);
     }
     #endregion
 
@@ -660,7 +667,7 @@ public class BattleSystem : MonoBehaviour
 
         foreach(var player in partyManager)
         {
-            OnBattleAction(BattleActionType.Won, player);
+            OnBattleAction(BattleActionType.Won, player, UnitType.Player);
          
             if(player.tag == "Puck")
                 player.transform.localScale = new Vector3(2, 2, 2);
@@ -679,6 +686,8 @@ public class BattleSystem : MonoBehaviour
     /// </summary>
     void Update()
     {
+        Debug.Log("Turn index = " + currentPlayerIndex + " State: " + state);
+
         if (canSelect)
         {
             // Highlight
@@ -780,8 +789,8 @@ public class BattleSystem : MonoBehaviour
             weapon = playersWeapon.GetComponent<Weapon>();
 
         // Determine the defensive stat of the unit
-        int armorDefense = (recievingDmg.equippedArmor != null) ? recievingDmg.equippedArmor.defense : 0;
-        int damage = Mathf.Max(1, givingDmgStat - recievingDmg.baseDefense - armorDefense);
+        //int armorDefense = (recievingDmg.equippedArmor != null) ? recievingDmg.equippedArmor.defense : 0;
+        int damage = Mathf.Max(1, givingDmgStat - recievingDmg.baseDefense /*- armorDefense*/);
 
         if (weapon != null)
             damage += weapon.attack;

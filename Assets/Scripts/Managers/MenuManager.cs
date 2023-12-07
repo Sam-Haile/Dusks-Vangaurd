@@ -37,10 +37,7 @@ public class MenuManager : MonoBehaviour
         pauseGame = gameObject.GetComponent<PauseGame>();
 
         for (int i = 0; i < players.Length; i++)
-            PartyManager.instance.
-                
-                
-                (players[i]);
+            PartyManager.instance.AddPlayerToList(players[i]);
     }
 
     private void OnEnable()

@@ -25,7 +25,6 @@ public class PartyManager : MonoBehaviour
     public void AddPlayerToList(PlayableCharacter player)
     {
         partyMembers.Add(player);
-        Debug.Log("Added " +  player.name);
     }
 
     // Method to remove a player from the party

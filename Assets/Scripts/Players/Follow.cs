@@ -26,12 +26,12 @@ public class Follow : MonoBehaviour
     {
         if (Vector3.Distance(this.transform.position, targetPos.position) > maxDistance)
         {
-            fairyDust.enabled = true;
+            //fairyDust.enabled = true;
             MoveTowardsTarget();
         }
         else
         {
-            fairyDust.enabled = false;
+            //fairyDust.enabled = false;
         }
 
     }

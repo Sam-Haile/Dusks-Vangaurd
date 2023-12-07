@@ -45,53 +45,44 @@ public class MonsterAnimController : MonoBehaviour
         BattleSystem.OnBattleAction -= HandleEnemyAction;
     }
 
-    private void HandleEnemyAction(BattleActionType actionType, Unit enemy)
+    private void HandleEnemyAction(BattleActionType actionType, Unit enemy, UnitType u)
     {
         dmgAnimator = enemy.damageNumbers.GetComponent<Animator>();
         dmgText = enemy.damageNumbers.GetComponent<TextMeshPro>();
 
-        switch (actionType)
+        if (u == UnitType.Enemy)
         {
-            case BattleActionType.Start:
-                enemy.GetComponent<Animator>().SetTrigger("battle");
-                break;
-            case BattleActionType.Attack:
-                enemy.GetComponent<Animator>().SetTrigger("attack");
-                break;
-            case BattleActionType.Gaurd:
-                enemy.GetComponent<Animator>().SetTrigger("gaurd");
-                break;
-            case BattleActionType.Arcane:
-                enemy.GetComponent<Animator>().SetTrigger("arcane");
-                break;
-            case BattleActionType.Die:
-                num = ReturnRandomFloat();
-                enemy.GetComponent<Animator>().SetTrigger("die");
-                enemy.GetComponent<Animator>().SetFloat("deathAnim", num);
-                break;
-            case BattleActionType.Damaged:
-                StartCoroutine(WaitForReaction(1f, 0f, "damaged", enemy.GetComponent<Animator>()));
 
-                StartCoroutine(DamageEnemy(2, enemy));
+            switch (actionType)
+            {
+                case BattleActionType.Start:
+                    enemy.GetComponent<Animator>().SetTrigger("battle");
+                    break;
+                case BattleActionType.Attack:
+                    enemy.GetComponent<Animator>().SetTrigger("attack");
+                    break;
+                case BattleActionType.Gaurd:
+                    enemy.GetComponent<Animator>().SetTrigger("gaurd");
+                    break;
+                case BattleActionType.Arcane:
+                    enemy.GetComponent<Animator>().SetTrigger("arcane");
+                    break;
+                case BattleActionType.Die:
+                    num = ReturnRandomFloat();
+                    enemy.GetComponent<Animator>().SetTrigger("die");
+                    enemy.GetComponent<Animator>().SetFloat("deathAnim", num);
+                    break;
+                case BattleActionType.Damaged:
+                    StartCoroutine(WaitForReaction(1f, 0f, "damaged", enemy.GetComponent<Animator>()));
+                    StartCoroutine(DamageEnemy(2, enemy));
 
-                //animControllerNum = animController.GetNumValue();
-                //if (animControllerNum < .33)
-
-                //else if (animControllerNum > .33 && animControllerNum < .66)
-                //{
-                //    StartCoroutine(WaitForReaction(1f, 0f, "damaged", enemy));
-                //    StartCoroutine(WaitForReaction(.5f, 0f, "damaged", enemy));
-                //}
-                //else
-                //{
-                //    StartCoroutine(WaitForReaction(1f, 0f, "damaged", enemy));
-                //    StartCoroutine(WaitForReaction(.5f, 0f, "damaged", enemy));
-                //    StartCoroutine(WaitForReaction(.5f, 0f, "damaged", enemy));
-                //}
-                break;
-            default:
-                break;
+                    break;
+                default:
+                    break;
+            }
         }
+        else
+            return;
     }
 
 

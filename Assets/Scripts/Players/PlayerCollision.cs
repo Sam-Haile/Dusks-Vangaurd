@@ -51,6 +51,8 @@ public class PlayerCollision : MonoBehaviour
         {
             currentSceneName = SceneManager.GetActiveScene().name;
             PlayerMovement.instance.enabled = false;
+            PlayerMovement.instance.isMoving = false;
+            PlayerMovement.instance.isSprinting = false;
             beforeBattlePos = new Vector3(transform.position.x, transform.position.y + 1, transform.position.z);
             isBattleInitiated = true;
             OnBattleTriggered?.Invoke();

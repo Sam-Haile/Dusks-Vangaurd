@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
+public enum UnitType {Player, Enemy }
+
 public class Unit : MonoBehaviour
 {
+    public UnitType Type { get; set; }
+
     public event Action OnStatsChanged;
 
     public string unitName;
