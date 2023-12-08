@@ -28,7 +28,7 @@ public class BattleCameraMover : MonoBehaviour
                     StartCoroutine(MoveCamera(cameraPositions[cameraPos].transform.position, cameraPositions[cameraPos].transform.rotation, .5f, 60));
                 break;
                 case CameraActionType.GoToPos:
-                    StartCoroutine(MoveCamera(cameraPositions[cameraPos].transform.position, cameraPositions[cameraPos].transform.rotation, .5f, 105));
+                    StartCoroutine(MoveCamera(cameraPositions[cameraPos].transform.position, cameraPositions[cameraPos].transform.rotation, .5f, 70));
                         break;
                 default:
                     break;

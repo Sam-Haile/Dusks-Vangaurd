@@ -5,18 +5,15 @@ using UnityEngine.UI;
 
 public class BattleHUD : MonoBehaviour
 {
-    
     public HudInfo[] hudInfos = new HudInfo[4]; // Max 4 players in a battle
 
     public TextMeshProUGUI gold;
 
-    public Unit guts;
-    public Unit puck;
+    private Unit guts;
 
     private void Awake()
     {
         guts = FindObjectOfType<Player>();
-        puck = FindObjectOfType<Puck>();
     }
 
     public void UpdateHUDs()
@@ -24,13 +21,9 @@ public class BattleHUD : MonoBehaviour
         for (int i = 0; i < hudInfos.Length; i++)
         {
             if (PartyManager.instance.partyMembers[i] != null)
-            {
                 hudInfos[i].UpdateBattleStats(PartyManager.instance.partyMembers[i]);
-            }
             else
-            {
                 hudInfos[i].gameObject.SetActive(false);
-            }
         }
     }
 
@@ -44,27 +37,26 @@ public class BattleHUD : MonoBehaviour
     {
 
         if(unit.tag == "Player")
-        {
             SetHUD();
-        }
+        
         UpdateHUDs();
         
     }
 
 
-    private void OnLevelWasLoaded(int level)
-    {
-        if (level == 1)
-        {
-            UpdateAllStats(guts);
-            UpdateAllStats(puck);
-        }
-    }
+    //private void OnLevelWasLoaded(int level)
+    //{
+    //    if (level == 1)
+    //    {
+    //        UpdateAllStats(guts);
+    //        UpdateAllStats(puck);
+    //    }
+    //}
 
-    IEnumerator UpdateStats()
-    {
-        yield return new WaitForSeconds(3f);
-        UpdateAllStats(guts);
-    }
+    //IEnumerator UpdateStats()
+    //{
+    //    yield return new WaitForSeconds(3f);
+    //    UpdateAllStats(guts);
+    //}
 
 }

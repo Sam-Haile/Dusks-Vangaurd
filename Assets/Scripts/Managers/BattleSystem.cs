@@ -79,7 +79,6 @@ public class BattleSystem : MonoBehaviour
         enemyDictionary = new Dictionary<string, GameObject>();
         baseDefenses = new int[partyManager.Count];
 
-        Cursor.lockState = CursorLockMode.None;
 
         foreach (GameObject enemy in enemyPrefabList)
             enemyDictionary.Add(enemy.tag, enemy);
@@ -174,7 +173,7 @@ public class BattleSystem : MonoBehaviour
 
         List<string> keys = new List<string>(enemyDictionary.Keys);
 
-        int num = NumOfEnemies();
+        int num = 2;
 
         if (num == 1)
         {
@@ -445,16 +444,21 @@ public class BattleSystem : MonoBehaviour
         LastDamage = damage;
         isDead = selectedUnit.TakeDamage(damage);
         StartCoroutine(RotatePlayer(player, selectedEnemy));
+
+        yield return new WaitForSeconds(1f);
         OnBattleAction(BattleActionType.Damaged, selectedEnemy, UnitType.Enemy);
-
-
-        ////dialogueText.text = selectedEnemy.unitName + " takes " + damage + " damage.";
-        yield return new WaitForSeconds(2f);
 
         PlayableCharacter currentPlayer = partyManager[currentPlayerIndex];
 
+        yield return new WaitForSeconds(2f);
         OnCameraAction(CameraActionType.GoToStart, 5);
-        StartCoroutine(MoveOverTimeWithJump(currentPlayer.gameObject, playerBattleStations[currentPlayer.battleIndex].transform.position, .5f, 2f)); // Assuming 1f is the jump height
+        
+        //Do not trigger the jump coroutine because Puck can fly
+        if (currentPlayer.tag == "Puck") 
+            StartCoroutine(MoveOverTime(currentPlayer.gameObject, playerBattleStations[currentPlayer.battleIndex].transform.position, .5f)); // Assuming 1f is the jump height
+        else
+            StartCoroutine(MoveOverTimeWithJump(currentPlayer.gameObject, playerBattleStations[currentPlayer.battleIndex].transform.position, .5f, 2f)); // Assuming 1f is the jump height
+
         OnBattleAction(BattleActionType.RunBack, currentPlayer, UnitType.Player);
         
         
@@ -658,14 +662,22 @@ public class BattleSystem : MonoBehaviour
 
         // Reset defense after gaurding is complete
         ResetStats();
+
+        // wait for the enemies turn to end before doing the rest of this code:
+        yield return new WaitForSeconds(3f);
+
         foreach (PlayableCharacter player in partyManager)
+        {
+            Debug.Log("StopGaurding");
             OnBattleAction(BattleActionType.StopGaurding, player, UnitType.Player);
+        }
+
         currentPlayerIndex = 0;
         state = BattleState.PLAYERTURN;
         PlayerTurn(); // Handle the next player's turn    }
     }
 
-        private void UpdatePlayerStates()
+    private void UpdatePlayerStates()
     {
         foreach (var player in partyManager)
         {
@@ -729,7 +741,6 @@ public class BattleSystem : MonoBehaviour
                 player.transform.localScale = new Vector3(2, 2, 2);
         }
 
-        Cursor.lockState = CursorLockMode.Locked;
         SceneManager.LoadScene(sceneIndex);
     }
 

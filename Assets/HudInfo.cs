@@ -30,6 +30,8 @@ public class HudInfo : MonoBehaviour
     public Slider mpSlider;
     public Image selectedUnit;
 
+    public Image playerSprite;
+
     public void UpdateBattleStats(Unit unit)
     {
         characterName.text = unit.unitName;
@@ -60,8 +62,18 @@ public class HudInfo : MonoBehaviour
         arcane.text = unit.baseArcane.ToString();
         defense.text = unit.baseDefense.ToString();
         spcDefense.text = unit.specialDefense.ToString();
-        maxMP.text = unit.maxMP.ToString();
-        currentMP.text = unit.currentMP.ToString();
+        //maxMP.text = unit.maxMP.ToString();
+        //currentMP.text = unit.currentMP.ToString();
         level.text = unit.unitLevel.ToString();
+    }
+
+    public void UpdatePartyMenu(PlayableCharacter player)
+    {
+        characterName.text = player.unitName;
+        level.text = player.unitLevel.ToString();
+        currentHP.text = player.currentHP.ToString();
+        maxHP.text = "/" + player.maxHP.ToString();
+        hpSlider.value = player.currentHP / player.maxHP;
+        mpSlider.value = player.currentMP / player.maxMP;
     }
 }

@@ -37,25 +37,19 @@ public class ParticleManager : MonoBehaviour
             {
                 case BattleActionType.Start:
                     if (player.tag == "Player") { }
-                    //StartCoroutine(PlayParticles(battleStart, 1.25f, 3f));
+                    StartCoroutine(PlayParticles(battleStart, 1.25f, 3f));
                     break;
                 case BattleActionType.Attack:
                     if (player.tag == "Player")
                     {
-                        animControllerNum = animController.GetNumValue();
-                        if (animControllerNum < .33)
-                            StartCoroutine(PlayParticles(attack1Particles, 1.15f, 1f));
-                        else if (animControllerNum > .33 && animControllerNum < .66)
-                        {
-                            StartCoroutine(PlayParticles(attack1Particles, 1.15f, 1f));
-                            StartCoroutine(PlayParticles(attack2Particles, 1.75f, 1f));
-                        }
-                        else
-                        {
-                            StartCoroutine(PlayParticles(attack1Particles, 1.15f, 1f));
-                            StartCoroutine(PlayParticles(attack2Particles, 1.75f, 1f));
-                            StartCoroutine(PlayParticles(attack3Particles, 2.5f, 3f));
-                        }
+                        //animControllerNum = animController.GetNumValue();
+                        //if (animControllerNum < .33)
+                        //else if (animControllerNum > .33 && animControllerNum < .66)
+                        //{
+                        //}
+                        //else
+                        //{
+                        //}
                     }
                     break;
                 case BattleActionType.Gaurd:

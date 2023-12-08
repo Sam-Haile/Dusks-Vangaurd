@@ -2773,7 +2773,7 @@ Transform:
   - {fileID: 8818917173796820174}
   - {fileID: 8089543790909455756}
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!95 &2136258116294128890
 Animator:
@@ -2875,6 +2875,7 @@ MonoBehaviour:
   equippedWeapon: {fileID: 0}
   equippedArmor: {fileID: 0}
   damageNumbers: {fileID: 8583439214655989540}
+  battleIndex: 0
 --- !u!114 &541079328621310103
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3665,7 +3666,7 @@ RectTransform:
   m_LocalRotation: {x: -0.009700525, y: -0.90852153, z: 0.021124937, w: -0.4171911}
   m_LocalPosition: {x: 0, y: 0, z: -0.20000005}
   m_LocalScale: {x: 0.084519975, y: 0.08452, z: 0.08451998}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 695123025991765774}
   m_RootOrder: -1
@@ -3746,8 +3747,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4278190282
-  m_fontColor: {r: 0.7924528, g: 0, b: 0, a: 1}
+    rgba: 4227858687
+  m_fontColor: {r: 1, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:

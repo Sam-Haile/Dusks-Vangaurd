@@ -84,13 +84,6 @@ public class PlayerMovement : MonoBehaviour
             HandleAnimations();
         }
 
-        if(this.isActiveAndEnabled) { 
-            Cursor.lockState = CursorLockMode.Locked;
-        }
-        else if(!this.isActiveAndEnabled || Time.timeScale == 0)
-        {
-            Cursor.lockState = CursorLockMode.None;
-        }
     }
 
     private void Sprint()

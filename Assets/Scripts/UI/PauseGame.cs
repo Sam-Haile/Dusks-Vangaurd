@@ -8,6 +8,8 @@ public class PauseGame : MonoBehaviour
 
     public GameObject pauseMenu;
     public GameObject pausePanel;
+    public GameObject panelBackground;
+    public GameObject statsMenu;
     public GameObject saveLoadMenu;
     public GameObject pointer;
     public GameObject inventoryMenu;
@@ -27,6 +29,8 @@ public class PauseGame : MonoBehaviour
 
     private MenuManager menuManager;
 
+
+
     private void Start()
     {
         menuManager = GetComponent<MenuManager>();
@@ -36,10 +40,10 @@ public class PauseGame : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            Cursor.lockState = CursorLockMode.None;
+            ResetMenu();
             pauseMenu.SetActive(!pauseMenu.activeSelf);
 
-            if (!pauseMenu.activeSelf)
+            if (!pauseMenu.activeSelf) // if pause menu was off
             {
                 saveLoadMenu.SetActive(false);
                 pointer.SetActive(false);
@@ -50,6 +54,7 @@ public class PauseGame : MonoBehaviour
             }
             else
             {
+                Cursor.lockState = CursorLockMode.None;
                 isPaused = true;
                 //reset the pause menu if left on the settings
                 pointer.SetActive(false);
@@ -64,8 +69,12 @@ public class PauseGame : MonoBehaviour
             }
         }
 
-    }
+        if (pauseMenu.activeSelf)
+            Cursor.lockState = CursorLockMode.None;
+        else
+            Cursor.lockState = CursorLockMode.Locked;
 
+    }
 
     public void OnResume()
     {
@@ -78,6 +87,13 @@ public class PauseGame : MonoBehaviour
     {
         pauseMenu?.SetActive(false);
         SceneManager.LoadScene(0);
+    }
+
+
+    public void ResetMenu()
+    {
+        panelBackground.SetActive(true);
+        statsMenu.SetActive(true);
     }
 
 }

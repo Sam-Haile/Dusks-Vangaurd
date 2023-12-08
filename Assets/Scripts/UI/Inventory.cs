@@ -16,10 +16,7 @@ public class Inventory : MonoBehaviour
         { ItemType.Consumable, new List<Item>() }
     };
 
-    public PlayableCharacter player1;
-    public PlayableCharacter player2;
-
-    public List<Button> itemsSlots= new List<Button>();
+    public List<Button> itemsSlots = new List<Button>();
     private ItemType currentType;
     private Item chosenItem;
 

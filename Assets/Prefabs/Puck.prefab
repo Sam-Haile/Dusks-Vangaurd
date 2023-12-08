@@ -271,7 +271,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4278190282
-  m_fontColor: {r: 0.7924528, g: 0, b: 0, a: 1}
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -288,7 +288,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
+  m_fontSize: 46.65
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -6393,6 +6393,7 @@ MonoBehaviour:
   equippedWeapon: {fileID: 0}
   equippedArmor: {fileID: 0}
   damageNumbers: {fileID: 288021975817705240}
+  battleIndex: 0
   expToNextLevel: 100
   weaponSlot: {fileID: 0}
   armorSlot: {fileID: 0}
@@ -6401,6 +6402,8 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   isActive: 1
+  uiHUD: {fileID: 0}
+  isDead: 0
 --- !u!114 &9140985099492456656
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6414,7 +6417,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetPos: {fileID: 0}
-  playerMovement: {fileID: 0}
   follow: 1
   _promptParticles: {fileID: 4165443926899159043}
 --- !u!95 &3362225789780787042
@@ -9444,7 +9446,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6913961010704723450}
   m_LocalRotation: {x: 0.01434918, y: -0.05101007, z: -0.0027924578, w: 0.9985912}
-  m_LocalPosition: {x: 0.0003900677, y: 0.1112794, z: 0.0010147579}
+  m_LocalPosition: {x: 0.00039100647, y: 0.11127901, z: 0.0010146913}
   m_LocalScale: {x: 0.9999999, y: 0.99999994, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -9872,7 +9874,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7502196779228423010}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
   m_LocalPosition: {x: -0.03, y: 0.333, z: 0}
   m_LocalScale: {x: 0.25, y: 0.25, z: 0.25}
   m_ConstrainProportionsScale: 0
@@ -9880,7 +9882,7 @@ Transform:
   - {fileID: 1087081292779381979}
   m_Father: {fileID: 3782972388251762408}
   m_RootOrder: -1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!1 &7670426439959557133
 GameObject:
   m_ObjectHideFlags: 0
