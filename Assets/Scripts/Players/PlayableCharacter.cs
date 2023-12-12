@@ -20,7 +20,9 @@ public class PlayableCharacter : Unit
     public GameObject uiHUD;
     public bool isDead = false;
 
-    public Sprite playerSprite;
+    public Sprite playerSpriteHead;
+    public Sprite playerSpriteFull;
+
     
     public void AddExperience(int exp)
     {

@@ -20,6 +20,11 @@ TagManager:
   - Skeleton_J
   - Boss
   - Soldier_A
+  - Soldier_B
+  - Soldier_C
+  - Soldier_D
+  - Soldier_E
+  - Soldier_F
   layers:
   - Default
   - TransparentFX

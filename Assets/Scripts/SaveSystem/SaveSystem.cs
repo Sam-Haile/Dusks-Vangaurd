@@ -51,7 +51,7 @@ public static class SaveSystem {
         FileStream stream = new FileStream(path, FileMode.Create);
 
         EnemyData data = new EnemyData();
-        // Assuming you have a way to get all the enemies' states
+
         foreach (var enemy in GameData.enemies)
         {
             var enemyAI = enemy.GetComponent<EnemyAI>();

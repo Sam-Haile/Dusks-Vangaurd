@@ -28,13 +28,11 @@ public class MenuManager : MonoBehaviour
     public GameObject[] saveSlots;
     public LocationNameUpdater location;
 
-    public Animator battleTransition;
-
-
-    public GameObject 
+    public Animator saveLoadTransition;
 
     private void Start()
     {
+        saveLoadTransition = GetComponent<Animator>();
         pauseGame = gameObject.GetComponent<PauseGame>();
 
         for (int i = 0; i < players.Length; i++)
@@ -163,7 +161,6 @@ public class MenuManager : MonoBehaviour
 
     public void OnLoad(int saveSlotID)
     {
-        battleTransition.SetTrigger("End");
         if (SceneManager.GetActiveScene().buildIndex == 1)
         {
             foreach(PlayableCharacter player in players)
@@ -189,6 +186,9 @@ public class MenuManager : MonoBehaviour
             }
 
         }
+
+        Debug.Log("Starting");
+        saveLoadTransition.SetTrigger("Start");
 
         StartCoroutine(BattleTranstion(2f));
     }
@@ -304,7 +304,7 @@ public class MenuManager : MonoBehaviour
     IEnumerator BattleTranstion(float waitTime)
     {
         yield return new WaitForSeconds(waitTime);
-        battleTransition.SetTrigger("Start");
+        saveLoadTransition.SetTrigger("Start");
     }
 
     public void QuitToMenu(int sceneIndex)

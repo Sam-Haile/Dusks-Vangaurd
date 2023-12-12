@@ -9,8 +9,8 @@ EditorBuildSettings:
     path: Assets/Scenes/000.unity
     guid: 65bce7f84fa822b4eb375378f7e69648
   - enabled: 1
-    path: Assets/Scenes/003.unity
-    guid: be30fcbf6cc85ad499635ccc32d93718
+    path: Assets/Scenes/004 (KokaCastle).unity
+    guid: be1e94c133e4cee4cbf78fb75c4c6332
   - enabled: 1
     path: Assets/Scenes/BattleScene.unity
     guid: 2cda990e2423bbf4892e6590ba056729

@@ -12,9 +12,11 @@ public class PauseGame : MonoBehaviour
     public GameObject statsMenu;
     public GameObject saveLoadMenu;
     public GameObject pointer;
-    public GameObject inventoryMenu;
-
+    public GameObject systemButtons;
+    public GameObject comingSoon;
     public GameObject settingsMenu;
+    public GameObject equipMenu;
+    public GameObject partyMenus;
     public GameObject[] pauseOptions;
 
     public Slider volumeSlider;
@@ -68,11 +70,14 @@ public class PauseGame : MonoBehaviour
                 Time.timeScale = 0;
             }
         }
+        if (SceneManager.GetActiveScene().name != "BattleScene")
+        {
 
-        if (pauseMenu.activeSelf)
-            Cursor.lockState = CursorLockMode.None;
-        else
-            Cursor.lockState = CursorLockMode.Locked;
+            if (pauseMenu.activeSelf)
+                Cursor.lockState = CursorLockMode.None;
+            else
+                Cursor.lockState = CursorLockMode.Locked;
+        }
 
     }
 
@@ -94,6 +99,10 @@ public class PauseGame : MonoBehaviour
     {
         panelBackground.SetActive(true);
         statsMenu.SetActive(true);
+        systemButtons.SetActive(false);
+        partyMenus.SetActive(true);
+        equipMenu.SetActive(false);
+        comingSoon.SetActive(false);
     }
 
 }

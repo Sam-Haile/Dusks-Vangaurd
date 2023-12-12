@@ -2773,7 +2773,7 @@ Transform:
   - {fileID: 8818917173796820174}
   - {fileID: 8089543790909455756}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!95 &2136258116294128890
 Animator:
@@ -2902,7 +2902,7 @@ MonoBehaviour:
   isTurning: 0
   isRunning: 0
   isWalking: 0
-  boxCollider: {fileID: 0}
+  boxCollider: {fileID: 2901583500878327639}
   isDefeated: 0
   enemyID: 
 --- !u!114 &2763239084965096406
@@ -3649,7 +3649,7 @@ GameObject:
   - component: {fileID: 5571354765211578477}
   - component: {fileID: 4648243255177342261}
   - component: {fileID: 3461300066545324710}
-  m_Layer: 2
+  m_Layer: 8
   m_Name: DamageNumbers
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3747,7 +3747,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4227858687
+    rgba: 4278190335
   m_fontColor: {r: 1, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3

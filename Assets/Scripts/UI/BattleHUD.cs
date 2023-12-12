@@ -1,7 +1,5 @@
-﻿using System.Collections;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class BattleHUD : MonoBehaviour
 {
@@ -15,15 +13,17 @@ public class BattleHUD : MonoBehaviour
     {
         guts = FindObjectOfType<Player>();
     }
+    private void Start()
+    {
+        UpdateHUDs();
+    }
 
     public void UpdateHUDs()
     {
-        for (int i = 0; i < hudInfos.Length; i++)
+        for (int i = 0; i < PartyManager.instance.partyMembers.Count; i++)
         {
-            if (PartyManager.instance.partyMembers[i] != null)
                 hudInfos[i].UpdateBattleStats(PartyManager.instance.partyMembers[i]);
-            else
-                hudInfos[i].gameObject.SetActive(false);
+                hudInfos[i].gameObject.SetActive(true);
         }
     }
 

@@ -30,16 +30,17 @@ public class HudInfo : MonoBehaviour
     public Slider mpSlider;
     public Image selectedUnit;
 
-    public Image playerSprite;
+    public Image playerSpriteHead;
+    public Image playerSpriteFull;
 
     public void UpdateBattleStats(Unit unit)
     {
         characterName.text = unit.unitName;
 
-        maxHP.text = unit.maxHP.ToString();
+        maxHP.text = "/" + unit.maxHP.ToString();
         currentHP.text = unit.currentHP.ToString();
 
-        maxMP.text = unit.maxMP.ToString();
+        maxMP.text = "/" + unit.maxMP.ToString();
         currentMP.text = unit.currentMP.ToString();
 
         hpSlider.minValue = 0;
@@ -75,5 +76,6 @@ public class HudInfo : MonoBehaviour
         maxHP.text = "/" + player.maxHP.ToString();
         hpSlider.value = player.currentHP / player.maxHP;
         mpSlider.value = player.currentMP / player.maxMP;
+        playerSpriteFull.sprite = player.playerSpriteFull;
     }
 }

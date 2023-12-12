@@ -84,7 +84,7 @@ public class BattleSystem : MonoBehaviour
             enemyDictionary.Add(enemy.tag, enemy);
 
         for(int i = 0; i < partyManager.Count; i++)
-            partyManager[i].baseDefense = baseDefenses[i];
+             baseDefenses[i] = partyManager[i].baseDefense;
 
             levelUpManager = GetComponent<LevelUpManager>();
     }
@@ -96,6 +96,7 @@ public class BattleSystem : MonoBehaviour
         PlayerCollision.instance.battleTransitionAnimator.SetTrigger("Start");
         StartCoroutine(SetupBattle());
         levelUpManager.totalExp = 0;
+        Cursor.lockState = CursorLockMode.None;
     }
 
     /// <summary>
@@ -214,6 +215,9 @@ public class BattleSystem : MonoBehaviour
 
     private void AdvanceTurn()
     {
+        // If a player is dead
+        UpdatePlayerStates();
+
         // Increment the current player index and check if it exceeds the party size
         currentPlayerIndex = (currentPlayerIndex + 1) % PartyManager.instance.partyMembers.Count;
 
@@ -228,7 +232,7 @@ public class BattleSystem : MonoBehaviour
             state = BattleState.ENEMYTURN;
             StartCoroutine(EnemyTurn());
         }
-        else
+        else if (currentPlayerIndex != 0 && !PartyManager.instance.partyMembers[currentPlayerIndex].isDead)
         {
             state = BattleState.PLAYERTURN;
             PlayerTurn(); // Handle the next player's turn
@@ -467,10 +471,6 @@ public class BattleSystem : MonoBehaviour
             HandleEnemyDefeat(selectedEnemy);
         else
             AdvanceTurn();
-
-
-
-
     }
 
     private void HandleEnemyDefeat(Unit enemy)
@@ -650,31 +650,26 @@ public class BattleSystem : MonoBehaviour
             OnBattleAction(BattleActionType.Attack, enemy, UnitType.Enemy);
             DealDamage(target, dmg);
 
-
             if (AllPlayersDefeated())
             {
                 state = BattleState.LOST;
                 EndBattle();
                 yield break; // Exit the coroutine
             }
-
         }
 
         // Reset defense after gaurding is complete
         ResetStats();
 
         // wait for the enemies turn to end before doing the rest of this code:
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(2f);
 
         foreach (PlayableCharacter player in partyManager)
-        {
-            Debug.Log("StopGaurding");
             OnBattleAction(BattleActionType.StopGaurding, player, UnitType.Player);
-        }
 
         currentPlayerIndex = 0;
         state = BattleState.PLAYERTURN;
-        PlayerTurn(); // Handle the next player's turn    }
+        PlayerTurn(); // Handle the next player's turn
     }
 
     private void UpdatePlayerStates()
@@ -753,9 +748,10 @@ public class BattleSystem : MonoBehaviour
     /// </summary>
     void Update()
     {
-        //Debug.Log("Turn index = " + currentPlayerIndex + " State: " + state);
-        Debug.Log(activeEnemies.Count);
-
+        foreach(var player in partyManager)
+        {
+            Debug.Log(player.baseDefense);
+        }
 
         if (canSelect)
         {

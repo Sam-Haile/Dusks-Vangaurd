@@ -55,6 +55,7 @@ public class PartyManager : MonoBehaviour
         {
             partyMenuStats[i].UpdatePartyMenu(partyMembers[i]);
             partyMenuStats[i].gameObject.SetActive(true);
+            partyMembers[i].uiHUD.SetActive(true);
         }
     }
 
@@ -89,7 +90,7 @@ public class PartyManager : MonoBehaviour
         for (int i = 0; i < partyMembers.Count; i++)
         {
             playerIcons[i].gameObject.SetActive(true);
-            playerIcons[i].sprite = partyMembers[i].playerSprite;
+            playerIcons[i].sprite = partyMembers[i].playerSpriteHead;
         }
     }
 
