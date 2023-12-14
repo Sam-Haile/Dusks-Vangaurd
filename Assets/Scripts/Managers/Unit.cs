@@ -31,6 +31,8 @@ public class Unit : MonoBehaviour
 
 	public GameObject damageNumbers;
 
+	public ParticleSystem[] bloodSplatters;
+
 	[HideInInspector] public int battleIndex;
 
     public int CurrentHealth //Update the UI when a stat changes

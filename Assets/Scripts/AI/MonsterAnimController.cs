@@ -74,6 +74,9 @@ public class MonsterAnimController : MonoBehaviour
                     break;
                 case BattleActionType.Damaged:
                     enemy.GetComponent<Animator>().SetTrigger("damaged");
+                    foreach (var bloodVFX in enemy.bloodSplatters)
+                        bloodVFX.Play();
+                    
                     StartCoroutine(DamageEnemy(2, enemy));
                     break;
                 default:
