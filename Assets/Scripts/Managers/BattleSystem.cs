@@ -54,6 +54,7 @@ public class BattleSystem : MonoBehaviour
     public BattleHUD battleHUD;
 
     public Material outlineMaterial;
+    public GameObject background;
 
     public int LastDamage { get; private set; }
 
@@ -306,6 +307,7 @@ public class BattleSystem : MonoBehaviour
             {
                 Spell spell = currentPlayer.spellbook.spells[i];
                 spells[i].GetComponent<Text>().text = spell.spellName;
+                Debug.Log(spell.spellName);
 
                 // Add a listener to the button click event
                 spells[i].onClick.RemoveAllListeners(); // Remove existing listeners to avoid duplicates
@@ -437,7 +439,7 @@ public class BattleSystem : MonoBehaviour
         bool isDead;
         int damage;
 
-        // Set the HUD
+        // Turn the HUD off
         SetButtonsActive(false);
         backButtons[0].gameObject.SetActive(false);
         backButtons[1].gameObject.SetActive(false);
@@ -447,15 +449,35 @@ public class BattleSystem : MonoBehaviour
         damage = damageCalculation(damageStat, selectedEnemy, player.equippedWeapon);
         LastDamage = damage;
         isDead = selectedUnit.TakeDamage(damage);
+        // Rotate player to face enemy
         StartCoroutine(RotatePlayer(player, selectedEnemy));
 
-        yield return new WaitForSeconds(1f);
-        OnBattleAction(BattleActionType.Damaged, selectedEnemy, UnitType.Enemy);
+        bool animationDone = false;
+        bool attackApexReached = false;
+        void OnAnimationFinished() => animationDone = true;
+        void OnAnimationApex() => attackApexReached = true;
 
+        PlayerMovement.instance.OnAnimationComplete += OnAnimationFinished;
+        PlayerMovement.instance.OnAttackApex += OnAnimationApex;
+
+        while (!animationDone)
+        {
+            if(attackApexReached)
+            {
+                OnBattleAction(BattleActionType.Damaged, selectedEnemy, UnitType.Enemy);
+                attackApexReached = false;
+            }
+
+            yield return null;
+        }
+
+        PlayerMovement.instance.OnAnimationComplete -= OnAnimationFinished;
+        PlayerMovement.instance.OnAttackApex -= OnAnimationApex;
         PlayableCharacter currentPlayer = partyManager[currentPlayerIndex];
 
-        yield return new WaitForSeconds(2f);
+        // Return to original positions
         OnCameraAction(CameraActionType.GoToStart, 5);
+        OnBattleAction(BattleActionType.RunBack, currentPlayer, UnitType.Player);
         
         //Do not trigger the jump coroutine because Puck can fly
         if (currentPlayer.tag == "Puck") 
@@ -463,9 +485,6 @@ public class BattleSystem : MonoBehaviour
         else
             StartCoroutine(MoveOverTimeWithJump(currentPlayer.gameObject, playerBattleStations[currentPlayer.battleIndex].transform.position, .5f, 2f)); // Assuming 1f is the jump height
 
-        OnBattleAction(BattleActionType.RunBack, currentPlayer, UnitType.Player);
-        
-        
         // If an enemy dies
         if (isDead)
             HandleEnemyDefeat(selectedEnemy);
@@ -542,7 +561,7 @@ public class BattleSystem : MonoBehaviour
 
         PlayableCharacter currentPlayer = partyManager[currentPlayerIndex];
 
-        Debug.Log("Running");
+        // Runs towards the selected enemy
         OnBattleAction(BattleActionType.Run, currentPlayer, UnitType.Player);
         OnCameraAction(CameraActionType.GoToPos, selectedUnit.battleIndex);
 
@@ -591,6 +610,8 @@ public class BattleSystem : MonoBehaviour
         while (selectedUnit == null)
             yield return null;
 
+        Debug.Log(selectedSpell);
+
         if (selectedSpell.isHealingSpell)
             StartCoroutine(PlayerHeal(selectedUnit));
 
@@ -602,7 +623,6 @@ public class BattleSystem : MonoBehaviour
 
             PlayableCharacter currentPlayer = partyManager[currentPlayerIndex];
             StartCoroutine(PlayerAction(currentPlayer, selectedUnit, damageStat, DetermineDamageArcane));
-
         }
     }
 
@@ -662,7 +682,7 @@ public class BattleSystem : MonoBehaviour
         ResetStats();
 
         // wait for the enemies turn to end before doing the rest of this code:
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(3f);
 
         foreach (PlayableCharacter player in partyManager)
             OnBattleAction(BattleActionType.StopGaurding, player, UnitType.Player);
@@ -748,11 +768,6 @@ public class BattleSystem : MonoBehaviour
     /// </summary>
     void Update()
     {
-        foreach(var player in partyManager)
-        {
-            Debug.Log(player.baseDefense);
-        }
-
         if (canSelect)
         {
             // Highlight
@@ -882,6 +897,8 @@ public class BattleSystem : MonoBehaviour
     {
         foreach (Button button in buttons)
             button.gameObject.SetActive(active);
+
+        background.SetActive(active);
     }
 
     public void SetHighlightable(bool active)

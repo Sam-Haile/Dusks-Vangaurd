@@ -73,8 +73,8 @@ public class MonsterAnimController : MonoBehaviour
                     enemy.GetComponent<Animator>().SetFloat("deathAnim", num);
                     break;
                 case BattleActionType.Damaged:
-                    StartCoroutine(WaitForReaction(1f, 0f, "damaged", enemy.GetComponent<Animator>()));
-                    StartCoroutine(DamageEnemy(10, enemy));
+                    enemy.GetComponent<Animator>().SetTrigger("damaged");
+                    StartCoroutine(DamageEnemy(2, enemy));
                     break;
                 default:
                     break;

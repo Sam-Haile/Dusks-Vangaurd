@@ -1,4 +1,4 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -27,6 +27,19 @@ public class PlayerMovement : MonoBehaviour
 
     public float num;
     public bool move;
+
+    public event Action OnAnimationComplete;
+    public event Action OnAttackApex;
+
+    public void AnimationCompleted()
+    {
+        OnAnimationComplete?.Invoke();
+    }
+
+    public void AttackApex()
+    {
+        OnAttackApex?.Invoke();
+    }
 
     private void Awake()
     {

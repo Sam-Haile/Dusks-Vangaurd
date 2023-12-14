@@ -24,7 +24,7 @@ public class HudInfo : MonoBehaviour
     public TextMeshProUGUI spcDefense;
     public TextMeshProUGUI weapon;
     public TextMeshProUGUI armor;
-
+    public TextMeshProUGUI xpNeeded;
     // used for battle
     public Slider hpSlider;
     public Slider mpSlider;
@@ -52,7 +52,7 @@ public class HudInfo : MonoBehaviour
         mpSlider.value = (float)unit.currentMP / unit.maxMP;
     }
 
-    public void UpdateInventory(Unit unit)
+    public void UpdateInventory(PlayableCharacter unit)
     {
         characterName.text = unit.unitName;
         level.text = unit.unitLevel.ToString();
@@ -62,9 +62,9 @@ public class HudInfo : MonoBehaviour
         attack.text = unit.baseAttack.ToString();
         arcane.text = unit.baseArcane.ToString();
         defense.text = unit.baseDefense.ToString();
+        xpNeeded.text = unit.expToNextLevel.ToString();
         spcDefense.text = unit.specialDefense.ToString();
-        //maxMP.text = unit.maxMP.ToString();
-        //currentMP.text = unit.currentMP.ToString();
+        playerSpriteFull.sprite = unit.playerSpriteFull;
         level.text = unit.unitLevel.ToString();
     }
 

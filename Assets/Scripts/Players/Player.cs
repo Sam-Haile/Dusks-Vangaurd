@@ -19,8 +19,8 @@ public class Player : PlayableCharacter
     }
     private void Start()
     {
-        //ParticleSystem fireclaws = spellParticles.Find(p => p.name == "Fireclaws");
-        //spellbook.LearnSpell(new Spell("Fireclaws", 10, 20, 30, false, fireclaws));
+        ParticleSystem smite = spellParticles.Find(p => p.name == "Smite");
+        spellbook.LearnSpell(new Spell("Smite", 5, 15, 20, false, smite));
 
     }
 
