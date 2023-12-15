@@ -128,7 +128,7 @@ public class AnimController : MonoBehaviour
                     break;
                 case BattleActionType.Damaged:
                     player.GetComponent<Animator>().SetTrigger("damaged");
-                    StartCoroutine(ApplyDamageOrHeal(2, player, Color.red));
+                    StartCoroutine(ApplyDamageOrHeal(2, player, Color.white));
                     break;
                 case BattleActionType.Healed:
                     StartCoroutine(ApplyDamageOrHeal(2, player, Color.green));

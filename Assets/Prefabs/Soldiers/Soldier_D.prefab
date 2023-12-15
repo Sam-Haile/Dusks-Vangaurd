@@ -2809,7 +2809,7 @@ Transform:
   - {fileID: 8818917173796820174}
   - {fileID: 8089543790909455756}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!95 &2136258116294128890
 Animator:
@@ -2897,8 +2897,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   unitName: Soldier
   unitLevel: 1
-  maxHP: 25
-  currentHP: 25
+  maxHP: 15
+  currentHP: 15
   maxMP: 0
   currentMP: 0
   baseAttack: 5
@@ -2911,7 +2911,10 @@ MonoBehaviour:
   equippedWeapon: {fileID: 0}
   equippedArmor: {fileID: 0}
   damageNumbers: {fileID: 8369744990089304335}
-  bloodSplatters: []
+  bloodSplatters:
+  - {fileID: 349593837771636636}
+  - {fileID: 3840132914623498622}
+  - {fileID: 962854879355557666}
   battleIndex: 0
 --- !u!114 &6240583713804824962
 MonoBehaviour:
@@ -3714,7 +3717,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4278190335
-  m_fontColor: {r: 1, g: 0, b: 0, a: 1}
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -4444,6 +4447,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f3cc3d9e9fbb4a64aae1da21d472b57a, type: 3}
+--- !u!198 &962854879355557666 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 5734430898581893750, guid: f3cc3d9e9fbb4a64aae1da21d472b57a, type: 3}
+  m_PrefabInstance: {fileID: 4812225859740116308}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &962854879355557667 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5734430898581893751, guid: f3cc3d9e9fbb4a64aae1da21d472b57a, type: 3}
@@ -4535,6 +4543,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6904164871745819725, guid: a729ff4586a3e1e47a220dd0f70917ae, type: 3}
   m_PrefabInstance: {fileID: 6560201908033219374}
   m_PrefabAsset: {fileID: 0}
+--- !u!198 &349593837771636636 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 6904164871745819826, guid: a729ff4586a3e1e47a220dd0f70917ae, type: 3}
+  m_PrefabInstance: {fileID: 6560201908033219374}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &7314031264765230221
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4615,5 +4628,10 @@ PrefabInstance:
 --- !u!4 &3840132914623498561 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5821549190899430860, guid: 73742e3f8ca78974ea3e286a98088d20, type: 3}
+  m_PrefabInstance: {fileID: 7314031264765230221}
+  m_PrefabAsset: {fileID: 0}
+--- !u!198 &3840132914623498622 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 5821549190899430899, guid: 73742e3f8ca78974ea3e286a98088d20, type: 3}
   m_PrefabInstance: {fileID: 7314031264765230221}
   m_PrefabAsset: {fileID: 0}

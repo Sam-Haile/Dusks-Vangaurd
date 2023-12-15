@@ -11,12 +11,6 @@ public class MainMenu : MonoBehaviour
     public Slider loadingBarFill;
 
     private bool isLoading = false;
-
-    private void Start()
-    {
-        Debug.Log(PlayerPrefs.GetInt("FirstTime"));
-    }
-
     public void UICheck()
     {
 

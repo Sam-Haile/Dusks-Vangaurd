@@ -286,10 +286,13 @@ public class MenuManager : MonoBehaviour
             foreach (PlayableCharacter player in players)
             {
                 player.transform.position = beforeBattlePos;
+
+                if (player.tag == "Player")
+                    player.GetComponent<PlayerMovement>().enabled = true;
+                else if(player.tag == "Puck")
+                    player.GetComponent<Follow>().enabled = true;
             }
 
-            players[0].GetComponent<PlayerMovement>().enabled = true;
-            players[1].GetComponent<Follow>().enabled = true;
             uiCanvas.SetActive(true);
 
             battleHud.SetHUD();

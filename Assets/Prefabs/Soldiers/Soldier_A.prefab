@@ -2776,7 +2776,7 @@ Transform:
   - {fileID: 8818917173796820174}
   - {fileID: 8089543790909455756}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!95 &2136258116294128890
 Animator:
@@ -2864,8 +2864,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   unitName: Soldier
   unitLevel: 1
-  maxHP: 25
-  currentHP: 25
+  maxHP: 15
+  currentHP: 15
   maxMP: 0
   currentMP: 0
   baseAttack: 5
@@ -3755,7 +3755,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4278190335
-  m_fontColor: {r: 1, g: 0, b: 0, a: 1}
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
