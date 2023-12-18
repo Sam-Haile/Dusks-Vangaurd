@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Xml;
 using TMPro;
 using UnityEngine;
 using static BattleSystem;
@@ -13,7 +12,6 @@ public class MonsterAnimController : MonoBehaviour
 
     private BattleSystem battleSystem;
 
-    private float animControllerNum;
     private AnimController animController;
 
     private Animator dmgAnimator;
@@ -24,15 +22,14 @@ public class MonsterAnimController : MonoBehaviour
         enemy = GetComponent<EnemyAI>();
         animator = GetComponent<Animator>();
         animController = FindObjectOfType<AnimController>();
-
         battleSystem = FindAnyObjectByType<BattleSystem>();
     }
 
     void Update()
     {
-        animator.SetBool("isWalking", enemy.isWalking);
-        animator.SetBool("isRunning", enemy.isRunning);
-        animator.SetBool("turning", enemy.isTurning);
+        animator.SetBool("isMoving", enemy.isWalking);
+        animator.SetBool("isRunngng", enemy.isRunning);
+        animator.SetBool("isIdle", enemy.isTurning);
     }
 
     private void OnEnable()

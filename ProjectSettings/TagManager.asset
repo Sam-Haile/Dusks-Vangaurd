@@ -25,6 +25,7 @@ TagManager:
   - Soldier_D
   - Soldier_E
   - Soldier_F
+  - PersistentObject
   layers:
   - Default
   - TransparentFX

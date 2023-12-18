@@ -78,7 +78,6 @@ public class AudioManager : MonoBehaviour
     {
         if (audioDict.TryGetValue("BattleTheme", out AudioClip clip))
         {
-            Debug.Log("Playing song " + clip.name);
             _audioSource.PlayOneShot(clip);
         }
     }

@@ -5,7 +5,6 @@ public class BattleHUD : MonoBehaviour
 {
     public HudInfo[] hudInfos = new HudInfo[4]; // Max 4 players in a battle
 
-    public TextMeshProUGUI gold;
 
     private Unit guts;
 
@@ -15,6 +14,7 @@ public class BattleHUD : MonoBehaviour
     }
     private void Start()
     {
+        Debug.Log("Updating Try");
         UpdateHUDs();
     }
 
@@ -27,17 +27,11 @@ public class BattleHUD : MonoBehaviour
         }
     }
 
-    public void SetHUD()
-    {
-        string amount = guts.gold.ToString();
-        gold.text = amount.ToString();
-    }
-
     public void UpdateAllStats(Unit unit)
     {
 
-        if(unit.tag == "Player")
-            SetHUD();
+        //if(unit.tag == "Player")
+        //    SetHUD();
         
         UpdateHUDs();
         

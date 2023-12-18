@@ -1,6 +1,4 @@
 using Cinemachine;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -24,9 +22,10 @@ public class DontDestroy : MonoBehaviour
         }
     }
 
+
     public void DestroyThis()
     {
-        Debug.Log("Destoying");
+        Debug.Log("Destroying");
         Destroy(gameObject);    
     }
 
@@ -34,7 +33,6 @@ public class DontDestroy : MonoBehaviour
     {
         if (scene.name == "004 (KokaCastle)")
         {
-            Debug.Log("Scene loadedf");
             // Reset camera state when the target scene is loaded
             ResetCameraState();
         }
@@ -42,12 +40,8 @@ public class DontDestroy : MonoBehaviour
 
     private void ResetCameraState()
     {
-        Debug.Log("MovingPlayer");
         Player.instance.gameObject.transform.position = new Vector3(-60, -16.8f, -23);
-
-        // Implement camera state reset logic here
-        //cam.Follow = Player.instance.gameObject.transform;
-        //cam.LookAt = Player.instance.gameObject.transform;
     }
+
 
 }

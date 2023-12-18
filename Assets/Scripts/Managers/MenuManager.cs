@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -7,7 +8,6 @@ using UnityEngine.UI;
 public class MenuManager : MonoBehaviour
 {
     public GameObject statsMenu;
-
 
     public static event Action OnInvOpened;
     public PlayableCharacter[] players = new PlayableCharacter[4];
@@ -19,6 +19,7 @@ public class MenuManager : MonoBehaviour
 
     public GameObject uiCanvas;
     public BattleHUD battleHud;
+    public TextMeshProUGUI gold;
 
     public GameObject loadingScreen;
     public Slider loadingBarFill;
@@ -100,7 +101,7 @@ public class MenuManager : MonoBehaviour
 
             SaveSlot saveSlot = saveSlots[index].GetComponent<SaveSlot>();
             if (saveSlot != null)
-                saveSlot.UpdateSaveSlot(location.locationNameText, players[0].isActive, players[1].isActive, players[0].gold);
+                saveSlot.UpdateSaveSlot(location.locationNameText, players[0].gold);
 
             OnSave(selectedSaveOrLoadFile);
             Debug.Log("Saved to file #" + selectedSaveOrLoadFile);
@@ -125,10 +126,12 @@ public class MenuManager : MonoBehaviour
         {
             OnLoad(selectedSaveOrLoadFile);
             Debug.Log("Load to file #" + selectedSaveOrLoadFile);
-            foreach (PlayableCharacter player in players)
-            {
-                battleHud.UpdateAllStats(player);
-            }
+            //foreach (PlayableCharacter player in players)
+            //{
+            //    battleHud.UpdateAllStats(player);
+            //}
+
+            UpdateMoney();
             selectedSaveOrLoadFile = -1;
         }
         else
@@ -295,7 +298,8 @@ public class MenuManager : MonoBehaviour
 
             uiCanvas.SetActive(true);
 
-            battleHud.SetHUD();
+            UpdateMoney();
+            //battleHud.SetHUD();
         }
 
         if (level == 2)
@@ -344,4 +348,15 @@ public class MenuManager : MonoBehaviour
         }
     }
 
+    private void UpdateMoney()
+    {
+        string amount = players[0].gold.ToString();
+        gold.text = amount.ToString();
+    }
+
+    public void ForceLoadOnMainMenu()
+    {
+        PlayerPrefs.SetInt("FirstTime", 1); // Set the flag to indicate the game has been opened before
+        Debug.Log("ForceLoading");
+    }
 }

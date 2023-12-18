@@ -7,26 +7,20 @@ using UnityEngine.UI;
 public class SaveSlot : MonoBehaviour
 {
     public TextMeshProUGUI currentChapter;
-    public Image gutsIcon;
-    public Image puckIcon;
+    public Image[] partyIcons;
     public TextMeshProUGUI goldAmount;
     public TextMeshProUGUI timePlayed;
 
     // Method to update the save slot details
-    public void UpdateSaveSlot(string currentChapterName, bool gutsSprite, bool puckSprite, int gold)
+    public void UpdateSaveSlot(string currentChapterName, int gold)
     {
         currentChapter.text = currentChapterName;
 
-        if(gutsSprite)
+        for(int i = 0; i < PartyManager.instance.partyMembers.Count; i++)
         {
-            gutsIcon.color = new Color(255, 255, 255);
+            partyIcons[i].color = new Color(255, 255, 255, 255); 
         }
-
-        if (puckSprite)
-        {
-            puckIcon.color = new Color(255, 255, 255);
-        }
-
+        
         goldAmount.text = gold.ToString();
     }
 
