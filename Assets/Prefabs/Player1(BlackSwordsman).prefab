@@ -3390,14 +3390,15 @@ MonoBehaviour:
   maxMP: 25
   currentMP: 25
   baseAttack: 5
-  baseArcane: 1
+  baseArcane: 5
   baseDefense: 5
   specialDefense: 5
   experience: 0
-  gold: 150
+  gold: 0
   canUseMagic: 0
   equippedWeapon: {fileID: 0}
   equippedArmor: {fileID: 0}
+  isGaurding: 0
   damageNumbers: {fileID: 6619777397155789245}
   bloodSplatters: []
   battleIndex: 0
@@ -6550,7 +6551,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColor: {r: 1, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:

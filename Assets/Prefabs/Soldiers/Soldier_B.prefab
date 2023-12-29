@@ -464,14 +464,14 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 960684277325567418}
-  m_LocalRotation: {x: -0.009700525, y: -0.90852153, z: 0.021124937, w: -0.4171911}
+  m_LocalRotation: {x: 0.007950502, y: -0.9394387, z: 0.021843823, w: 0.34192777}
   m_LocalPosition: {x: 0, y: 0, z: -0.20000005}
   m_LocalScale: {x: 0.084519975, y: 0.08452, z: 0.08451998}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 4673229911773837726}
   m_RootOrder: -1
-  m_LocalEulerAnglesHint: {x: 2.664, y: -229.329, z: 0}
+  m_LocalEulerAnglesHint: {x: 2.664, y: -140, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -0.46, y: 2.016}
@@ -549,7 +549,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4278190335
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColor: {r: 1, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -3086,7 +3086,7 @@ Transform:
   - {fileID: 8818917173796820174}
   - {fileID: 8089543790909455756}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!95 &2136258116294128890
 Animator:
@@ -3187,6 +3187,7 @@ MonoBehaviour:
   canUseMagic: 0
   equippedWeapon: {fileID: 0}
   equippedArmor: {fileID: 0}
+  isGaurding: 0
   damageNumbers: {fileID: 960684277325567418}
   bloodSplatters:
   - {fileID: 7147666178132638827}

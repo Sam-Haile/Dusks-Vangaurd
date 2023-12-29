@@ -28,6 +28,7 @@ public class Unit : MonoBehaviour
 	public bool canUseMagic;
     public Weapon equippedWeapon;
     public Armor equippedArmor;
+	[HideInInspector] public bool isGaurding;
 
 	public GameObject damageNumbers;
 

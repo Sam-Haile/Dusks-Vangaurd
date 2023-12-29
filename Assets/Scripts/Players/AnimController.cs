@@ -121,14 +121,18 @@ public class AnimController : MonoBehaviour
                 case BattleActionType.RunBack:
                     player.GetComponent<Animator>().SetTrigger("runBack");
                     break;
+                case BattleActionType.PrepareAttack:
+                    player.GetComponent<Animator>().SetTrigger("prepareAttack");
+                    break;
                 case BattleActionType.Attack:
                     num = ReturnRandomFloat();
                     player.GetComponent<Animator>().SetTrigger("attack");
                     player.GetComponent<Animator>().SetFloat("attackAnim", num);
                     break;
                 case BattleActionType.Damaged:
-                    player.GetComponent<Animator>().SetTrigger("damaged");
-                    StartCoroutine(ApplyDamageOrHeal(2, player, Color.white));
+                    if(!player.isGaurding)
+                        player.GetComponent<Animator>().SetTrigger("damaged");
+                    StartCoroutine(ApplyDamageOrHeal(2, player, Color.red));
                     break;
                 case BattleActionType.Healed:
                     StartCoroutine(ApplyDamageOrHeal(2, player, Color.green));

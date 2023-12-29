@@ -11,8 +11,8 @@ using UnityEngine.UI;
 public enum BattleState { START, PLAYERTURN, ENEMYTURN, WON, LOST, FLEE }
 
 // Used for specific enemy and player actions
-public enum BattleActionType{ Start, Attack, Run, RunBack, Gaurd, StopGaurding, Arcane, Damaged, Healed, Flee, Die, Won }
-public enum CameraActionType{ GoToStart, GoToPos}
+public enum BattleActionType{ Start, PrepareAttack, Attack, Run, RunBack, Gaurd, StopGaurding, Arcane, Damaged, Healed, Flee, Die, Won }
+public enum CameraActionType{ GoToStart, GoBehindPlayer, EnemyAttacking}
 
 public class BattleSystem : MonoBehaviour
 {
@@ -43,9 +43,9 @@ public class BattleSystem : MonoBehaviour
     private int[] baseDefenses;
     private int currentPlayerIndex;
     public Text dialogueText;
-    public List<Button> buttons;
     private BattleState state;
-    public List<Button> backButtons;
+    public Animator backButtonUI;
+    public Animator combatButtonUI;
     public List<Button> spells;
     private int spellDamage;
     private Spell selectedSpell;
@@ -169,13 +169,12 @@ public class BattleSystem : MonoBehaviour
 
     IEnumerator SetupBattle()
     {
-        SetButtonsActive(false);
 
         SetupPlayers();
 
         List<string> keys = new List<string>(enemyDictionary.Keys);
 
-        int num = 2;
+        int num = 1;
 
         if (num == 1)
         {
@@ -209,9 +208,8 @@ public class BattleSystem : MonoBehaviour
             battleHUD.UpdateAllStats(player);
 
         yield return new WaitForSeconds(4f);
-
+        combatButtonUI.SetTrigger("int");
         state = BattleState.PLAYERTURN;
-        PlayerTurn();
     }
 
     private void AdvanceTurn()
@@ -224,6 +222,8 @@ public class BattleSystem : MonoBehaviour
 
         if (activeEnemies.Count == 0)
         {
+            backButtonUI.SetTrigger("out");
+            combatButtonUI.SetTrigger("out");
             state = BattleState.WON;
             EndBattle();
         }
@@ -236,7 +236,7 @@ public class BattleSystem : MonoBehaviour
         else if (currentPlayerIndex != 0 && !PartyManager.instance.partyMembers[currentPlayerIndex].isDead)
         {
             state = BattleState.PLAYERTURN;
-            PlayerTurn(); // Handle the next player's turn
+            combatButtonUI.SetTrigger("in");
         }
     }
 
@@ -255,15 +255,6 @@ public class BattleSystem : MonoBehaviour
     #region Player Options
 
     /// <summary>
-    /// Display buttons and waits for an input from player
-    /// </summary>
-    void PlayerTurn()
-    {
-        ////dialogueText.text = "";
-        SetButtonsActive(true);
-    }
-
-    /// <summary>
     /// When the attack button is pressed
     /// waits for an enemy to be selected
     /// </summary>
@@ -273,6 +264,8 @@ public class BattleSystem : MonoBehaviour
             return;
 
         ////dialogueText.text = "Who?";
+        PlayableCharacter currentPlayer = partyManager[currentPlayerIndex];
+        OnBattleAction(BattleActionType.PrepareAttack, currentPlayer, UnitType.Player);
 
         switch (state)
         {
@@ -440,9 +433,6 @@ public class BattleSystem : MonoBehaviour
         int damage;
 
         // Turn the HUD off
-        SetButtonsActive(false);
-        backButtons[0].gameObject.SetActive(false);
-        backButtons[1].gameObject.SetActive(false);
         battleHUD.UpdateAllStats(player);
 
         // Determine the damage and if the enemy is dead
@@ -476,20 +466,25 @@ public class BattleSystem : MonoBehaviour
         PlayableCharacter currentPlayer = partyManager[currentPlayerIndex];
 
         // Return to original positions
-        OnCameraAction(CameraActionType.GoToStart, 5);
         OnBattleAction(BattleActionType.RunBack, currentPlayer, UnitType.Player);
-        
         //Do not trigger the jump coroutine because Puck can fly
-        if (currentPlayer.tag == "Puck") 
-            StartCoroutine(MoveOverTime(currentPlayer.gameObject, playerBattleStations[currentPlayer.battleIndex].transform.position, .5f)); // Assuming 1f is the jump height
-        else
-            StartCoroutine(MoveOverTimeWithJump(currentPlayer.gameObject, playerBattleStations[currentPlayer.battleIndex].transform.position, .5f, 2f)); // Assuming 1f is the jump height
+        //if (currentPlayer.tag == "Puck") 
+          StartCoroutine(MoveOverTime(currentPlayer.gameObject, playerBattleStations[currentPlayer.battleIndex].transform.position, .75f)); // Assuming 1f is the jump height
+        //else
+        //  StartCoroutine(MoveOverTimeWithJump(currentPlayer.gameObject, playerBattleStations[currentPlayer.battleIndex].transform.position, .5f, 2f)); // Assuming 1f is the jump height
 
-        // If an enemy dies
         if (isDead)
             HandleEnemyDefeat(selectedEnemy);
-        else
-            AdvanceTurn();
+
+        yield return new WaitForSeconds(1f);
+
+        currentPlayer.gameObject.transform.position = playerBattleStations[currentPlayer.battleIndex].transform.position;
+        OnCameraAction(CameraActionType.GoToStart, 4);
+        // If an enemy dies
+         
+        
+        AdvanceTurn();
+
     }
 
     private void HandleEnemyDefeat(Unit enemy)
@@ -540,10 +535,10 @@ public class BattleSystem : MonoBehaviour
     IEnumerator PlayerGaurd()
     {
         PlayableCharacter currentPlayer = partyManager[currentPlayerIndex];
-
+        currentPlayer.isGaurding = true;
+        
         OnBattleAction(BattleActionType.Gaurd, currentPlayer, UnitType.Player);
         currentPlayer.baseDefense *= 2;
-        SetButtonsActive(false);
         yield return new WaitForSeconds(2f);
 
         AdvanceTurn();
@@ -559,18 +554,22 @@ public class BattleSystem : MonoBehaviour
         while (selectedUnit == null)
             yield return null;
 
+        backButtonUI.SetTrigger("out");
+
         PlayableCharacter currentPlayer = partyManager[currentPlayerIndex];
 
-        // Runs towards the selected enemy
+        // Move camera behind player and run towards the selected enemy
+        OnCameraAction(CameraActionType.GoBehindPlayer, currentPlayer.battleIndex);
+        yield return new WaitForSeconds(1f);
         OnBattleAction(BattleActionType.Run, currentPlayer, UnitType.Player);
-        OnCameraAction(CameraActionType.GoToPos, selectedUnit.battleIndex);
 
-        Vector3 enemyAttackPos = new Vector3(
+        // In front of selected enemy
+        Vector3 playerAttackPos = new Vector3(
             selectedUnit.transform.position.x,
             currentPlayer.transform.position.y,
             selectedUnit.transform.position.z - 3);
 
-        StartCoroutine(MoveOverTime(currentPlayer.gameObject, enemyAttackPos, .5f));
+        StartCoroutine(MoveOverTime(currentPlayer.gameObject, playerAttackPos, .5f));
 
         StartCoroutine(PlayerAction(currentPlayer, selectedUnit, damageStat, DetermineDamage));
         SetHighlightable(false);
@@ -595,16 +594,36 @@ public class BattleSystem : MonoBehaviour
 
     private IEnumerator MoveOverTimeWithJump(GameObject objectToMove, Vector3 targetPos, float time, float jumpHeight)
     {
-        Vector3 halfway = (objectToMove.transform.position + targetPos) / 2;
-        halfway.y += jumpHeight; // Adjust the height of the jump
+        Vector3 startPos = objectToMove.transform.position;
 
-        // Ascend to the highest point
-        yield return StartCoroutine(MoveOverTime(objectToMove, halfway, time / 2));
+        float elapsedTime = 0;
 
-        // Descend to the target position
-        yield return StartCoroutine(MoveOverTime(objectToMove, targetPos, time / 2));
+        while (elapsedTime < time)
+        {
+            float t = elapsedTime / time;
+
+            // Apply a sine function to the vertical movement for a more natural jump
+            float yOffset = Mathf.Sin(t * Mathf.PI) * jumpHeight;
+
+            // Calculate the new position with non-linear interpolation for Y-axis
+            Vector3 newPosition = new Vector3(
+                Mathf.Lerp(startPos.x, targetPos.x, t),
+                startPos.y + yOffset,
+                Mathf.Lerp(startPos.z, targetPos.z, t)
+            );
+
+            objectToMove.transform.position = newPosition;
+
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        // Ensure the object reaches the target position
+        objectToMove.transform.position = targetPos;
+
 
     }
+
     IEnumerator WaitForArcaneSelection(int damageStat)
     {
         while (selectedUnit == null)
@@ -651,45 +670,87 @@ public class BattleSystem : MonoBehaviour
     /// <returns></returns>
     IEnumerator EnemyTurn()
     {
-        SetButtonsActive(false);
         UpdatePlayerStates();
+        bool doneAttacking = false;
 
-        foreach (Unit enemy in activeEnemies)
+        while (!doneAttacking)
         {
-            // If the enemy can use magic, give them a chance of doing so
-            int attackType = enemy.canUseMagic ? Random.Range(0, 2) : 0;
-            yield return new WaitForSeconds(1.5f);
-
-            ////dialogueText.text = enemyUnit.unitName + " attacks!";
-
-            // Select target from active players
-            PlayableCharacter target = SelectTarget();
-            int dmg = attackType == 0 ? DetermineDamage(enemy.baseAttack, target, null)
-                                  : DetermineDamageArcane(enemy.baseArcane, target, null);
-
-            OnBattleAction(BattleActionType.Attack, enemy, UnitType.Enemy);
-            DealDamage(target, dmg);
-
-            if (AllPlayersDefeated())
+            for (int i = 0; i < activeEnemies.Count; i++)
             {
-                state = BattleState.LOST;
-                EndBattle();
-                yield break; // Exit the coroutine
+                bool animationDone = false;
+                bool attackApexReached = false;
+                void OnAnimationFinished() => animationDone = true;
+                void OnAnimationApex() => attackApexReached = true;
+
+                activeEnemies[i].GetComponent<MonsterAnimController>().OnAnimationComplete += OnAnimationFinished;
+                activeEnemies[i].GetComponent<MonsterAnimController>().OnAttackApex += OnAnimationApex;
+
+                // If the enemy can use magic, give them a chance of doing so
+                int attackType = activeEnemies[i].canUseMagic ? Random.Range(0, 2) : 0;
+                yield return new WaitForSeconds(1.5f);
+
+                // Select target from active players
+                PlayableCharacter target = SelectTarget();
+                int dmg = attackType == 0 ? DetermineDamage(activeEnemies[i].baseAttack, target, null)
+                                      : DetermineDamageArcane(activeEnemies[i].baseArcane, target, null);
+
+
+                Vector3 enemyAttackPos = new Vector3(
+                    target.transform.position.x,
+                    activeEnemies[i].transform.position.y,
+                    target.transform.position.z + 3);
+
+                OnBattleAction(BattleActionType.Run, activeEnemies[i], UnitType.Enemy);
+                yield return StartCoroutine(MoveOverTime(activeEnemies[i].gameObject, enemyAttackPos, .5f));
+                yield return new WaitForSeconds(.25f);
+
+                OnCameraAction(CameraActionType.EnemyAttacking, target.battleIndex);
+                OnBattleAction(BattleActionType.Attack, activeEnemies[i], UnitType.Enemy);
+                
+                // Play the players damaged anim at the apex of the attack
+                while (!animationDone)
+                {
+                    if (attackApexReached)
+                    {
+                        OnBattleAction(BattleActionType.Damaged, target, UnitType.Player);
+                        attackApexReached = false;
+                    }
+                    yield return null;
+                }
+
+                DealDamage(target, dmg);
+
+                OnBattleAction(BattleActionType.RunBack, activeEnemies[i], UnitType.Enemy);
+                yield return StartCoroutine(MoveOverTime(activeEnemies[i].gameObject, enemyBattleStations[activeEnemies[i].battleIndex].transform.position, .5f));
+                
+                
+                if (AllPlayersDefeated())
+                {
+                    state = BattleState.LOST;
+                    EndBattle();
+                    yield break; // Exit the coroutine
+                }
+                
+
             }
+
+            doneAttacking = true;
+
         }
 
         // Reset defense after gaurding is complete
         ResetStats();
 
-        // wait for the enemies turn to end before doing the rest of this code:
-        yield return new WaitForSeconds(3f);
-
         foreach (PlayableCharacter player in partyManager)
+        {
             OnBattleAction(BattleActionType.StopGaurding, player, UnitType.Player);
+            player.isGaurding = false;
+        }
 
         currentPlayerIndex = 0;
         state = BattleState.PLAYERTURN;
-        PlayerTurn(); // Handle the next player's turn
+        combatButtonUI.SetTrigger("in");
+        OnCameraAction(CameraActionType.GoToStart, 4);
     }
 
     private void UpdatePlayerStates()
@@ -726,7 +787,6 @@ public class BattleSystem : MonoBehaviour
     {
         LastDamage = damage;
         bool isDead = player.TakeDamage(damage);
-        OnBattleAction(BattleActionType.Damaged, player, UnitType.Player);
         battleHUD.UpdateAllStats(player);
         ////dialogueText.text = player.unitName + " takes " + damage + " damage!";
 
@@ -893,14 +953,6 @@ public class BattleSystem : MonoBehaviour
         return damage;
     }
 
-    public void SetButtonsActive(bool active)
-    {
-        foreach (Button button in buttons)
-            button.gameObject.SetActive(active);
-
-        background.SetActive(active);
-    }
-
     public void SetHighlightable(bool active)
     {
         canSelect = active;
@@ -908,6 +960,9 @@ public class BattleSystem : MonoBehaviour
 
     void EndBattle()
     {
+        backButtonUI.SetTrigger("out");
+        combatButtonUI.SetTrigger("out");
+        
         if (state == BattleState.FLEE || state == BattleState.WON)
         {
             foreach(PlayableCharacter player in partyManager)
@@ -922,7 +977,6 @@ public class BattleSystem : MonoBehaviour
 
         if (state == BattleState.WON)
         {
-            ////dialogueText.text = "You won the battle!";
             OnBattleState(BattleState.WON);
             GameData.battleCompleted = true;
             
@@ -933,12 +987,10 @@ public class BattleSystem : MonoBehaviour
         }
         else if (state == BattleState.FLEE)
         {
-            ////dialogueText.text = "You fled the battle!";
             StartCoroutine(LoadWorld(1));
         }
         else if (state == BattleState.LOST)
         {
-            ////dialogueText.text = "You were defeated.";
             StartCoroutine(LoadWorld(0));
         }
 

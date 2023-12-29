@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -17,6 +18,18 @@ public class MonsterAnimController : MonoBehaviour
     private Animator dmgAnimator;
     private TextMeshPro dmgText;
 
+    public event Action OnAnimationComplete;
+    public event Action OnAttackApex;
+    public void AnimationCompleted()
+    {
+        OnAnimationComplete?.Invoke();
+    }
+
+    public void AttackApex()
+    {
+        OnAttackApex?.Invoke();
+    }
+
     private void Start()
     {
         enemy = GetComponent<EnemyAI>();
@@ -28,7 +41,7 @@ public class MonsterAnimController : MonoBehaviour
     void Update()
     {
         animator.SetBool("isMoving", enemy.isWalking);
-        animator.SetBool("isRunngng", enemy.isRunning);
+        animator.SetBool("isRunning", enemy.isRunning);
         animator.SetBool("isIdle", enemy.isTurning);
     }
 
@@ -73,8 +86,13 @@ public class MonsterAnimController : MonoBehaviour
                     enemy.GetComponent<Animator>().SetTrigger("damaged");
                     foreach (var bloodVFX in enemy.bloodSplatters)
                         bloodVFX.Play();
-                    
                     StartCoroutine(DamageEnemy(2, enemy));
+                    break;
+                case BattleActionType.Run:
+                    enemy.GetComponent<Animator>().SetBool("isRunning", true);
+                    break;
+                case BattleActionType.RunBack:
+                    enemy.GetComponent<Animator>().SetTrigger("runBattle");
                     break;
                 default:
                     break;
@@ -87,7 +105,7 @@ public class MonsterAnimController : MonoBehaviour
 
     private float ReturnRandomFloat()
     {
-        return Random.Range(0.0f, 1.0f);
+        return UnityEngine.Random.Range(0.0f, 1.0f);
     }
 
     IEnumerator WaitForReaction(float initialWait, float finalWaitTime, string trigger, Animator animator)
