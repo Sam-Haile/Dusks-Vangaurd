@@ -3182,7 +3182,7 @@ MonoBehaviour:
   baseArcane: 2
   baseDefense: 3
   specialDefense: 1
-  experience: 100
+  experience: 50
   gold: 75
   canUseMagic: 0
   equippedWeapon: {fileID: 0}
@@ -3208,8 +3208,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minWalkTime: 0
   maxWalkTime: 1
-  viewAngle: 86.4
-  viewDistance: 4.56
+  viewAngle: 151.3
+  viewDistance: 6.09
   playerLayer:
     serializedVersion: 2
     m_Bits: 64

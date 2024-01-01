@@ -87,7 +87,6 @@ public class AudioManager : MonoBehaviour
         switch (actionType)
         {
             case BattleState.WON:
-                Debug.Log("Stop battle music");
                 StopSound("BattleTheme");
                 break;
 

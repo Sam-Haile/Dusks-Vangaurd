@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEditor.Rendering;
 using UnityEngine;
@@ -8,21 +9,29 @@ using UnityEngine.UI;
 public class LevelUpManager : MonoBehaviour
 {
     public static LevelUpManager instance;
-
+    private Queue<PlayableCharacter> characterLvUpQueue = new Queue<PlayableCharacter>();
     //EXP Screen Fields
     [HideInInspector] public int totalExp;
-    public Slider[] xpSliders = new Slider[4]; // Max 4 players in a battle
-
+    public GameObject[] xpHUDS = new GameObject[4]; // Max 4 players in a battle
+    public Animator[] levelUpText = new Animator[4];
     public GameObject levelScreen;
     public TextMeshProUGUI goldFromBattle;
     public TextMeshProUGUI currentGold;
     public TextMeshProUGUI expFromBattle;
     [HideInInspector] public int totalGold = 0;
 
+    public Button button;
+    public LevelUpStats stats;
     public GameObject continueButton;
+    [HideInInspector] public bool advance = false;
 
     public bool expDone = false;
     public bool goldDone = false;
+
+    List<PlayableCharacter> partyManager;
+    public LevelUpStats lvlUpStats;
+    public PlayableCharacter currentPlayer;
+
     private void Awake()
     {
         // Ensure that there's only one instance
@@ -36,7 +45,12 @@ public class LevelUpManager : MonoBehaviour
             return;
         }
 
-        DontDestroyOnLoad(gameObject); 
+        DontDestroyOnLoad(gameObject);
+    }
+
+    private void Start()
+    {
+        partyManager = PartyManager.instance.partyMembers;
     }
 
     private void Update()
@@ -47,12 +61,6 @@ public class LevelUpManager : MonoBehaviour
             goldDone = false;
             continueButton.SetActive(true);
         }
-    }
-
-    public void LevelUp()
-    {
-        //Do level up stuff here
-        Debug.Log("LEVEL UP TIME");
     }
 
     public int ExpToGain(Unit enemiesXP)
@@ -81,10 +89,10 @@ public class LevelUpManager : MonoBehaviour
         goldFromBattle.text = totalGold.ToString();
 
         currentGold.text = player.gold.ToString();
-        
+
         //Set EXP fields
         expFromBattle.text = totalExp.ToString();
-        
+
         levelScreen.SetActive(true);
     }
 
@@ -92,14 +100,21 @@ public class LevelUpManager : MonoBehaviour
     /// Apply the XP to players after a battle ends in victory
     /// </summary>
     /// <returns></returns>
-    public IEnumerator GainExp(PlayableCharacter player, Slider xpSlider)
+    public IEnumerator GainExp(PlayableCharacter player, int i, System.Action onComplete)
     {
-        //expFromBattle.text = totalExp.ToString();
+        // Give totalExp a degree of variabliity
+        int variableExp = (int)(totalExp * Random.Range(.8f, 1.2f));
+
         float startValue = (float)player.experience / (float)player.expToNextLevel;
-        xpSlider.value = startValue;
+        xpHUDS[i].SetActive(true);
+        XPScreen xpHUD = xpHUDS[i].GetComponent<XPScreen>();
+
+        xpHUD.xpSlider.value = startValue;
+        xpHUD.playerIcon.sprite = partyManager[i].playerSpriteHead;
+
         yield return new WaitForSeconds(2f);
 
-        float targetValue = (float)(player.experience + totalExp) / (float)player.expToNextLevel;
+        float targetValue = (float)(partyManager[i].experience + variableExp) / (float)partyManager[i].expToNextLevel;
 
         float overflowExp;
         float duration = 1.5f; // Time (in seconds) you want the interpolation to take
@@ -108,17 +123,18 @@ public class LevelUpManager : MonoBehaviour
         while (elapsedTime < duration)
         {
             float sliderValue = Mathf.Lerp(startValue, targetValue, elapsedTime / duration);
-            int expInterpolation = (int)Mathf.Lerp(totalExp, 0, elapsedTime/ duration);
+            int expInterpolation = (int)Mathf.Lerp(variableExp, 0, elapsedTime / duration);
 
-            if (xpSlider.value == 1)
+            if (xpHUD.xpSlider.value == 1)
             {
-                LevelUp();
+                characterLvUpQueue.Enqueue(partyManager[i]);
+                levelUpText[i].SetTrigger("in");
 
-                overflowExp = (targetValue * player.expToNextLevel) - player.expToNextLevel;
+                overflowExp = (targetValue * partyManager[i].expToNextLevel) - partyManager[i].expToNextLevel;
 
                 // Reset the start and target values to correctly interpolate the overflow experience:
                 startValue = 0;
-                targetValue = overflowExp / player.expToNextLevel;
+                targetValue = overflowExp / partyManager[i].expToNextLevel;
 
                 // Reset the elapsed time and duration to interpolate the overflow experience:
                 elapsedTime = 0;
@@ -127,17 +143,18 @@ public class LevelUpManager : MonoBehaviour
                 sliderValue = Mathf.Lerp(startValue, targetValue, elapsedTime / duration);
             }
 
-            SetXP(sliderValue, xpSlider);
+            SetXP(sliderValue, xpHUD.xpSlider);
             elapsedTime += Time.deltaTime;
 
             yield return null;
         }
 
         // Ensure the slider value reaches the exact target value in case of rounding errors
-        SetXP(targetValue, xpSlider);
-        player.AddExperience(totalExp);
+        SetXP(targetValue, xpHUD.xpSlider);
+        partyManager[i].AddExperience(variableExp);
 
         expDone = true;
+        onComplete?.Invoke();
 
     }
 
@@ -170,6 +187,39 @@ public class LevelUpManager : MonoBehaviour
         player.gold += totalGold;
 
         goldDone = true;
+    }
+
+
+    public IEnumerator LevelUp()
+    {
+        while (characterLvUpQueue.Count > 0)
+        {
+            PlayableCharacter player = (PlayableCharacter)characterLvUpQueue.Dequeue();
+
+            //stats.UpdateStats(player);
+
+            currentPlayer = player;
+
+            stats.animator.SetTrigger("in");
+
+            // Wait for the onClick event to hide the level-up screen
+            // Attach the method to the button's onClick event
+            button.onClick.AddListener(HideLevelUpScreen);
+
+            // Wait for the onClick event to hide the level-up screen
+            yield return new WaitUntil(() => advance);
+
+        }
+    }
+
+    public void HideLevelUpScreen()
+    {
+        stats.animator.SetTrigger("out");
+        // Set the flag to signal that the screen is hidden
+        advance = true;
+
+        // Remove the listener to avoid multiple calls
+        button.onClick.RemoveListener(HideLevelUpScreen);
     }
 
 }

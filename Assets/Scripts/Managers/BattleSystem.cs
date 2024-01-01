@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -11,8 +12,8 @@ using UnityEngine.UI;
 public enum BattleState { START, PLAYERTURN, ENEMYTURN, WON, LOST, FLEE }
 
 // Used for specific enemy and player actions
-public enum BattleActionType{ Start, PrepareAttack, Attack, Run, RunBack, Gaurd, StopGaurding, Arcane, Damaged, Healed, Flee, Die, Won }
-public enum CameraActionType{ GoToStart, GoBehindPlayer, EnemyAttacking}
+public enum BattleActionType { Start, PrepareAttack, Attack, Run, RunBack, Gaurd, StopGaurding, Arcane, Damaged, Healed, Flee, Die, Won }
+public enum CameraActionType { GoToStart, GoBehindPlayer, EnemyAttacking }
 
 public class BattleSystem : MonoBehaviour
 {
@@ -39,7 +40,7 @@ public class BattleSystem : MonoBehaviour
 
     // Player Instantiation fields
     public Transform[] playerBattleStations;
-
+    private int partySize = PartyManager.instance.partyMembers.Count;
     private int[] baseDefenses;
     private int currentPlayerIndex;
     public Text dialogueText;
@@ -70,6 +71,8 @@ public class BattleSystem : MonoBehaviour
     public static event BattleStateHandler OnBattleState;
 
     public delegate int DamageCalculationDelegate(int damageStat, Unit selectedEnemy, Weapon equippedWeapon);
+
+    private bool isBattleDone = false;
     #endregion
 
     #region Battle Setup
@@ -84,10 +87,10 @@ public class BattleSystem : MonoBehaviour
         foreach (GameObject enemy in enemyPrefabList)
             enemyDictionary.Add(enemy.tag, enemy);
 
-        for(int i = 0; i < partyManager.Count; i++)
-             baseDefenses[i] = partyManager[i].baseDefense;
+        for (int i = 0; i < partyManager.Count; i++)
+            baseDefenses[i] = partyManager[i].baseDefense;
 
-            levelUpManager = GetComponent<LevelUpManager>();
+        levelUpManager = GetComponent<LevelUpManager>();
     }
 
     void Start()
@@ -128,7 +131,7 @@ public class BattleSystem : MonoBehaviour
     /// </summary>
     private void SetupPlayers()
     {
-        for (int i = 0; i < partyManager.Count; i++) 
+        for (int i = 0; i < partyManager.Count; i++)
         {
             PlayableCharacter member = PartyManager.instance.partyMembers[i];
 
@@ -141,7 +144,7 @@ public class BattleSystem : MonoBehaviour
             member.transform.rotation = Quaternion.Euler(0, 0, 0);
             member.battleIndex = positionIndex;
             // Character specific changes
-            if(member.tag == "Player")
+            if (member.tag == "Player")
             {
                 member.GetComponent<CharacterController>().enabled = false;
             }
@@ -208,38 +211,40 @@ public class BattleSystem : MonoBehaviour
             battleHUD.UpdateAllStats(player);
 
         yield return new WaitForSeconds(4f);
-        combatButtonUI.SetTrigger("int");
+        combatButtonUI.SetTrigger("in");
         state = BattleState.PLAYERTURN;
     }
 
     private void AdvanceTurn()
     {
-        // If a player is dead
-        UpdatePlayerStates();
+        if (!isBattleDone)
+        {
+            // If a player is dead
+            UpdatePlayerStates();
 
-        // Increment the current player index and check if it exceeds the party size
-        currentPlayerIndex = (currentPlayerIndex + 1) % PartyManager.instance.partyMembers.Count;
+            // Increment the current player index and check if it exceeds the party size
+            currentPlayerIndex = (currentPlayerIndex + 1) % partySize;
 
-        if (activeEnemies.Count == 0)
-        {
-            backButtonUI.SetTrigger("out");
-            combatButtonUI.SetTrigger("out");
-            state = BattleState.WON;
-            EndBattle();
-        }
-        // If we've looped back to the first player, it's the enemy's turn
-        if (currentPlayerIndex == 0)
-        {
-            state = BattleState.ENEMYTURN;
-            StartCoroutine(EnemyTurn());
-        }
-        else if (currentPlayerIndex != 0 && !PartyManager.instance.partyMembers[currentPlayerIndex].isDead)
-        {
-            state = BattleState.PLAYERTURN;
-            combatButtonUI.SetTrigger("in");
+            if (activeEnemies.Count == 0)
+            {
+                backButtonUI.SetTrigger("out");
+                combatButtonUI.SetTrigger("out");
+            }
+
+            // If we've looped back to the first player, it's the enemy's turn
+            if (currentPlayerIndex == 0 && state != BattleState.WON)
+            {
+                state = BattleState.ENEMYTURN;
+                StartCoroutine(EnemyTurn());
+            }
+            else if (currentPlayerIndex != 0 && !PartyManager.instance.partyMembers[currentPlayerIndex].isDead && activeEnemies.Count > 0)
+            {
+                state = BattleState.PLAYERTURN;
+                Debug.Log(state);
+                combatButtonUI.SetTrigger("in");
+            }
         }
     }
-
 
     private void InstantiateEnemies(GameObject enemyToInstantite, int battleStationIndex)
     {
@@ -452,7 +457,7 @@ public class BattleSystem : MonoBehaviour
 
         while (!animationDone)
         {
-            if(attackApexReached)
+            if (attackApexReached)
             {
                 OnBattleAction(BattleActionType.Damaged, selectedEnemy, UnitType.Enemy);
                 attackApexReached = false;
@@ -469,7 +474,7 @@ public class BattleSystem : MonoBehaviour
         OnBattleAction(BattleActionType.RunBack, currentPlayer, UnitType.Player);
         //Do not trigger the jump coroutine because Puck can fly
         //if (currentPlayer.tag == "Puck") 
-          StartCoroutine(MoveOverTime(currentPlayer.gameObject, playerBattleStations[currentPlayer.battleIndex].transform.position, .75f)); // Assuming 1f is the jump height
+        StartCoroutine(MoveOverTime(currentPlayer.gameObject, playerBattleStations[currentPlayer.battleIndex].transform.position, .75f)); // Assuming 1f is the jump height
         //else
         //  StartCoroutine(MoveOverTimeWithJump(currentPlayer.gameObject, playerBattleStations[currentPlayer.battleIndex].transform.position, .5f, 2f)); // Assuming 1f is the jump height
 
@@ -481,8 +486,8 @@ public class BattleSystem : MonoBehaviour
         currentPlayer.gameObject.transform.position = playerBattleStations[currentPlayer.battleIndex].transform.position;
         OnCameraAction(CameraActionType.GoToStart, 4);
         // If an enemy dies
-         
-        
+
+
         AdvanceTurn();
 
     }
@@ -519,13 +524,7 @@ public class BattleSystem : MonoBehaviour
 
         Destroy(enemy.gameObject);
 
-        if (activeEnemies.Count == 0)
-        {
-            state = BattleState.WON;
-            EndBattle();
-        }
-        else
-            AdvanceTurn();
+        AdvanceTurn();
     }
 
     /// <summary>
@@ -536,7 +535,7 @@ public class BattleSystem : MonoBehaviour
     {
         PlayableCharacter currentPlayer = partyManager[currentPlayerIndex];
         currentPlayer.isGaurding = true;
-        
+
         OnBattleAction(BattleActionType.Gaurd, currentPlayer, UnitType.Player);
         currentPlayer.baseDefense *= 2;
         yield return new WaitForSeconds(2f);
@@ -580,11 +579,11 @@ public class BattleSystem : MonoBehaviour
     private IEnumerator MoveOverTime(GameObject objectToMove, Vector3 targetPos, float time)
     {
         float elapsedTime = 0;
-        Vector3 startingPos = objectToMove.transform.position;  
+        Vector3 startingPos = objectToMove.transform.position;
 
         while (elapsedTime < time)
         {
-            objectToMove.transform.position = Vector3.Lerp(startingPos, targetPos, elapsedTime/time);
+            objectToMove.transform.position = Vector3.Lerp(startingPos, targetPos, elapsedTime / time);
             elapsedTime += Time.deltaTime;
             yield return new WaitForEndOfFrame();
         }
@@ -706,7 +705,7 @@ public class BattleSystem : MonoBehaviour
 
                 OnCameraAction(CameraActionType.EnemyAttacking, target.battleIndex);
                 OnBattleAction(BattleActionType.Attack, activeEnemies[i], UnitType.Enemy);
-                
+
                 // Play the players damaged anim at the apex of the attack
                 while (!animationDone)
                 {
@@ -722,20 +721,16 @@ public class BattleSystem : MonoBehaviour
 
                 OnBattleAction(BattleActionType.RunBack, activeEnemies[i], UnitType.Enemy);
                 yield return StartCoroutine(MoveOverTime(activeEnemies[i].gameObject, enemyBattleStations[activeEnemies[i].battleIndex].transform.position, .5f));
-                
-                
+
+
                 if (AllPlayersDefeated())
                 {
                     state = BattleState.LOST;
                     EndBattle();
                     yield break; // Exit the coroutine
                 }
-                
-
             }
-
             doneAttacking = true;
-
         }
 
         // Reset defense after gaurding is complete
@@ -747,10 +742,26 @@ public class BattleSystem : MonoBehaviour
             player.isGaurding = false;
         }
 
-        currentPlayerIndex = 0;
-        state = BattleState.PLAYERTURN;
-        combatButtonUI.SetTrigger("in");
         OnCameraAction(CameraActionType.GoToStart, 4);
+        currentPlayerIndex = 0;
+
+        if (activeEnemies.Count > 0)
+        {
+            combatButtonUI.SetTrigger("in");
+            state = BattleState.PLAYERTURN;
+        }
+        else
+        {
+            isBattleDone = true;
+            foreach (PlayableCharacter player in partyManager)
+                OnBattleAction(BattleActionType.Won, player, UnitType.Player);
+
+            yield return new WaitForSeconds(4f);
+            backButtonUI.SetTrigger("out");
+            combatButtonUI.SetTrigger("out");
+            state = BattleState.WON;
+            EndBattle();
+        }
     }
 
     private void UpdatePlayerStates()
@@ -808,12 +819,23 @@ public class BattleSystem : MonoBehaviour
         PlayerCollision.instance.battleTransitionAnimator.SetTrigger("End");
         yield return new WaitForSeconds(2f);
 
-        foreach(var player in partyManager)
+
+        for (int i = 0; i < partyManager.Count; i++)
         {
+            PlayableCharacter player = PartyManager.instance.partyMembers[i];
+
             OnBattleAction(BattleActionType.Won, player, UnitType.Player);
-         
-            if(player.tag == "Puck")
+
+            // Character specific changes
+            if (player.tag == "Player")
+            {
+                player.GetComponent<CharacterController>().enabled = true;
+            }
+            else if (player.tag == "Puck")
+            {
                 player.transform.localScale = new Vector3(2, 2, 2);
+                Puck.instance.GetComponent<Follow>().enabled = true;
+            }
         }
 
         SceneManager.LoadScene(sceneIndex);
@@ -958,14 +980,12 @@ public class BattleSystem : MonoBehaviour
         canSelect = active;
     }
 
-    void EndBattle()
+    private void EndBattle()
     {
-        backButtonUI.SetTrigger("out");
-        combatButtonUI.SetTrigger("out");
-        
+        //Debug.Log("EndBattle");
         if (state == BattleState.FLEE || state == BattleState.WON)
         {
-            foreach(PlayableCharacter player in partyManager)
+            foreach (PlayableCharacter player in partyManager)
             {
                 if (player.isDead)
                 {
@@ -979,9 +999,8 @@ public class BattleSystem : MonoBehaviour
         {
             OnBattleState(BattleState.WON);
             GameData.battleCompleted = true;
-            
-            for(int i = 0; i < partyManager.Count; i++)
-                StartCoroutine(levelUpManager.GainExp(partyManager[i], levelUpManager.xpSliders[i]));
+
+            StartCoroutine(GainExpAndLevelUp());
 
             StartCoroutine(levelUpManager.GainGold(partyManager[0]));
         }
@@ -992,6 +1011,31 @@ public class BattleSystem : MonoBehaviour
         else if (state == BattleState.LOST)
         {
             StartCoroutine(LoadWorld(0));
+        }
+
+    }
+    private IEnumerator GainExpAndLevelUp()
+    {
+        int runningCoroutines = partyManager.Count;
+
+        for (int i = 0; i < partyManager.Count; i++)
+        {
+            StartCoroutine(levelUpManager.GainExp(partyManager[i], i, () =>
+            {
+                runningCoroutines--;
+
+                if (runningCoroutines == 0)
+                {
+                    // All GainExp coroutines have completed, start LevelUp coroutine
+                    StartCoroutine(levelUpManager.LevelUp());
+                }
+            }));
+        }
+
+        // Wait until all GainExp coroutines are completed
+        while (runningCoroutines > 0)
+        {
+            yield return null;
         }
 
     }
